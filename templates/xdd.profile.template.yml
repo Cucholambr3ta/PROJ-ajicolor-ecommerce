@@ -1,0 +1,46 @@
+# xdd.profile.yml — Perfil del Proyecto
+# Declara el tipo de producto. Usado por scripts/xdd-init.sh y xdd-doctor.sh
+# para activar workflows, plantillas y agentes relevantes.
+
+profile: saas        # saas | mobile | lib | internal | custom
+version: 1
+
+# Capacidades activadas (true = se copian templates y se sugieren workflows)
+capabilities:
+  # Producto
+  ux_discovery: true
+  feature_flags: true
+  product_analytics: true
+  release_management: true
+
+  # Operación
+  observability: true
+  disaster_recovery: true
+  finops: true
+  onboarding: true
+  code_intelligence: true   # GitNexus MCP — impact analysis + AST grafo (opt-in, PolyForm Noncomm)
+
+  # Calidad técnica
+  api_contract: true
+  contract_testing: true
+  db_migrations: true
+  perf_budget: true
+  a11y_audit: true
+  adrs: true
+
+  # Verticales
+  i18n: false           # SaaS global = true; tool interna = false
+  privacy_review: true  # tratamiento de PII
+  mobile_release: false # solo si profile=mobile
+  data_pipeline: false  # solo si hay procesamiento de datos
+  ml_eval: false        # solo si hay ML en el producto
+  end_user_docs: false  # solo si profile=lib o producto externo
+
+# Stacks elegidos (rellenar al adoptar; los workflows usan placeholders)
+stacks:
+  feature_flags: ""     # launchdarkly | unleash | flagsmith | growthbook
+  analytics: ""         # posthog | segment | amplitude | mixpanel | rudderstack
+  observability: ""     # datadog | grafana_stack | newrelic | honeycomb
+  ci: ""                # github_actions | gitlab_ci | circleci | jenkins
+  i18n: ""              # i18next | formatjs | lingui | rosetta
+  cloud: ""             # aws | gcp | azure | hetzner | fly | render

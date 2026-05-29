@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate gate keeper integrity
+        run: |
+          # Las 6 fases deben estar APROBADAS para release.
+          # (En CI no podemos validar firma sin .gate-key; chequeamos solo .status)
+          for phase in briefing spec plan build qa retro; do
+            status=$(cat ".xdd/$phase/.status" 2>/dev/null || echo "MISSING")
+            echo "Phase $phase: $status"
+            if [ "$status" != "APROBADO" ]; then
+              echo "ERROR: Fase $phase no está APROBADO (status=$status)" >&2
+              exit 1
+            fi
+          done
+
+      - name: Generate release notes from CHANGELOG
+        id: notes
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          # Extraer sección del CHANGELOG para esta versión
+          NOTES=$(awk "/^## \[$VERSION\]/,/^## \[/" docs/CHANGELOG.md | head -n -1)
+          if [ -z "$NOTES" ]; then
+            NOTES="Release $TAG — ver docs/CHANGELOG.md"
+          fi
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "${{ github.ref_name }}"
+          body: ${{ steps.notes.outputs.notes }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') || contains(github.ref_name, '-dev') }}
+          generate_release_notes: true
+          files: |
+            RELEASES/${{ github.ref_name }}.md
+            CHANGELOG.md
+            DEPENDENCIES.md
+            LICENSE

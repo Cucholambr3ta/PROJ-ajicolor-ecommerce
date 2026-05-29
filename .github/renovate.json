@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)",
+    ":automergeMinor",
+    ":automergePatch",
+    "schedule:weekly"
+  ],
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "automerge": true
+    },
+    {
+      "description": "MemPalace updates require review (no automerge)",
+      "matchPackageNames": ["mempalace"],
+      "automerge": false,
+      "labels": ["dependencies", "mempalace", "review-required"]
+    },
+    {
+      "description": "Security patches always merge",
+      "matchUpdateTypes": ["patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  },
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2
+}

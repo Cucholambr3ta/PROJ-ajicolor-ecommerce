@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Cucholambr3ta/x-dd/raw/main/prompts/agents/registry.schema.json",
+  "title": "X-DD Agent Registry",
+  "description": "Catálogo machine-readable de agentes especializados (Sprint 5).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "agents"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "generated_by": { "type": "string" },
+    "agents": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/agent" },
+      "minItems": 1
+    },
+    "composition_patterns": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/composition_pattern" }
+    },
+    "routing_rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/routing_rule" }
+    }
+  },
+  "$defs": {
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "category", "prompt_file"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+          "description": "Slug kebab-case único en el registry."
+        },
+        "name": { "type": "string", "minLength": 1 },
+        "category": {
+          "type": "string",
+          "enum": [
+            "academic", "design", "engineering", "finance",
+            "game-development", "marketing", "paid-media", "product",
+            "project-management", "sales", "security", "spatial-computing",
+            "specialized", "strategy", "support", "testing"
+          ]
+        },
+        "description": { "type": "string" },
+        "emoji": { "type": "string" },
+        "color": { "type": "string" },
+        "vibe": { "type": "string" },
+        "prompt_file": {
+          "type": "string",
+          "description": "Path relativo al repo (verificable en CI)."
+        },
+        "skills": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "constraints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "triggers": {
+          "type": "array",
+          "items": { "type": "string", "description": "ej: 'phase:spec', 'artifact:THREATS.md'" }
+        },
+        "fallback_agent": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "string", "description": "id de otro agente" }
+          ]
+        },
+        "ide_compat": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["claude-code", "opencode", "mcp", "cursor", "windsurf", "copilot", "cline", "aider", "continue", "zed"]
+          }
+        }
+      }
+    },
+    "composition_pattern": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "lead", "specialists", "orchestration"],
+      "properties": {
+        "name": { "type": "string" },
+        "lead": { "type": "string", "description": "agent.id del lead" },
+        "specialists": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "orchestration": {
+          "type": "string",
+          "enum": ["sequential", "parallel", "parallel_then_sync"]
+        },
+        "gate_between": { "type": "string" },
+        "sync_point": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "routing_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["condition", "agent"],
+      "properties": {
+        "condition": { "type": "string" },
+        "agent": { "type": "string", "description": "agent.id" },
+        "priority": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

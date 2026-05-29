@@ -1,0 +1,44 @@
+# Pre-commit hooks — X-DD
+# Instalación:
+#   pip install pre-commit
+#   pre-commit install
+# Ejecutar manualmente:
+#   pre-commit run --all-files
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+        args: ['-e', 'SC1091', '-e', 'SC2034', '--severity=warning']
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.13.0
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: local
+    hooks:
+      - id: lint-xdd-workflows
+        name: X-DD workflow linter
+        entry: bash scripts/lint-workflows.sh
+        language: system
+        pass_filenames: false
+        files: ^(\.agent/workflows/|prompts/workflows/)

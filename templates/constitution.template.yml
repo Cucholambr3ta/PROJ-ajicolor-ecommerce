@@ -1,0 +1,90 @@
+# constitution.yml — Machine-readable adapter del constitution.md humano
+# Sprint 21 + ADR-0028. Inspirado en AutoHarness constitution YAML.
+# Coexiste con constitution.md (humano). Esta versión la consumen scripts.
+
+spec_version: "0.1.0"
+project: "<PROYECTO>"
+version: "1.0"
+date: "2026-05-27"
+
+approvers:
+  - name: "<APPROVER 1>"
+    role: "tech-lead"
+  - name: "<APPROVER 2>"
+    role: "security-lead"
+
+# Pipeline gated (X-DD heredado)
+pipeline:
+  phases:
+    - briefing
+    - spec
+    - plan
+    - build
+    - qa
+    - retro
+  signature_required: true
+  signature_algorithm: HMAC-SHA256
+
+# Permissions (ADR-0028) — espejado por xdd-authz
+permissions:
+  default_action: allow
+  auto_mode_threshold: high
+  intent_rules:
+    - {intent: filesystem_delete, action: require_approval}
+    - {intent: secret_access,     action: deny}
+    - {intent: lang_exec,         action: require_approval}
+    - {intent: network_outbound,  action: allow}
+    - {intent: filesystem_write,  action: allow}
+    - {intent: mcp_external,      action: require_approval}
+    - {intent: read_only,         action: allow}
+
+# Sandbox config (ADR-0027)
+sandbox:
+  backend: docker
+  network: deny
+  cpu_limit: "1.0"
+  mem_limit: "512m"
+  timeout_sec: 30
+  auto_for_intents:
+    - lang_exec
+    - filesystem_delete
+    - fork_subprocess
+
+# Quality minimums
+quality:
+  coverage_min_pct: 80
+  performance_budget:
+    p99_latency_ms: 500
+    bundle_size_kb: 250
+  accessibility: "WCAG-2.1-AA"
+  security:
+    sast_required: true
+    secrets_scan_required: true
+    pentest_frequency: "quarterly"
+
+# Continuous learning policy (ADR-0029)
+continuous_learning:
+  enabled: true
+  auto_promote: false           # T6.1: humano siempre firma
+  evidence_required: true
+  predicted_impact_required: true
+  falsification_required: true
+
+# Observability (ADR-0021)
+observability:
+  otel_export: true
+  trace_replay: true
+  cost_tracking: true
+  context_budget:
+    max_tokens: 200000
+    warning_threshold: 0.80
+    block_threshold: 0.95
+
+# Governance del propio constitution.yml
+governance:
+  changes_require:
+    approver_count: "all"
+    branch_dedicated: true
+    pr_required: true
+    bump_version: true
+  versioning: "semver"

@@ -1,0 +1,53 @@
+name: Validate Prompts & Workflows
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.agent/workflows/**'
+      - 'prompts/**'
+      - 'scripts/lint-workflows.sh'
+      - '.github/workflows/validate-prompts.yml'
+  pull_request:
+    paths:
+      - '.agent/workflows/**'
+      - 'prompts/**'
+      - 'scripts/lint-workflows.sh'
+      - '.github/workflows/validate-prompts.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  lint-workflows:
+    name: Lint .agent/workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run X-DD workflow linter
+        run: bash scripts/lint-workflows.sh
+
+  smoke-doctor:
+    name: Smoke test xdd-doctor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run xdd-doctor (warnings esperados; 0 críticos)
+        run: bash scripts/xdd-doctor.sh
+
+  scripts-help-version:
+    name: Verify --help and --version on scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Each script responds to --version
+        run: |
+          set -e
+          for s in xdd-start xdd-init xdd-doctor lint-workflows; do
+            echo "::group::scripts/$s.sh --version"
+            bash "scripts/$s.sh" --version
+            echo "::endgroup::"
+            echo "::group::scripts/$s.sh --help (truncado)"
+            bash "scripts/$s.sh" --help | head -5
+            echo "::endgroup::"
+          done

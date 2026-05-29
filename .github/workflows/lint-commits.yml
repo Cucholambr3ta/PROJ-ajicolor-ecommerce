@@ -1,0 +1,33 @@
+name: Lint Commits (commitlint)
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install commitlint
+        run: |
+          npm install --no-save --no-package-lock \
+            @commitlint/cli@^19 \
+            @commitlint/config-conventional@^19
+
+      - name: Validate PR commits
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          npx commitlint --from="$BASE" --to="$HEAD" --verbose

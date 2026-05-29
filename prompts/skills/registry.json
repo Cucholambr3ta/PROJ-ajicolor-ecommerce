@@ -1,0 +1,60 @@
+{
+  "$schema": "../../schemas/skills.schema.json",
+  "version": "1.0.0",
+  "skills": [
+    {
+      "name": "xdd-talk-compact",
+      "path": "skills/xdd-talk-compact/SKILL.md",
+      "origin": "x-dd",
+      "inspired_by": "juliusbrussee/caveman (MIT)",
+      "category": "output-optimization",
+      "triggers": ["XDD_OUTPUT_COMPACT", "compact mode", "be brief", "short answer"],
+      "evals": "evals/xdd-talk-compact/"
+    },
+    {
+      "name": "agent-eval",
+      "path": "skills/agent-eval/SKILL.md",
+      "origin": "x-dd",
+      "inspired_by": "ECC agent-eval skill (MIT)",
+      "category": "quality-gate",
+      "triggers": ["/eval", "run evals", "test skill"],
+      "evals": null
+    },
+    {
+      "name": "xdd-ai-review",
+      "path": "skills/xdd-ai-review/SKILL.md",
+      "origin": "x-dd",
+      "inspired_by": "gentleman-guardian-angel (provider-agnostic)",
+      "category": "quality-gate",
+      "triggers": ["pre-commit", "/ai-review", "review my diff with AI"],
+      "evals": null
+    },
+    {
+      "name": "xdd-compact",
+      "path": "skills/xdd-compact/SKILL.md",
+      "origin": "x-dd",
+      "inspired_by": "LLMLingua-2 + Claude Compaction API + ByteRover",
+      "category": "context-engineering",
+      "triggers": ["/compact", "compact context", "reduce tokens", "XDD_AUTO_COMPACT"],
+      "evals": "evals/xdd-compact/"
+    },
+    {
+      "name": "xdd-fs-context",
+      "path": "skills/xdd-fs-context/SKILL.md",
+      "origin": "x-dd",
+      "inspired_by": "Mirage MCP + OpenViking + Azure SRE Case Study + Token Savior",
+      "category": "context-engineering",
+      "triggers": ["/fs-context", "mount as filesystem", "treat as files"],
+      "evals": null
+    },
+    {
+      "name": "xdd-sandbox",
+      "path": "skills/xdd-sandbox/SKILL.md",
+      "origin": "x-dd",
+      "inspired_by": "E2B + Daytona + Microsandbox + ai-boost/Picrew sandbox enumeration",
+      "category": "security",
+      "triggers": ["/sandbox", "run in sandbox", "XDD_AUTO_SANDBOX"],
+      "evals": null
+    }
+  ]
+}

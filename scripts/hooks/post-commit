@@ -1,0 +1,10 @@
+#!/bin/sh
+# X-DD: re-indexa MemPalace después de cada commit para preservar contexto.
+# No bloquea el commit si MemPalace no está instalado o falla.
+LOG_DIR="${HOME}/.mempalace"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/mine.log"
+
+if command -v mempalace >/dev/null 2>&1; then
+  ( mempalace mine "$PWD" >>"$LOG_FILE" 2>&1 ) &
+fi

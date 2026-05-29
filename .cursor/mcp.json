@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "anmax": {
+      "command": "python3",
+      "args": ["-m", "xdd-mcp-server"],
+      "cwd": "/home/alejandro/Documentos/Desarrollos/personal/PROJ-ajicolor-ecommerce"
+    }
+  }
+}

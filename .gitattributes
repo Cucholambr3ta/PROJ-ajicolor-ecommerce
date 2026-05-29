@@ -1,0 +1,31 @@
+# Normalize line endings — todos los archivos usan LF en repo.
+* text=auto eol=lf
+
+# Scripts shell siempre LF (ejecutables en Linux/macOS).
+*.sh text eol=lf
+*.bash text eol=lf
+scripts/hooks/* text eol=lf
+
+# Python siempre LF.
+*.py text eol=lf
+
+# Markdown y YAML siempre LF (renderers Linux).
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+
+# Binarios — git no toca.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+*.pdf binary
+
+# Linguist overrides — para que GitHub clasifique correctamente.
+templates/* linguist-documentation
+docs/* linguist-documentation
+prompts/agents/** linguist-documentation
+.agent/workflows/** linguist-documentation

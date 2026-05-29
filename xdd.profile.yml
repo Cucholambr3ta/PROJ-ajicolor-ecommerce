@@ -1,0 +1,36 @@
+profile: saas
+product: ajicolor-ecommerce
+description: Tienda online de ropa musical con estética toon-pop
+version: 1
+capabilities:
+  ux_discovery: true
+  feature_flags: true
+  product_analytics: true
+  release_management: true
+  observability: true
+  disaster_recovery: true
+  finops: true
+  onboarding: true
+  code_intelligence: true
+  api_contract: true
+  contract_testing: true
+  db_migrations: true
+  perf_budget: true
+  a11y_audit: true
+  adrs: true
+  i18n: false
+  privacy_review: true
+  mobile_release: false
+  data_pipeline: false
+  ml_eval: false
+  end_user_docs: false
+stacks:
+  feature_flags: ''
+  analytics: ''
+  observability: ''
+  ci: ''
+  i18n: ''
+  cloud: ''
+branding:
+  orchestrator_trigger: anmax
+  ecosystem_name: ANMAX
