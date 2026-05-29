@@ -1,1 +1,1 @@
-{"version":1,"functions":{"/admin/clientes":{},"/admin/catalogo":{},"/admin/envios":{},"/admin":{},"/admin/stock":{},"/admin/pedidos":{},"/admin/produccion":{}}}
+{"version":1,"functions":{"/admin/clientes":{},"/admin":{},"/admin/catalogo":{},"/admin/pedidos":{},"/admin/envios":{},"/admin/stock":{},"/admin/produccion":{},"/admin/produccion/[id]":{},"/admin/pedidos/[id]":{}}}

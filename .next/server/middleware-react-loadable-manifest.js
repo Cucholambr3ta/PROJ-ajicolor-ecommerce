@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}";
+self.__REACT_LOADABLE_MANIFEST='{"app/admin/stock/StockPageClient.tsx -> @/lib/actions/stock":{"id":3907,"files":["static/chunks/907.46d19137823e3486.js"]}}';
