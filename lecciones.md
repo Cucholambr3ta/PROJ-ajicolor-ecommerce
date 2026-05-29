@@ -47,3 +47,10 @@ Categorías sugeridas: `ARQUITECTURA`, `SEGURIDAD`, `DOMINIO`, `TESTING`, `DEVOP
 **Causa raíz:** El modelo PHASES en xdd-gate.py no coincide con el pipeline real: Briefing produce DISCOVERY.md, no SPEC/FEATURES.
 **Lección:** Al bootstrapar un proyecto, revisar `PHASES` en `scripts/xdd-gate.py` línea 45 y corregir artefactos según el pipeline real del proyecto. Briefing → `["DISCOVERY.md"]`.
 **Aplica a:** Todo proyecto X-DD que use el gate. Reportar upstream al framework como bug.
+
+### [PROCESO] Git Flow estricto: feature branch + PR → develop, sin commits directos — 2026-05-28
+**Contexto:** Commit `6f11dca` (DISCOVERY.md + fix gate) se hizo directo a develop. No hubo rama feature ni PR.
+**Problema:** Violación de Git Flow. Sin rama, no hay trazabilidad de la feature. Sin PR, no hay revisión ni historial de merge. La rama no existe para preservar el contexto de desarrollo.
+**Causa raíz:** Se priorizó velocidad sobre proceso.
+**Lección:** Toda feature/fix crea rama `feature/<nombre>` desde develop. Commit → `gh pr create --base develop` → merge (squash o merge commit). La rama NO se elimina post-merge. Jamás commit directo a develop.
+**Aplica a:** Todo el flujo del proyecto.
