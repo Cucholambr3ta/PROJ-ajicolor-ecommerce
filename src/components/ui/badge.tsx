@@ -6,7 +6,7 @@ export function Badge({
   variant = "default",
   ...props
 }: React.HTMLAttributes<HTMLSpanElement> & {
-  variant?: "default" | "outline" | "secondary";
+  variant?: "default" | "outline" | "secondary" | "destructive";
 }) {
   return (
     <span
@@ -15,6 +15,7 @@ export function Badge({
         variant === "default" && "border-transparent bg-ajicolor-magenta text-white",
         variant === "outline" && "border-gray-200 text-gray-700",
         variant === "secondary" && "border-transparent bg-gray-100 text-gray-700",
+        variant === "destructive" && "border-transparent bg-red-500 text-white",
         className
       )}
       {...props}

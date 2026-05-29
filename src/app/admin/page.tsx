@@ -1,14 +1,30 @@
+import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Package, ShoppingCart, AlertTriangle, Factory } from "lucide-react";
 
-const kpis = [
-  { label: "Ventas Hoy", value: "$0", icon: ShoppingCart, color: "text-ajicolor-magenta" },
-  { label: "Pedidos Pendientes", value: "0", icon: Package, color: "text-ajicolor-purple" },
-  { label: "Stock Bajo", value: "0", icon: AlertTriangle, color: "text-amber-500" },
-  { label: "Producción Activa", value: "0", icon: Factory, color: "text-ajicolor-yellow" },
-];
+export const dynamic = "force-dynamic";
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [ventasHoy, pedidosPendientes, stockBajo, produccionActiva] = await Promise.all([
+    prisma.order.aggregate({
+      where: { createdAt: { gte: today }, estado: { not: "Cancelado" } },
+      _sum: { total: true },
+    }),
+    prisma.order.count({ where: { estado: { in: ["Pendiente", "Confirmado"] } } }),
+    (await prisma.productVariant.findMany()).filter((v) => v.stock <= v.stockMin),
+    prisma.productionBatch.count({ where: { estado: { in: ["Solicitado", "EnProceso"] } } }),
+  ]);
+
+  const kpis = [
+    { label: "Ventas Hoy", value: `$${ventasHoy._sum.total?.toFixed(0) ?? "0"}`, icon: ShoppingCart, color: "text-ajicolor-magenta" },
+    { label: "Pedidos Pendientes", value: String(pedidosPendientes), icon: Package, color: "text-ajicolor-purple" },
+    { label: "Stock Bajo", value: String(stockBajo.length), icon: AlertTriangle, color: "text-amber-500" },
+    { label: "Producción Activa", value: String(produccionActiva), icon: Factory, color: "text-ajicolor-yellow" },
+  ];
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
