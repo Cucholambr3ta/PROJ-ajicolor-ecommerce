@@ -1,0 +1,4 @@
+{
+  "_comment": "Config MCP real vive en ~/.codeium/mcp_config.json (Windsurf lee solo de ahí, no project-local). Este archivo es stub informativo. Re-ejecuta xdd-adapt windsurf para regenerar.",
+  "mcpServers": {}
+}

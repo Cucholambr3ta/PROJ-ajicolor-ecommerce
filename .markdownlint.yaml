@@ -1,0 +1,55 @@
+# markdownlint config — X-DD
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+#
+# Filosofía: el repo X-DD tiene >290 archivos markdown (workflows, agentes,
+# ADRs, templates). Reglas estrictas generan ruido sin valor de calidad.
+# Habilitamos solo las que detectan errores reales que un reader o tool
+# automatizado va a sufrir (links rotos, fenced code sin cerrar, encoding).
+
+default: true
+
+# --- Disabled: ruido para docs técnicas/agénticas ---
+MD003: false   # heading-style: ATX vs Setext, irrelevante
+MD004: false   # ul-style: - vs *
+MD007: false   # ul-indent: indentación de listas anidadas
+MD009: false   # no-trailing-spaces: hard breaks intencionales en docs
+MD012: false   # no-multiple-blanks: separación visual de secciones
+MD013: false   # line-length: docs técnicas pueden tener líneas largas legítimas
+MD022: false   # blanks-around-headings
+MD024: false   # no-duplicate-heading (ADRs/templates tienen "Contexto", "Decisión", etc.)
+MD025: false   # single-h1 (ADRs y templates Nygard tienen múltiples h1 legítimos)
+MD026: false   # no-trailing-punctuation en headings
+MD029: false   # ol-prefix: 1. 2. 3. vs 1. 1. 1.
+MD031: false   # blanks-around-fences
+MD032: false   # blanks-around-lists
+MD033: false   # no-inline-html (badges, comentarios, <details>)
+MD034: false   # no-bare-urls (URLs en docs son ubicuas)
+MD036: false   # no-emphasis-as-heading (italic intro de sección, común en frontmatter rico)
+MD040: false   # fenced-code-language (no obligatorio para bloques ASCII art o output)
+MD041: false   # first-line-heading (templates y ADRs empiezan con frontmatter)
+MD045: false   # no-alt-text en imágenes (badges decorativos)
+MD046: false   # code-block-style: fenced vs indented
+MD047: false   # single-trailing-newline (lo garantiza .editorconfig)
+MD049: false   # emphasis-style: _ vs *
+MD050: false   # strong-style: __ vs **
+MD058: false   # blanks-around-tables: cosmético
+MD060: false   # table-column-style: alineación visual de | irrelevante para parsers
+MD030: false   # list-marker-space: cosmético
+
+# --- Mantenidas: errores reales ---
+# MD001 — heading-increment: h1 → h3 sin h2 es un error de estructura
+# MD005 — list-indent: inconsistencia de indentación dentro de un mismo nivel
+# MD014 — commands-show-output: $ + output mezclados en bloques bash
+# MD018 — no-missing-space-atx: "##Heading" en lugar de "## Heading"
+# MD019 — no-multiple-space-atx: "##  Heading"
+# MD023 — heading-start-left
+# MD030 — list-marker-space
+# MD035 — hr-style
+# MD037 — no-space-in-emphasis
+# MD038 — no-space-in-code: `` foo `` ↔ `foo`
+# MD039 — no-space-in-links
+# MD042 — no-empty-links: [texto]()
+# MD051 — link-fragments: refs internos rotos
+# MD052 — reference-links-images: [texto][ref] sin ref definida
+# MD053 — link-image-reference-definitions
+# MD054 — link-image-style

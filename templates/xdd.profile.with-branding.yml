@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=./schemas/xdd.profile.schema.json
+#
+# xdd.profile.yml — ejemplo con sección branding (Sprint 13).
+# Backward-compatible: sin sección `branding`, defaults son "X-DD".
+
+profile: custom  # saas | mobile | lib | internal | custom
+capabilities:
+  # Standard X-DD capabilities (Sprint 7)
+  workflows_core: true
+  agents_core: true
+  hooks_runtime: true
+  mcp_server: true
+  gate_keeper: true
+stacks: {}
+
+# === Sprint 13 — Branding (white-labeling) ===
+branding:
+  ecosystem_name: "X-DD"                    # Default: "X-DD". Cambiar para renombrar instancia (ej. "Helios", "ACME-Pipeline").
+  ecosystem_slug: "xdd"                     # Default: "xdd". Lowercase, usado en prefixes técnicos.
+  orchestrator_trigger: "xdd"               # Default: "xdd" → slash command /xdd. Cambiar a "helios" → /helios.
+  rename_subworkflows: false                # Si true: /helios-build, /helios-trace, etc. Default false (sub-workflows mantienen xdd-*).
+  orchestrator_persona:
+    tone: "technical"                       # technical | friendly | casual | formal | custom
+    custom_prompt: null                     # Si tone=custom, path a .md propio (ej: "./my-persona.md")
+  output:
+    compact: "standard"                     # off | lite | standard | ultra — Sprint 10 (xdd-talk-compact)
+  attribution_required: true                # Default true: README del proyecto consumidor menciona "powered by X-DD framework"

@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  rol          String   @default("Propietario")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Customer {
+  id            String   @id @default(cuid())
+  nombre        String
+  email         String   @unique
+  telefono      String
+  direccion     String
+  backstagePass Boolean  @default(false)
+  fechaRegistro DateTime @default(now())
+  totalGastado  Decimal  @default(0)
+  orders        Order[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  nombreSlug  String   @unique
+  descripcion String
+  disenoUrl   String
+  artista     String
+  temporada   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  variants    ProductVariant[]
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  talle     String
+  color     String
+  sku       String   @unique
+  stock     Int      @default(0)
+  stockMin  Int      @default(5)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orderItems OrderItem[]
+  movements StockMovement[]
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  customerId  String
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  total       Decimal
+  estado      String      @default("Pendiente")
+  canal       String
+  notas       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  items       OrderItem[]
+  shipment    Shipment?
+}
+
+model OrderItem {
+  id          String         @id @default(cuid())
+  orderId     String
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId   String
+  variant     ProductVariant @relation(fields: [variantId], references: [id])
+  cantidad    Int
+  precioUnit  Decimal
+}
+
+model ProductionBatch {
+  id                String   @id @default(cuid())
+  proveedor         String
+  variantes         String
+  unidadesPorVar    String
+  costoTotal        Decimal
+  fechaPedido       DateTime @default(now())
+  fechaEstimada     DateTime
+  fechaRecepcion    DateTime?
+  estado            String   @default("Solicitado")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model StockMovement {
+  id          String         @id @default(cuid())
+  variantId   String
+  variant     ProductVariant @relation(fields: [variantId], references: [id])
+  cantidad    Int
+  tipo        String
+  origen      String
+  descripcion String?
+  createdAt   DateTime       @default(now())
+}
+
+model Shipment {
+  id               String   @id @default(cuid())
+  orderId          String   @unique
+  order            Order    @relation(fields: [orderId], references: [id])
+  trackingNumber   String?
+  transportista    String?
+  costo            Decimal?
+  fechaDespacho    DateTime?
+  fechaEstimada    DateTime?
+  fechaEntrega     DateTime?
+  estado           String   @default("Preparando")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

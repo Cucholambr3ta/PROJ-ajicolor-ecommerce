@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/events.schema.json",
+  "title": "Product Analytics Event Schema",
+  "description": "Esquema de eventos de producto. Generado por /analytics-instrument. Toda llamada a track() debe validar contra este schema en CI.",
+  "type": "object",
+  "required": ["event", "timestamp", "user_id", "session_id", "properties"],
+  "properties": {
+    "event": {
+      "type": "string",
+      "description": "Nombre del evento en snake_case: object_action (ej. checkout_started, video_played)",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "user_id": {
+      "type": ["string", "null"],
+      "description": "ID estable del usuario o null si anónimo"
+    },
+    "anonymous_id": {
+      "type": "string",
+      "description": "ID de sesión persistente para usuarios sin login"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "properties": {
+      "type": "object",
+      "description": "Propiedades específicas del evento. Cada evento debería tener sub-schema documentado abajo."
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "app_version": { "type": "string" },
+        "platform": { "enum": ["web", "ios", "android", "server"] },
+        "locale": { "type": "string" },
+        "user_agent": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "_documentation": {
+      "note": "Eventos canónicos del producto — completar al adoptar.",
+      "examples": [
+        {
+          "event": "signup_completed",
+          "properties": { "plan": "free", "source": "organic" }
+        },
+        {
+          "event": "checkout_started",
+          "properties": { "cart_value": 0, "currency": "USD", "items_count": 0 }
+        }
+      ]
+    },
+    "_configure_note": "CONFIGURAR: Stack de analytics. Opciones: PostHog (OSS), Segment (CDP), Amplitude, Mixpanel, RudderStack. Mantener este schema como fuente de verdad independiente del proveedor."
+  }
+}

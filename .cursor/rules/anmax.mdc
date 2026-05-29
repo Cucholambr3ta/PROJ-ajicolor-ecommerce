@@ -1,0 +1,12 @@
+---
+description: Orquestador X-DD/anmax. Pipeline gated 6 fases.
+globs:
+alwaysApply: false
+---
+# /anmax — Orquestador X-DD
+
+Para activar el orquestador, menciona @anmax o invoca la tool MCP `xdd_invoke_workflow` con name="xdd".
+
+Workflows disponibles en `.agent/workflows/`. Lee `memoria.md` + `lecciones.md` + `CLAUDE.md` al iniciar (Constitución Art. 3 y 9).
+
+MCP server: ver `.cursor/mcp.json`.
