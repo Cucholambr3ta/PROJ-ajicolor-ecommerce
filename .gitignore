@@ -26,3 +26,4 @@ yarn-error.log*
 # OS específicos
 .DS_Store
 Thumbs.db
+node_modules/\n.env\n.env.local\n*.db\n.next/\nprisma/dev.db
