@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -50,9 +51,17 @@ export default async function PedidosPage({
                     {p.items.length} item(s) — {p.canal}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold">${p.total.toFixed(2)}</p>
-                  <Badge variant="outline">{p.estado}</Badge>
+                <div className="text-right flex items-center gap-3">
+                  <div>
+                    <p className="font-bold">${p.total.toFixed(2)}</p>
+                    <Badge variant="outline">{p.estado}</Badge>
+                  </div>
+                  <Link
+                    href={`/admin/pedidos/${p.id}`}
+                    className="px-3 py-1.5 rounded-md bg-ajicolor-magenta text-white text-xs font-medium hover:opacity-90 transition-opacity"
+                  >
+                    Ver detalle
+                  </Link>
                 </div>
               </div>
             ))}
