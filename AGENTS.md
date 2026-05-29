@@ -77,7 +77,7 @@ Los workflows producen artefactos versionables en la raíz del proyecto. Consult
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **x-dd** (8822 symbols, 9445 relationships, 39 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **PROJ-ajicolor-ecommerce** (6478 symbols, 6570 relationships, 16 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -100,10 +100,10 @@ This project is indexed by GitNexus as **x-dd** (8822 symbols, 9445 relationship
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/x-dd/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/x-dd/clusters` | All functional areas |
-| `gitnexus://repo/x-dd/processes` | All execution flows |
-| `gitnexus://repo/x-dd/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/PROJ-ajicolor-ecommerce/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/PROJ-ajicolor-ecommerce/clusters` | All functional areas |
+| `gitnexus://repo/PROJ-ajicolor-ecommerce/processes` | All execution flows |
+| `gitnexus://repo/PROJ-ajicolor-ecommerce/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 
