@@ -42,7 +42,7 @@ class Status(str, Enum):
 
 # Orden inmutable de fases (Constitución Art. 9).
 PHASES: list[tuple[str, list[str]]] = [
-    ("briefing", [".xdd/briefing/SPEC.md", ".xdd/briefing/FEATURES.md"]),
+    ("briefing", ["DISCOVERY.md"]),
     ("spec",     [".xdd/spec/DOMAIN.md", ".xdd/spec/THREATS.md"]),
     ("plan",     [".xdd/plan/PLAN.md"]),
     ("build",    [".xdd/build/"]),
