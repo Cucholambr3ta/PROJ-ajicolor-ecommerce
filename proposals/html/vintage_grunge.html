@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajicolor - Vintage Grunge Proposal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Cutive+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffd141;
+            --magenta: #e84266;
+            --purple: #4f266a;
+            --green: #1ea96a;
+            --bg: #1a1a1a;
+        }
+        body {
+            background-color: var(--bg);
+            color: #ddd;
+            font-family: 'Cutive Mono', monospace;
+            overflow-x: hidden;
+            background-image: url('https://www.transparenttextures.com/patterns/dust.png');
+        }
+        .grunge-font { font-family: 'Special Elite', cursive; }
+        .glitch-text { text-shadow: 2px 2px var(--magenta), -2px -2px var(--green); }
+        .skew-box { transform: rotate(-1deg); }
+        .distorted { filter: contrast(150%) brightness(80%); }
+    </style>
+</head>
+<body class="p-4 md:p-12">
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none opacity-10 bg-[url('https://www.transparenttextures.com/patterns/asfalt-light.png')]"></div>
+
+    <nav class="flex flex-col md:flex-row justify-between items-start border-b-2 border-dashed border-white/20 pb-8 mb-20 relative z-10">
+        <div class="text-6xl grunge-font glitch-text skew-box bg-white text-black p-2 px-6">AJICOLOR</div>
+        <div class="flex space-x-6 text-xl grunge-font mt-8 md:mt-0 uppercase italic">
+            <a href="#" class="hover:underline decoration-[#ffd141] decoration-4">Alt-Rock</a>
+            <a href="#" class="hover:underline decoration-[#e84266] decoration-4">Lo-Fi</a>
+            <a href="#" class="hover:underline decoration-[#1ea96a] decoration-4">Search</a>
+        </div>
+    </nav>
+
+    <header class="grid lg:grid-cols-2 gap-20 items-center mb-40 relative z-10">
+        <div class="relative">
+            <h1 class="text-8xl md:text-[10rem] grunge-font leading-none italic mix-blend-difference">
+                NOISE<br><span class="text-[#ffd141]">COLOR</span><br><span class="text-[#1ea96a]">DIRTY</span>
+            </h1>
+            <div class="absolute -top-10 -left-10 w-64 h-64 bg-[#e84266] opacity-30 rounded-full blur-3xl"></div>
+        </div>
+        <div class="relative bg-white/5 p-4 border-2 border-white/10 distorted">
+            <img src="https://via.placeholder.com/600x700/000/fff?text=Nirvana+Style+Tee" alt="Grunge" class="w-full opacity-80 contrast-125">
+            <div class="absolute bottom-6 -right-6 bg-[#ffd141] text-black p-4 grunge-font text-3xl transform rotate-3 shadow-2xl">LIMITED DROP // 94</div>
+        </div>
+    </header>
+
+    <section class="mb-40 relative z-10">
+        <div class="flex items-baseline space-x-4 mb-20">
+            <h2 class="text-5xl grunge-font">SONIC SELECTS</h2>
+            <div class="flex-grow border-b-2 border-dotted border-white/20"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-16">
+            <!-- Item -->
+            <div class="relative group">
+                <div class="bg-white/5 border border-white/10 p-6 transition-all group-hover:bg-[#4f266a]/20 group-hover:border-[#ffd141]">
+                    <img src="https://via.placeholder.com/400x500/000/ffd141?text=Grunge+Acid" alt="Item" class="w-full mb-8 grayscale group-hover:grayscale-0">
+                    <h3 class="text-2xl grunge-font text-[#ffd141]">Acid Wash Sonic</h3>
+                    <p class="text-xl mb-6 opacity-60">$28.990</p>
+                    <button class="w-full border-2 border-white p-3 grunge-font uppercase hover:bg-white hover:text-black transition">Claim WA</button>
+                </div>
+                <div class="absolute -top-4 -right-4 bg-[#e84266] p-2 text-xs font-bold rotate-12">HOT</div>
+            </div>
+            <!-- Item -->
+             <div class="relative group opacity-50 grayscale">
+                <div class="border-2 border-dashed border-white/20 p-6">
+                    <img src="https://via.placeholder.com/400x500/000/e84266?text=Out+Of+Stock" alt="Item" class="w-full mb-8">
+                    <h3 class="text-2xl grunge-font">Drowned Soul Tee</h3>
+                    <p class="text-xl italic">ALREADY TAKEN</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="p-10 border-t-2 border-white/10 flex flex-col items-center relative z-10">
+        <div class="flex flex-wrap justify-center gap-4 text-xs font-bold uppercase mb-10">
+             <a href="retro_funk.html">01 Funk</a>
+             <a href="modern_pop.html">02 Pop</a>
+             <a href="classic_rock.html">03 Rock</a>
+             <a href="minimalist.html">04 Minimal</a>
+             <a href="street_art.html">05 Street</a>
+             <a href="vintage_jazz.html">06 V-Jazz</a>
+             <a href="vintage_grunge.html" class="text-[#e84266] underline">07 V-Grunge</a>
+             <a href="vintage_psychedelic.html">08 V-Psych</a>
+             <a href="vintage_synthwave.html">09 V-Retrowave</a>
+             <a href="vintage_letterpress.html">10 V-Poster</a>
+        </div>
+        <p class="grunge-font text-xs opacity-20">AJICOLOR ALTERNATIVE DIVISION © 199X</p>
+    </footer>
+</body>
+</html>

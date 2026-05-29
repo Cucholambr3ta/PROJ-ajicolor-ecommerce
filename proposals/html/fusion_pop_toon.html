@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajicolor - Fusion Pop-Toon Proposal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;900&family=Lobster&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffd141;
+            --magenta: #e84266;
+            --purple: #4f266a;
+            --green: #1ea96a;
+            --bg: #f7f3e9;
+        }
+        body {
+            background-color: var(--bg);
+            color: #1a1a1a;
+            font-family: 'Outfit', sans-serif;
+            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+        }
+        .toon-script { font-family: 'Lobster', cursive; }
+        .thick-border { border: 4px solid #1a1a1a; }
+        .pop-shadow { box-shadow: 10px 10px 0px #1a1a1a; }
+        .magenta-shadow { box-shadow: 10px 10px 0px var(--magenta); }
+        
+        @keyframes wobble {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(1deg) scale(1.01); }
+            50% { transform: rotate(-1deg); }
+            75% { transform: rotate(1deg) scale(0.99); }
+            100% { transform: rotate(0deg); }
+        }
+        .wobble-hover:hover { animation: wobble 0.3s infinite; }
+        
+        .cmyk-block {
+            mix-blend-mode: multiply;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <!-- Film Grain Overlay -->
+    <div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[100] bg-[url('https://media.giphy.com/media/oEI9uWUqWMrBK/giphy.gif')]"></div>
+
+    <nav class="flex justify-between items-center p-8 bg-white thick-border pop-shadow mb-12">
+        <div class="text-5xl font-black italic toon-script text-[var(--magenta)] tracking-tighter">Ajicolor</div>
+        <div class="hidden lg:flex space-x-12 font-black uppercase text-sm tracking-widest">
+            <a href="#" class="hover:text-[var(--magenta)] underline decoration-4 underline-offset-8">New Drop</a>
+            <a href="#" class="hover:text-[var(--magenta)] underline decoration-4 underline-offset-8">The Studio</a>
+            <a href="#" class="hover:text-[var(--magenta)] underline decoration-4 underline-offset-8">Cart (0)</a>
+        </div>
+        <button class="bg-[var(--yellow)] px-8 py-3 thick-border font-black uppercase text-sm">Login</button>
+    </nav>
+
+    <header class="grid md:grid-cols-2 gap-12 mb-20">
+        <div class="bg-[var(--purple)] text-white p-12 thick-border magenta-shadow flex flex-col justify-center relative overflow-hidden">
+            <div class="absolute -top-20 -right-20 w-64 h-64 bg-[var(--yellow)] rounded-full opacity-20 transform scale-150"></div>
+            <h1 class="text-7xl md:text-9xl font-black leading-none mb-8 relative z-10 font-sans tracking-tighter">MODERN<br><span class="text-[var(--yellow)] toon-script italic normal-case">Vibes</span><br>193X</h1>
+            <p class="text-xl font-light opacity-80 mb-10 max-w-md">La sofisticación del Pop Art moderno con el alma juguetona de la era dorada de la animación.</p>
+            <button class="w-fit bg-white text-black px-12 py-4 thick-border font-black uppercase text-xl wobble-hover">Shop the Fusion</button>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-[var(--magenta)] thick-border flex items-center justify-center p-4">
+                <img src="https://via.placeholder.com/300x300/e84266/fff?text=T-Shirt+01" alt="01" class="w-full h-auto grayscale hover:grayscale-0 transition duration-500">
+            </div>
+            <div class="bg-[var(--yellow)] thick-border flex items-center justify-center p-4">
+                <img src="https://via.placeholder.com/300x300/ffd141/1a1a1a?text=T-Shirt+02" alt="01" class="w-full h-auto rotate-3 hover:rotate-0 transition">
+            </div>
+            <div class="bg-[var(--green)] thick-border col-span-2 flex items-center justify-center p-4 min-h-[200px] relative">
+                <div class="text-4xl font-black text-white italic">CUPHEAD STYLE x POP ART</div>
+            </div>
+        </div>
+    </header>
+
+    <section class="max-w-7xl mx-auto py-12">
+        <div class="flex justify-between items-end mb-16 border-b-4 border-black pb-4">
+            <h2 class="text-6xl font-black uppercase italic tracking-tighter">The Essentials</h2>
+            <p class="toon-script text-3xl text-[var(--magenta)]">Curated for Musicians</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <!-- Product Card -->
+            <div class="bg-white p-4 thick-border pop-shadow group">
+                <div class="bg-gray-50 p-8 thick-border mb-6 relative overflow-hidden">
+                    <img src="https://via.placeholder.com/400x500/fff/4f266a?text=Electric+Soul" alt="P" class="w-full transition duration-700 group-hover:scale-105">
+                    <span class="absolute top-4 left-4 bg-[var(--magenta)] text-white px-4 py-1 font-black text-xs rotate-[-5deg] thick-border">SOLD OUT</span>
+                </div>
+                <h3 class="text-3xl font-black uppercase mb-2">Electric Soul Tee</h3>
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-xl font-bold opacity-40">$35.000</p>
+                    <div class="flex space-x-2">
+                        <div class="w-4 h-4 rounded-full bg-[var(--yellow)] border-2 border-black"></div>
+                        <div class="w-4 h-4 rounded-full bg-[var(--green)] border-2 border-black"></div>
+                    </div>
+                </div>
+                <button class="w-full py-4 thick-border font-black uppercase opacity-30 cursor-not-allowed">No Disponible</button>
+            </div>
+
+            <!-- Product Card -->
+            <div class="bg-white p-4 thick-border pop-shadow group border-[var(--magenta)]">
+                <div class="bg-[var(--yellow)] p-8 thick-border mb-6 relative overflow-hidden">
+                    <img src="https://via.placeholder.com/400x500/ffd141/000?text=Pop+Toon" alt="P" class="w-full transition duration-700 group-hover:scale-105">
+                </div>
+                <h3 class="text-3xl font-black uppercase mb-2 text-[var(--magenta)]">Pop-Toon Special</h3>
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-2xl font-black">$32.000</p>
+                    <span class="text-xs font-bold uppercase tracking-tighter bg-white px-2 border-2 border-black">Only 2 Left!</span>
+                </div>
+                <button class="w-full py-4 bg-[var(--green)] thick-border font-black uppercase text-xl hover:bg-black hover:text-white transition flex items-center justify-center gap-4">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.067 2.877 1.215 3.076.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                    Compra Directa
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <footer class="p-20 mt-20 border-t-8 border-black text-center flex flex-col items-center">
+        <div class="flex flex-wrap justify-center gap-10 mb-16 text-4xl font-black italic toon-script">
+            <a href="modern_pop.html" class="hover:text-[var(--magenta)]">02 Pop</a>
+            <span class="opacity-20">x</span>
+            <a href="vintage_rubber_hose.html" class="hover:text-[var(--magenta)]">08 Toon</a>
+            <span class="opacity-20">=</span>
+            <span class="text-[var(--magenta)] underline decoration-8">The Fusion</span>
+        </div>
+        <p class="max-w-xl text-sm font-bold uppercase tracking-[0.4em] opacity-30">Ajicolor Modern Antiquity Series. OLYMP-IA Design Engine v2.0</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajicolor - 80s Synthwave Proposal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffd141;
+            --magenta: #e84266;
+            --purple: #4f266a;
+            --green: #1ea96a;
+            --bg: #050505;
+        }
+        body {
+            background-color: var(--bg);
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            background-image: linear-gradient(to bottom, #050505 50%, #0d0611 100%);
+            overflow-x: hidden;
+        }
+        .neon-text { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--magenta), 0 0 40px var(--magenta); }
+        .neon-border { border: 2px solid var(--magenta); box-shadow: 0 0 10px var(--magenta); }
+        .grid-floor {
+            height: 300px; width: 200%; background-image: linear-gradient(transparent 0, transparent 48%, var(--green) 50%, transparent 52%, transparent 100%), linear-gradient(90deg, transparent 0, transparent 48%, var(--green) 50%, transparent 52%, transparent 100%);
+            background-size: 60px 60px; transform: perspective(500px) rotateX(60deg);
+            position: absolute; bottom: -100px; left: -50%; z-index: -1; opacity: 0.3;
+        }
+        .retro-sun {
+            width: 400px; height: 400px; background: linear-gradient(to top, var(--yellow), var(--magenta));
+            border-radius: 50%; opacity: 0.2; position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+            mask-image: linear-gradient(to bottom, black 50%, transparent 52%, black 54%, transparent 56%, black 58%, transparent 60%);
+        }
+        .btn-neon {
+            background: transparent; border: 2px solid var(--yellow); color: var(--yellow);
+            box-shadow: 0 0 10px var(--yellow); text-transform: uppercase; font-weight: 900;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <div class="retro-sun"></div>
+    <div class="grid-floor"></div>
+
+    <nav class="p-10 flex justify-between items-center bg-black/50 backdrop-blur-md border-b border-white/5">
+        <div class="text-4xl font-black italic neon-text uppercase tracking-tighter">AJICOLOR</div>
+        <div class="hidden md:flex space-x-12 text-sm font-black uppercase">
+            <a href="#" class="text-[var(--yellow)]">Arcade</a>
+            <a href="#" class="hover:text-[var(--magenta)]">Vaporwear</a>
+            <a href="#" class="hover:text-[var(--magenta)]">Contact</a>
+        </div>
+        <button class="btn-neon px-6 py-2">System Login</button>
+    </nav>
+
+    <header class="flex-grow flex flex-col items-center justify-center text-center p-12">
+        <h1 class="text-7xl md:text-9xl font-black mb-8 italic tracking-tighter">FUTURE <br> <span class="text-[var(--yellow)]">RETRO</span></h1>
+        <p style="font-family: 'Press Start 2P', cursive;" class="text-xs md:text-sm text-[var(--green)] mb-12">INITIALIZING MUSIC_INTERFACE_V1.0</p>
+        <button class="btn-neon px-12 py-5 text-2xl hover:bg-[var(--yellow)] hover:text-black transition duration-300">EXPLORE THE GRID</button>
+    </header>
+
+    <section class="p-12 max-w-7xl mx-auto w-full grid md:grid-cols-3 gap-12 mb-40">
+        <!-- Item -->
+        <div class="bg-black/80 p-8 neon-border group relative overflow-hidden">
+            <img src="https://via.placeholder.com/400x400/000/e84266?text=Synth+Tee" alt="Item" class="w-full mb-8 group-hover:scale-110 transition duration-1000">
+            <h3 class="text-2xl font-black mb-2 uppercase">Cyber Punk 84</h3>
+            <p class="text-[var(--yellow)] font-black text-xl mb-6 tracking-widest">$35.000</p>
+            <button class="w-full py-4 bg-white/5 border border-white/20 hover:border-[var(--magenta)] hover:text-[var(--magenta)] transition uppercase text-xs">Direct Link WA</button>
+        </div>
+        <!-- Item -->
+         <div class="bg-black/80 p-8 border border-white/10 group grayscale">
+            <img src="https://via.placeholder.com/400x400/000/4f266a?text=Sold+Out" alt="Item" class="w-full mb-8">
+            <h2 class="text-2xl font-black mb-2 opacity-30">Vapor Wave Tee</h2>
+            <p class="text-[var(--magenta)] font-black uppercase tracking-widest">Connection Terminated</p>
+        </div>
+    </section>
+
+    <footer class="p-20 bg-black/90 text-center border-t border-white/5">
+        <div class="flex flex-wrap justify-center gap-6 mb-12 text-[10px] font-black opacity-40">
+             <a href="retro_funk.html">01 Funk</a>
+             <a href="modern_pop.html">02 Pop</a>
+             <a href="classic_rock.html">03 Rock</a>
+             <a href="minimalist.html">04 Minimal</a>
+             <a href="street_art.html">05 Street</a>
+             <a href="vintage_jazz.html">06 V-Jazz</a>
+             <a href="vintage_grunge.html">07 V-Grunge</a>
+             <a href="vintage_rubber_hose.html">08 V-Toon</a>
+             <a href="vintage_synthwave.html" class="text-[var(--magenta)] opacity-100">09 V-Retro</a>
+             <a href="vintage_letterpress.html">10 V-Poster</a>
+        </div>
+        <p class="text-xs opacity-20">AJICOLOR HIGH-TECH ANTIQUITY // SY-2026</p>
+    </footer>
+</body>
+</html>

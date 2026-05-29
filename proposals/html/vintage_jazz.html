@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajicolor - Vintage Jazz Proposal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Rubik:wght@300;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffd141;
+            --magenta: #e84266;
+            --purple: #4f266a;
+            --green: #1ea96a;
+            --bg: #f4e4bc; /* Paper-like background */
+        }
+        body {
+            background-color: var(--bg);
+            color: #222;
+            font-family: 'Rubik', sans-serif;
+            padding: 20px;
+        }
+        .jazz-font { font-family: 'League Gothic', sans-serif; text-transform: uppercase; line-height: 0.8; }
+        .geometric-box {
+            background-color: var(--purple);
+            clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+        }
+    </style>
+</head>
+<body class="max-w-6xl mx-auto border-[12px] border-[#222]">
+    <nav class="flex justify-between items-end p-8 border-b-4 border-black">
+        <div class="text-7xl jazz-font tracking-tighter">AJICOLOR</div>
+        <div class="flex space-x-8 text-sm font-bold uppercase tracking-[0.2em]">
+            <a href="#" class="hover:bg-black hover:text-white px-2">Records</a>
+            <a href="#" class="hover:bg-black hover:text-white px-2">Apparel</a>
+            <a href="#" class="hover:bg-black hover:text-white px-2">Profile</a>
+        </div>
+    </nav>
+
+    <header class="grid lg:grid-cols-12 gap-0 overflow-hidden min-h-[60vh] border-b-4 border-black">
+        <div class="lg:col-span-8 p-12 bg-[#222] text-white flex flex-col justify-center">
+            <h1 class="text-[12rem] jazz-font mb-4">THE<br><span class="text-[#ffd141]">JAZZ</span><br><span class="text-[#e84266]">DROP</span></h1>
+            <p class="text-xl font-light max-w-md opacity-80">Rhythm in every thread. Geometrías audaces inspiradas en la era dorada del Jazz y el Soul.</p>
+        </div>
+        <div class="lg:col-span-4 bg-[#ffd141] flex items-center justify-center p-8 relative">
+            <div class="w-full h-full bg-[#1ea96a] absolute top-4 left-4 -z-10"></div>
+            <div class="bg-white p-2 border-2 border-black rotate-2 shadow-xl">
+                 <img src="https://via.placeholder.com/400x500/fff/4f266a?text=Blue+Note+Tee" alt="Jazz" class="w-full">
+            </div>
+        </div>
+    </header>
+
+    <section class="p-12">
+        <div class="flex items-center space-x-4 mb-12">
+            <div class="w-12 h-12 bg-[#e84266]"></div>
+            <h2 class="text-5xl jazz-font tracking-widest">Aji-Curated Collection</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Item -->
+            <div class="border-4 border-black group">
+                <div class="bg-[#222] p-4 flex justify-center grayscale group-hover:grayscale-0 transition duration-500">
+                    <img src="https://via.placeholder.com/300x400/222/ffd141?text=Classic+Jazz" alt="Item" class="h-64 object-contain">
+                </div>
+                <div class="p-4 bg-white border-t-4 border-black">
+                    <h3 class="font-bold text-sm uppercase mb-2">Soul Session T-Shirt</h3>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xl font-bold italic">$30.000</span>
+                        <div class="w-4 h-4 bg-[#1ea96a] rounded-full"></div>
+                    </div>
+                    <button class="w-full mt-4 py-2 bg-[#222] text-white font-bold hover:bg-[#e84266] transition uppercase text-xs">Comprar WA</button>
+                </div>
+            </div>
+             <!-- Item -->
+             <div class="border-4 border-black group">
+                <div class="bg-[#e84266] p-4 flex justify-center relative">
+                    <span class="absolute top-2 right-2 bg-black text-white px-2 py-1 text-[10px] font-black">OUT OF STOCK</span>
+                    <img src="https://via.placeholder.com/300x400/e84266/fff?text=Pop+Bossa" alt="Item" class="h-64 object-contain">
+                </div>
+                <div class="p-4 bg-white border-t-4 border-black">
+                    <h3 class="font-bold text-sm uppercase mb-2">Bossa Nova Limited</h3>
+                    <div class="flex justify-between items-center opacity-50">
+                        <span class="text-xl font-bold italic">$35.000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="p-12 bg-black text-[#f4e4bc] text-center">
+        <div class="mb-8 jazz-font text-3xl tracking-widest">Other Design Vibes</div>
+        <div class="flex flex-wrap justify-center gap-4 text-xs font-bold uppercase">
+             <a href="retro_funk.html" class="px-4 py-1 border border-white/20 hover:bg-white hover:text-black">01 Funk</a>
+             <a href="modern_pop.html" class="px-4 py-1 border border-white/20 hover:bg-white hover:text-black">02 Pop</a>
+             <a href="classic_rock.html" class="px-4 py-1 border border-white/20 hover:bg-white hover:text-black">03 Rock</a>
+             <a href="minimalist.html" class="px-4 py-1 border border-white/20 hover:bg-white hover:text-black">04 Minimal</a>
+             <a href="street_art.html" class="px-4 py-1 border border-white/20 hover:bg-white hover:text-black">05 Street</a>
+             <a href="vintage_jazz.html" class="px-4 py-1 bg-[#ffd141] text-black border border-[#ffd141]">06 V-Jazz</a>
+             <a href="vintage_grunge.html" class="px-4 py-1 border border-white/20 hover:bg-white hover:text-black">07 V-Grunge</a>
+             <a href="vintage_psychedelic.html" class="px-4 py-1 border border-white/20 hover:bg-white hover:text-black">08 V-Psych</a>
+             <a href="vintage_synthwave.html" class="px-4 py-1 border border-white/20 hover:bg-white hover:text-black">09 V-Retrowave</a>
+             <a href="vintage_letterpress.html" class="px-4 py-1 border border-white/20 hover:bg-white hover:text-black">10 V-Poster</a>
+        </div>
+    </footer>
+</body>
+</html>

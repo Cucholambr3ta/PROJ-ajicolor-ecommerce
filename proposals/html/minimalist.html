@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajicolor - Minimalist Proposal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffd141;
+            --magenta: #e84266;
+            --purple: #4f266a;
+            --green: #1ea96a;
+            --bg: #0a0a0a;
+        }
+        body {
+            background-color: var(--bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.02em;
+        }
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .line-accent { height: 1px; width: 40px; background-color: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body class="antialiased">
+    <nav class="flex justify-between items-center px-12 py-10 border-b border-white/5">
+        <div class="text-2xl font-light tracking-widest uppercase">Ajicolor <span class="text-xs opacity-20 align-top">Studio</span></div>
+        <div class="flex space-x-12 text-sm font-light uppercase tracking-widest opacity-60">
+            <a href="#" class="hover:opacity-100 transition">Archivio</a>
+            <a href="#" class="hover:opacity-100 transition">Atelier</a>
+            <a href="#" class="hover:opacity-100 transition">Journal</a>
+        </div>
+        <div class="flex items-center space-x-8">
+            <div class="dot bg-[#ffd141]"></div>
+            <div class="dot bg-[#e84266]"></div>
+            <div class="dot bg-[#1ea96a]"></div>
+        </div>
+    </nav>
+
+    <header class="min-h-[70vh] flex flex-col items-center justify-center p-12 text-center">
+        <div class="line-accent mb-8"></div>
+        <h1 class="text-5xl md:text-7xl font-light tracking-tighter mb-10 max-w-4xl leading-tight">
+            The essence of <span class="italic font-bold text-[#ffd141]">sound</span> translated into <span class="italic font-bold text-[#e84266]">form</span>.
+        </h1>
+        <div class="flex space-x-12 items-center">
+            <a href="#" class="text-sm uppercase tracking-widest border-b border-white/20 pb-2 hover:border-white transition">Explore Collection</a>
+            <a href="#" class="text-sm uppercase tracking-widest opacity-40 hover:opacity-100 transition">Our Philosophy</a>
+        </div>
+    </header>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-b border-white/5">
+        <!-- Product -->
+        <div class="p-16 border-r border-white/5 flex flex-col items-center group cursor-pointer hover:bg-white/[0.02] transition">
+            <div class="mb-12 transition-transform duration-700 group-hover:scale-105">
+                <img src="https://via.placeholder.com/400x500/0a0a0a/ffffff?text=Series+01" alt="01" class="w-64 h-auto">
+            </div>
+            <div class="w-full">
+                <div class="flex justify-between items-baseline mb-2">
+                    <span class="text-xs opacity-30">001 / SERIES</span>
+                    <span class="text-xs font-bold text-[#1ea96a]">IN STOCK</span>
+                </div>
+                <h3 class="text-lg font-normal mb-1">Minimalism Punk</h3>
+                <p class="text-sm opacity-40">$40.000</p>
+            </div>
+        </div>
+        <!-- Product -->
+        <div class="p-16 border-r border-white/5 flex flex-col items-center group cursor-pointer hover:bg-white/[0.02] transition">
+            <div class="mb-12 transition-transform duration-700 group-hover:scale-105">
+                <img src="https://via.placeholder.com/400x500/0a0a0a/ffffff?text=Series+02" alt="02" class="w-60 h-auto opacity-50">
+            </div>
+            <div class="w-full">
+                <div class="flex justify-between items-baseline mb-2">
+                    <span class="text-xs opacity-30">002 / SERIES</span>
+                    <span class="text-xs font-bold text-[#e84266]">SOLD OUT</span>
+                </div>
+                <h3 class="text-lg font-normal mb-1">Electronic Soul</h3>
+                <p class="text-sm opacity-40">$45.000</p>
+            </div>
+        </div>
+        <!-- CTA Section -->
+        <div class="p-16 flex flex-col justify-center bg-white/[0.01]">
+            <h4 class="text-3xl font-light mb-8">Personalized assistance for artists.</h4>
+            <button class="w-fit text-sm uppercase tracking-widest py-4 px-10 border border-white/10 hover:bg-white hover:text-black transition">Contact via WA</button>
+        </div>
+    </section>
+
+    <footer class="p-20 flex flex-col items-center">
+        <div class="flex gap-8 mb-16 opacity-30 text-[10px] tracking-[0.4em] uppercase">
+            <a href="retro_funk.html">01</a>
+            <a href="modern_pop.html">02</a>
+            <a href="classic_rock.html">03</a>
+            <a href="minimalist.html" class="opacity-100 text-[#ffd141]">04</a>
+            <a href="street_art.html">05</a>
+        </div>
+        <p class="text-[10px] opacity-20 uppercase tracking-widest">Minimalist Curation / OLYMP-IA Studio</p>
+    </footer>
+</body>
+</html>

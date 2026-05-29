@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajicolor - My Space</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="global.css">
+</head>
+<body>
+    <div class="film-grain"></div>
+
+    <nav class="mockup-nav">
+        <a href="index.html" class="text-4xl font-black italic toon-script text-[var(--magenta)] tracking-tighter">Ajicolor</a>
+        <div class="flex items-center space-x-6">
+             <a href="index.html" class="font-black text-xs uppercase hover:underline">Continue Shopping</a>
+             <button class="bg-[var(--yellow)] px-6 py-2 thick-border font-black uppercase text-xs">Logout</button>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto py-20 p-8">
+        <div class="grid lg:grid-cols-3 gap-12">
+            
+            <!-- Sidebar Info -->
+            <div class="lg:col-span-1 space-y-8">
+                <div class="bg-white p-8 thick-border pop-shadow text-center">
+                    <div class="w-32 h-32 bg-[var(--purple)] thick-border mx-auto mb-6 flex items-center justify-center overflow-hidden">
+                         <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Alejandro" alt="Avatar" class="w-24 h-24">
+                    </div>
+                    <h2 class="text-3xl font-black uppercase mb-2">Alejandro G.</h2>
+                    <p class="text-xs font-black uppercase tracking-widest text-[var(--magenta)] mb-6">Ajicolor Member since '26</p>
+                    <div class="h-1 bg-black w-full mb-6"></div>
+                    <div class="text-left space-y-4 text-sm font-bold opacity-60">
+                        <p>📍 Santiago, Chile</p>
+                        <p>📧 alejandro@domain.com</p>
+                        <p>📱 +56 9 1234 5678</p>
+                    </div>
+                    <button class="w-full mt-10 py-3 bg-[var(--green)] thick-border font-black uppercase text-xs hover:bg-black hover:text-white transition">Edit Profile</button>
+                </div>
+
+                <div class="bg-[var(--yellow)] p-8 thick-border rotate-[-2deg] shadow-[10px_10px_0px_var(--ink)]">
+                     <h3 class="text-2xl font-black uppercase mb-4">Loyalty Stats</h3>
+                     <div class="space-y-4">
+                         <div class="flex justify-between font-black uppercase text-xs">
+                             <span>Tees collected</span>
+                             <span>15</span>
+                         </div>
+                         <div class="flex justify-between font-black uppercase text-xs">
+                             <span>Music Level</span>
+                             <span class="text-[var(--magenta)]">V.I.P.</span>
+                         </div>
+                     </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="lg:col-span-2 space-y-12">
+                
+                <h2 class="text-6xl font-black italic uppercase border-b-8 border-black pb-4">Order History</h2>
+
+                <!-- Order Record -->
+                <div class="bg-white p-8 thick-border relative flex flex-col md:flex-row gap-8 items-center magenta-shadow">
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-4 mb-4">
+                            <span class="bg-black text-white px-3 py-1 text-[10px] font-black uppercase">Order #AJI-4852</span>
+                            <span class="text-xs font-bold opacity-30">Ordered April 12, 2026</span>
+                        </div>
+                        <h3 class="text-3xl font-black uppercase mb-4">The Drummer Tee (+2 others)</h3>
+                        <div class="flex items-center gap-2">
+                             <div class="px-3 py-1 bg-[var(--green)] border-2 border-black text-white font-black text-[10px] uppercase italic">Delivered</div>
+                             <p class="text-xs font-bold opacity-50">Sent via Stark Logistics</p>
+                        </div>
+                    </div>
+                    <div class="text-center md:text-right">
+                        <p class="text-4xl font-black text-[var(--purple)] mb-4">$85.000</p>
+                        <button class="bg-white border-2 border-black px-6 py-2 font-black uppercase text-xs hover:bg-[var(--yellow)] transition">Track Order</button>
+                    </div>
+                </div>
+
+                <!-- Order Record (Pending) -->
+                <div class="bg-white p-8 thick-border relative flex flex-col md:flex-row gap-8 items-center pop-shadow">
+                    <div class="flex-grow opacity-60">
+                        <div class="flex items-center gap-4 mb-4">
+                            <span class="bg-black text-white px-3 py-1 text-[10px] font-black uppercase">Order #AJI-5012</span>
+                            <span class="text-xs font-bold">Ordered Today</span>
+                        </div>
+                        <h3 class="text-3xl font-black uppercase mb-4">Bass Line Anthem (M)</h3>
+                        <div class="flex items-center gap-2">
+                             <div class="px-3 py-1 bg-[var(--yellow)] border-2 border-black text-black font-black text-[10px] uppercase italic">Processing</div>
+                        </div>
+                    </div>
+                    <div class="text-center md:text-right">
+                        <p class="text-4xl font-black text-[var(--purple)] mb-4">$32.000</p>
+                        <button class="bg-black text-white border-2 border-black px-6 py-2 font-black uppercase text-xs hover:bg-white hover:text-black transition">Cancel Order</button>
+                    </div>
+                </div>
+
+                <div class="p-10 border-4 border-black border-dashed text-center">
+                     <p class="toon-script text-3xl opacity-30">No more records in the jukebox...</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="p-10 bg-[var(--purple)] text-white text-center">
+        <p class="text-[10px] uppercase font-black tracking-widest opacity-40">Alejandro's Secret Vault // Ajicolor Secure Access</p>
+    </footer>
+</body>
+</html>

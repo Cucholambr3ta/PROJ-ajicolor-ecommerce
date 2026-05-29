@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajicolor - Pop Art Proposal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Roboto:wght@900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffd141;
+            --magenta: #e84266;
+            --purple: #4f266a;
+            --green: #1ea96a;
+            --bg: #ffffff;
+        }
+        body {
+            background-color: var(--bg);
+            color: #000;
+            font-family: 'Archivo Black', sans-serif;
+            overflow-x: hidden;
+        }
+        .pop-block-1 { background-color: var(--magenta); color: #fff; }
+        .pop-block-2 { background-color: var(--yellow); color: #000; }
+        .pop-block-3 { background-color: var(--green); color: #fff; }
+        .pop-block-4 { background-color: var(--purple); color: #fff; }
+        .halftone { background-image: radial-gradient(#000 2px, transparent 2px); background-size: 15px 15px; }
+        .pop-border { border: 8px solid #000; }
+    </style>
+</head>
+<body class="p-0">
+    <nav class="flex flex-col md:flex-row p-0 border-b-8 border-black">
+        <div class="p-10 bg-white md:w-1/2 border-r-8 border-black flex justify-center items-center">
+            <h1 class="text-8xl md:text-9xl tracking-tighter uppercase font-black">AJI<span class="text-[var(--magenta)]">COL</span><span class="text-[var(--yellow)]">OR</span></h1>
+        </div>
+        <div class="md:w-1/2 grid grid-cols-2">
+            <a href="#" class="p-10 pop-block-1 text-4xl uppercase flex items-center justify-center hover:bg-black transition">SHOP</a>
+            <a href="#" class="p-10 pop-block-2 text-4xl uppercase flex items-center justify-center hover:bg-black hover:text-white transition">INFO</a>
+        </div>
+    </nav>
+
+    <header class="grid md:grid-cols-4 gap-0 pop-border bg-black">
+        <div class="pop-block-2 p-10 flex flex-col justify-center border-r-8 border-black">
+            <h2 class="text-6xl mb-8">ART IS <br>COMMERCE</h2>
+            <p class="text-xl font-bold font-sans tracking-tight">Viste la cultura pop. Música en bloques de color.</p>
+        </div>
+        <div class="pop-block-1 p-0 relative">
+            <div class="absolute inset-0 halftone opacity-20"></div>
+            <img src="https://via.placeholder.com/400x400/fff/e84266?text=WARHOL+TEE" alt="Art" class="w-full mix-blend-multiply">
+        </div>
+        <div class="pop-block-3 p-0 relative border-l-8 border-black">
+            <div class="absolute inset-0 halftone opacity-20"></div>
+            <img src="https://via.placeholder.com/400x400/fff/1ea96a?text=AJI+POP" alt="Art" class="w-full mix-blend-multiply">
+        </div>
+        <div class="pop-block-4 p-10 flex items-center justify-center border-l-8 border-black">
+            <button class="bg-white text-black p-8 text-4xl font-black uppercase transform -rotate-3 hover:rotate-0 transition duration-300">BUY NOW!</button>
+        </div>
+    </header>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-b-8 border-black">
+        <!-- Item 1 -->
+        <div class="pop-border-r border-black p-12 bg-white flex flex-col items-center group">
+            <div class="p-1 border-8 border-black bg-[var(--yellow)] mb-8 transform group-hover:rotate-6 transition">
+                 <img src="https://via.placeholder.com/300x300/ffd141/000?text=Pop+Item" alt="Product" class="w-full">
+            </div>
+            <h3 class="text-4xl uppercase mb-4 text-center">T-SHIRT 01</h3>
+            <span class="bg-black text-white px-6 py-2 text-2xl font-black">$35K</span>
+        </div>
+        <!-- Item 2 -->
+        <div class="pop-border-r border-black p-12 bg-[var(--magenta)] flex flex-col items-center group">
+            <div class="p-1 border-8 border-black bg-white mb-8 transform group-hover:-rotate-6 transition">
+                 <img src="https://via.placeholder.com/300x300/e84266/fff?text=Pop+Item" alt="Product" class="w-full">
+            </div>
+            <h3 class="text-4xl text-white uppercase mb-4 text-center">T-SHIRT 02</h3>
+            <span class="bg-white text-black px-6 py-2 text-2xl font-black">SOLDOUT</span>
+        </div>
+        <!-- Item 3 -->
+        <div class="pop-border-r border-black p-12 bg-[var(--green)] flex flex-col items-center group">
+            <div class="p-1 border-8 border-black bg-black mb-8 transform group-hover:scale-110 transition">
+                 <img src="https://via.placeholder.com/300x300/1ea96a/000?text=Pop+Item" alt="Product" class="w-full">
+            </div>
+            <h3 class="text-4xl text-white uppercase mb-4 text-center">T-SHIRT 03</h3>
+            <button class="bg-[var(--yellow)] text-black px-6 py-2 text-2xl font-black border-4 border-black">WHATSAPP</button>
+        </div>
+        <!-- Item 4 -->
+        <div class="p-12 bg-white flex flex-col justify-center items-center">
+            <div class="text-9xl halftone w-32 h-32 mb-10 border-8 border-black rounded-full"></div>
+            <p class="text-center font-sans font-black italic opacity-50 uppercase">More Art Coming Soon...</p>
+        </div>
+    </section>
+
+    <footer class="p-20 bg-black text-white flex flex-col items-center">
+        <div class="grid grid-cols-5 md:grid-cols-10 gap-2 mb-12">
+            <a href="retro_funk.html" class="w-10 h-10 bg-white/20 hover:bg-[var(--yellow)] transition"></a>
+            <a href="modern_pop.html" class="w-10 h-10 bg-white/20 hover:bg-[var(--magenta)] transition"></a>
+            <a href="classic_rock.html" class="w-10 h-10 bg-white/20 hover:bg-[var(--purple)] transition"></a>
+            <a href="minimalist.html" class="w-10 h-10 bg-white/20 hover:bg-[var(--green)] transition"></a>
+            <a href="street_art.html" class="w-10 h-10 bg-white/20 hover:bg-white transition"></a>
+            <a href="vintage_jazz.html" class="w-10 h-10 bg-white/20 hover:bg-[var(--yellow)] transition"></a>
+            <a href="vintage_grunge.html" class="w-10 h-10 bg-white/20 hover:bg-[var(--magenta)] transition"></a>
+            <a href="vintage_rubber_hose.html" class="w-10 h-10 bg-white/20 hover:bg-[var(--purple)] transition"></a>
+            <a href="vintage_synthwave.html" class="w-10 h-10 bg-white/20 hover:bg-[var(--green)] transition"></a>
+            <a href="vintage_pop_art.html" class="w-10 h-10 bg-[var(--yellow)]"></a>
+        </div>
+        <p class="uppercase tracking-[1em] text-[8px] opacity-30">Ajicolor Factory // 2026</p>
+    </footer>
+</body>
+</html>

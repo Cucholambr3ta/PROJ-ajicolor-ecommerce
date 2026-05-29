@@ -1,0 +1,116 @@
+/* 
+  AJICOLOR GLOBAL DESIGN SYSTEM 
+  Theme: Fusion Pop-Toon (Modern Pop + 1930s Rubber Hose)
+  v1.0.0
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;900&family=Lobster&display=swap');
+
+:root {
+    --yellow: #ffd141;
+    --magenta: #e84266;
+    --purple: #4f266a;
+    --green: #1ea96a;
+    --bg-paper: #f7f3e9;
+    --ink: #1a1a1a;
+    --border-width: 4px;
+}
+
+* {
+    box-sizing: border-box;
+    cursor: url('https://img.icons8.com/m_outlined/32/1a1a1a/cursor.png'), auto;
+}
+
+body {
+    background-color: var(--bg-paper);
+    color: var(--ink);
+    font-family: 'Outfit', sans-serif;
+    background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+    margin: 0;
+    min-height: 100vh;
+}
+
+/* Typography */
+.toon-script { font-family: 'Lobster', cursive; }
+.text-magenta { color: var(--magenta); }
+.text-yellow { color: var(--yellow); }
+.text-purple { color: var(--purple); }
+
+/* Components */
+.thick-border { border: var(--border-width) solid var(--ink); }
+.pop-shadow { box-shadow: 10px 10px 0px var(--ink); }
+.magenta-shadow { box-shadow: 10px 10px 0px var(--magenta); }
+
+.btn-primary {
+    background-color: var(--yellow);
+    color: var(--ink);
+    padding: 12px 24px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: var(--border-width) solid var(--ink);
+    box-shadow: 6px 6px 0px var(--ink);
+    transition: all 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px var(--ink);
+}
+
+.btn-primary:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--ink);
+}
+
+/* Layout */
+.mockup-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 40px;
+    background: white;
+    border-bottom: var(--border-width) solid var(--ink);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+/* Animations */
+@keyframes wobble {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(1.5deg) scale(1.02); }
+    50% { transform: rotate(-1.5deg); }
+    75% { transform: rotate(1.5deg) scale(0.98); }
+    100% { transform: rotate(0deg); }
+}
+
+.wobble-hover:hover { animation: wobble 0.3s infinite; }
+
+/* Effects */
+.film-grain {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0.04; z-index: 1000;
+    background-image: url('https://media.giphy.com/media/oEI9uWUqWMrBK/giphy.gif');
+}
+
+.card {
+    background: white;
+    padding: 16px;
+    border: var(--border-width) solid var(--ink);
+    box-shadow: 8px 8px 0px var(--ink);
+    transition: transform 0.2s;
+}
+
+.card:hover { transform: translate(-4px, -4px); box-shadow: 12px 12px 0px var(--ink); }
+
+/* Sidebar Admin */
+.admin-sidebar {
+    width: 280px;
+    height: 100vh;
+    border-right: var(--border-width) solid var(--ink);
+    background: var(--magenta);
+    padding: 40px 20px;
+    position: fixed;
+}

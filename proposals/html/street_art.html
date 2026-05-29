@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajicolor - Street Art Proposal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Fira+Sans:wght@900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffd141;
+            --magenta: #e84266;
+            --purple: #4f266a;
+            --green: #1ea96a;
+            --bg: #000000;
+        }
+        body {
+            background-color: var(--bg);
+            color: #fff;
+            font-family: 'Fira Sans', sans-serif;
+            overflow-x: hidden;
+        }
+        .marker { font-family: 'Permanent Marker', cursive; }
+        .street-gradient {
+            background: linear-gradient(90deg, var(--magenta) 0%, var(--green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .box-skew { transform: skew(-5deg); }
+        .tag {
+            background-color: var(--yellow);
+            color: black;
+            padding: 4px 12px;
+            transform: rotate(-3deg);
+            display: inline-block;
+            font-weight: 900;
+        }
+        .wa-btn {
+            background: linear-gradient(45deg, var(--green), var(--yellow));
+            color: black;
+            font-weight: 900;
+            box-shadow: 8px 8px 0px var(--magenta);
+        }
+    </style>
+</head>
+<body>
+    <div class="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none" style="background-image: url('https://www.transparenttextures.com/patterns/black-linen.png');"></div>
+
+    <nav class="p-10 flex flex-col md:flex-row justify-between items-center relative z-10">
+        <div class="text-6xl font-black italic tracking-tighter mb-8 md:mb-0">AJICOLOR <span class="text-[var(--magenta)]">STREET</span></div>
+        <div class="flex space-x-10 text-xl font-bold uppercase underline decoration-4 decoration-[var(--yellow)]">
+            <a href="#" class="hover:text-[var(--green)]">Drop</a>
+            <a href="#" class="hover:text-[var(--yellow)]">Tags</a>
+            <a href="#" class="hover:text-[var(--magenta)]">About</a>
+        </div>
+    </nav>
+
+    <header class="relative py-20 px-10 grid lg:grid-cols-2 gap-20 items-center">
+        <div class="relative z-10">
+            <span class="tag text-3xl mb-8 bungee">NEW UNDERGROUND</span>
+            <h1 class="text-8xl md:text-[10rem] font-black leading-[0.85] mb-12">STYLE <br><span class="street-gradient italic">URBAN</span><br>BEATS.</h1>
+            <p class="text-3xl max-w-lg mb-12 marker text-gray-400">Arte que se lleva puesto. Inadaptados con ritmo.</p>
+            <button class="wa-btn px-16 py-6 text-3xl uppercase box-skew hover:scale-105 transition">Entrar al Drop</button>
+        </div>
+        <div class="relative">
+            <div class="absolute -top-10 -right-10 w-full h-full border-[20px] border-[var(--purple)] opacity-20 transform rotate-6 scale-110"></div>
+            <img src="https://via.placeholder.com/600x600/000/1ea96a?text=Street+Art+Tee" alt="Street" class="relative z-10 shadow-[20px_20px_0px_var(--magenta)]">
+        </div>
+    </header>
+
+    <section class="mt-40 px-10">
+        <div class="flex flex-col md:flex-row gap-12">
+            <div class="md:w-1/3 bg-white/[0.05] p-10 box-skew border-l-8 border-[var(--magenta)]">
+                <div class="marker text-[var(--yellow)] text-4xl mb-6">#001</div>
+                <img src="https://via.placeholder.com/400x500/000/e84266?text=TAG+Shirt" alt="Product" class="w-full mb-8">
+                <h3 class="text-4xl font-black mb-4 uppercase">Urban Tag Special</h3>
+                <p class="text-3xl font-black text-[var(--green)] mb-6">$30.000</p>
+                <button class="w-full py-4 text-2xl font-black border-4 border-white hover:bg-white hover:text-black transition uppercase">Comprar WA</button>
+            </div>
+            <!-- More dynamic cards... -->
+             <div class="md:w-1/3 bg-white/[0.05] p-10 box-skew border-l-8 border-[var(--yellow)] transform translate-y-20">
+                <div class="marker text-[var(--magenta)] text-4xl mb-6">#002</div>
+                <img src="https://via.placeholder.com/400x500/000/ffd141?text=STREET+Viga" alt="Product" class="w-full mb-8 grayscale hover:grayscale-0 transition duration-500">
+                <h3 class="text-4xl font-black mb-4 uppercase">Viga Fusion Tee</h3>
+                <div class="flex items-center gap-4 mb-6">
+                    <p class="text-3xl font-black text-white/40 line-through">$45.000</p>
+                    <span class="bg-[var(--magenta)] text-xl font-black px-4 py-1">SOLD OUT</span>
+                </div>
+                <button class="w-full py-4 text-2xl font-black border-4 border-white/20 text-white/20 cursor-not-allowed uppercase">SOLD OUT</button>
+            </div>
+        </div>
+    </section>
+
+    <footer class="mt-60 p-20 bg-white/[0.02] flex flex-col items-center">
+        <p class="marker text-4xl text-[var(--yellow)] mb-12 transform rotate-2">Check the other vibes:</p>
+        <div class="flex flex-wrap justify-center gap-10 mb-20">
+            <a href="retro_funk.html" class="text-2xl font-black hover:text-[var(--magenta)] italic">01 FUNK</a>
+            <a href="modern_pop.html" class="text-2xl font-black hover:text-[var(--magenta)] italic">02 POP</a>
+            <a href="classic_rock.html" class="text-2xl font-black hover:text-[var(--magenta)] italic">03 ROCK</a>
+            <a href="minimalist.html" class="text-2xl font-black hover:text-[var(--magenta)] italic">04 MNNL</a>
+            <a href="street_art.html" class="text-2xl font-black text-[var(--magenta)] italic underline decoration-8">05 STREET</a>
+        </div>
+        <p class="opacity-10 text-xs font-black uppercase">Ajicolors Urban Crew // 2026</p>
+    </footer>
+</body>
+</html>

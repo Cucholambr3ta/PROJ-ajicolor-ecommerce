@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajicolor Admin - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="global.css">
+    <style>
+        .admin-main { margin-left: 280px; }
+        @media (max-width: 1024px) {
+            .admin-sidebar { width: 100%; height: auto; position: relative; }
+            .admin-main { margin-left: 0; }
+        }
+        .chart-bar { background: var(--yellow); border: 3px solid #000; transition: height 1s; }
+        .chart-bar:hover { background: var(--magenta); }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="film-grain"></div>
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar flex flex-col justify-between">
+        <div>
+            <div class="text-4xl font-black italic toon-script text-white mb-12 flex items-center gap-2">
+                 <span class="bg-black p-2 thick-border">A</span> Admin
+            </div>
+            <nav class="space-y-4">
+                <a href="#" class="block bg-black text-white p-4 thick-border font-black uppercase text-xs rotate-2">Dashboard</a>
+                <a href="#" class="block hover:bg-white p-4 font-black uppercase text-xs">Inventory</a>
+                <a href="#" class="block hover:bg-white p-4 font-black uppercase text-xs">Customer Data</a>
+                <a href="#" class="block hover:bg-white p-4 font-black uppercase text-xs">Drop Calendar</a>
+                <a href="#" class="block mt-20 hover:text-white p-4 font-black uppercase text-xs opacity-50 underline decoration-2">Settings</a>
+            </nav>
+        </div>
+        <a href="index.html" class="bg-black text-white p-6 thick-border text-center font-black uppercase text-xs hover:bg-white hover:text-black transition">Back to Store</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main p-12">
+        <header class="flex justify-between items-center mb-20 border-b-8 border-black pb-8">
+            <div>
+                <h1 class="text-7xl font-black italic uppercase tracking-tighter">Command Center</h1>
+                <p class="text-xl font-bold opacity-30">Vigilando el ritmo de ventas.</p>
+            </div>
+            <button class="bg-[var(--green)] px-10 py-5 thick-border pop-shadow font-black uppercase text-xl wobble-hover">Launch New Drop!</button>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="grid md:grid-cols-3 gap-12 mb-20">
+            <div class="bg-[var(--yellow)] p-10 thick-border magenta-shadow">
+                <p class="text-[10px] font-black uppercase tracking-widest mb-2">Monthly Revenue</p>
+                <h3 class="text-6xl font-black">$4.850.200</h3>
+                <p class="text-xs font-bold text-[var(--magenta)] mt-4">↑ 12% vs march</p>
+            </div>
+            <div class="bg-white p-10 thick-border pop-shadow">
+                <p class="text-[10px] font-black uppercase tracking-widest mb-2">Current Drops Active</p>
+                <h3 class="text-6xl font-black">12</h3>
+                <p class="text-xs font-bold opacity-30 mt-4">4 sold out this week</p>
+            </div>
+            <div class="bg-[var(--purple)] text-white p-10 thick-border shadow-[10px_10px_0px_var(--yellow)]">
+                <p class="text-[10px] font-black uppercase tracking-widest mb-2">Backstage Pass Users</p>
+                <h3 class="text-6xl font-black">1,024</h3>
+                <div class="h-2 bg-white/20 mt-6 overflow-hidden">
+                     <div class="w-3/4 h-full bg-[var(--green)]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Chart (Mock) -->
+        <div class="bg-white p-12 thick-border mb-20">
+            <h3 class="text-3xl font-black uppercase mb-12">Sales Pulse (Last 7 Days)</h3>
+            <div class="flex items-end transition-all h-64 gap-6 px-4 border-b-4 border-black">
+                <div class="chart-bar h-[40%]" title="Mon"></div>
+                <div class="chart-bar h-[65%]" title="Tue"></div>
+                <div class="chart-bar h-[30%]" title="Wed"></div>
+                <div class="chart-bar h-[90%]" title="Thu"></div>
+                <div class="chart-bar h-[55%]" title="Fri"></div>
+                <div class="chart-bar h-[75%]" title="Sat"></div>
+                <div class="chart-bar h-[85%]" title="Sun"></div>
+            </div>
+            <div class="flex justify-between mt-4 text-[10px] font-black opacity-30 px-4 uppercase">
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="overflow-x-auto bg-white thick-border pop-shadow">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-black text-white font-black uppercase text-xs">
+                        <th class="p-6">Product Image</th>
+                        <th class="p-6">Name</th>
+                        <th class="p-6">Status</th>
+                        <th class="p-6">Stock</th>
+                        <th class="p-6">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="font-bold text-sm">
+                    <tr class="border-b-4 border-black">
+                        <td class="p-6"><div class="w-16 h-16 bg-gray-100 thick-border"></div></td>
+                        <td class="p-6">Bass Line Anthem Tee</td>
+                        <td class="p-6 text-[var(--green)]">In Drop</td>
+                        <td class="p-6">45 Units</td>
+                        <td class="p-6"><button class="text-[var(--magenta)] underline font-black">Edit</button></td>
+                    </tr>
+                    <tr class="border-b-4 border-black bg-gray-50">
+                        <td class="p-6"><div class="w-16 h-16 bg-gray-100 thick-border"></div></td>
+                        <td class="p-6">Electric Soul Hoodie</td>
+                        <td class="p-6 text-[var(--magenta)] font-black italic">Sold Out</td>
+                        <td class="p-6">0 Units</td>
+                        <td class="p-6"><button class="text-[var(--magenta)] underline font-black">Restock</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer class="admin-main p-12 text-center opacity-10">
+        <p class="font-black italic uppercase">Ajicolor Command Series // No trespassing</p>
+    </footer>
+</body>
+</html>
