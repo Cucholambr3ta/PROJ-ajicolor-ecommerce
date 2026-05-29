@@ -1,4 +1,22 @@
 {
+  "app/admin/catalogo/CatalogoPageClient.tsx -> @/lib/actions/products": {
+    "id": 4630,
+    "files": [
+      "static/chunks/630.81077c113875a0f3.js"
+    ]
+  },
+  "app/admin/catalogo/nuevo/ProductoFormClient.tsx -> @/lib/actions/products": {
+    "id": 4630,
+    "files": [
+      "static/chunks/630.81077c113875a0f3.js"
+    ]
+  },
+  "app/admin/envios/EnviosPageClient.tsx -> @/lib/actions/shipments": {
+    "id": 720,
+    "files": [
+      "static/chunks/720.b79907b13564175a.js"
+    ]
+  },
   "app/admin/stock/StockPageClient.tsx -> @/lib/actions/stock": {
     "id": 3907,
     "files": [
