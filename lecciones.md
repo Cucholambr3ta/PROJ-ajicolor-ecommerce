@@ -54,3 +54,10 @@ Categorías sugeridas: `ARQUITECTURA`, `SEGURIDAD`, `DOMINIO`, `TESTING`, `DEVOP
 **Causa raíz:** Se priorizó velocidad sobre proceso.
 **Lección:** Toda feature/fix crea rama `feature/<nombre>` desde develop. Commit → `gh pr create --base develop` → merge (squash o merge commit). La rama NO se elimina post-merge. Jamás commit directo a develop.
 **Aplica a:** Todo el flujo del proyecto.
+
+### [HERRAMIENTAS] Gate espera artefactos en `.xdd/<fase>/`, no en raíz — copiar o symlinkear — 2026-05-29
+**Contexto:** Aprobar fase spec falló esperando `.xdd/spec/DOMAIN.md` y `.xdd/spec/THREATS.md`, no `./DOMAIN.md` en raíz.
+**Problema:** El gate hardcodea paths internos `.xdd/<fase>/` pero los artefactos se crean en raíz del proyecto.
+**Causa raíz:** El gate asume que los artefactos viven dentro de `.xdd/`, pero el pipeline X-DD los produce en raíz.
+**Lección:** Después de crear artefactos por fase, copiarlos a `.xdd/<fase>/` para que el gate los encuentre. O actualizar `PHASES` en `xdd-gate.py` para que busque en raíz.
+**Aplica a:** Transiciones de fases con xdd-gate.py.
