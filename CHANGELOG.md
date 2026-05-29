@@ -7,6 +7,27 @@ y este proyecto adherido a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+---
+
+## [2.0.0] - 2026-05-29
+
+### Added
+- **Sprint 1:** npm install, Prisma SQLite DB, seed script (admin, 3 customers, 3 products, 24 variants, 6 orders)
+- **Sprint 2:** 6 server actions (orders, products, stock, shipments, customers, production), 7 admin pages connected to Prisma
+- **Sprint 3:** Pedidos workflow con transiciones validadas, producción por lotes, stock management con transacciones atómicas
+- **Sprint 4:** Catálogo CRUD completo, clientes con historial, envíos con timeline visual
+- **Sprint 5:** Dashboard con KPIs reales, NextAuth credentials, middleware de protección, tienda pública
+- **Auth:** Login page, API route, middleware protege /admin/*
+- **UI:** Badge destructive variant, UserNav con avatar y logout
+
+### Fixed
+- Prisma schema: `diseñoUrl` → `disenoUrl` (ñ incompatible)
+- Prisma schema: `@db.Decimal` eliminado (SQLite incompatible)
+- Badge: added `destructive` variant
+- Clientes/Envíos: type fixes (Decimal → any, Date → any)
+
+---
+
 ### Pipeline X-DD — Fase 1: Bootstrap (2026-05-28)
 - Inicialización de proyecto via `xdd-init.sh --profile=core`
 - Estructura de gobernanza X-DD: `.agent/`, `prompts/`, `scripts/`, `templates/`, `skills/`
