@@ -26,3 +26,19 @@ export async function getCustomerOrders(customerId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export async function updateCustomer(
+  id: string,
+  data: {
+    nombre?: string;
+    email?: string;
+    telefono?: string;
+    direccion?: string;
+    backstagePass?: boolean;
+  }
+) {
+  return prisma.customer.update({
+    where: { id },
+    data,
+  });
+}

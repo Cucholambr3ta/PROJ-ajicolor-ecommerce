@@ -1,1 +1,1 @@
-{"version":1,"functions":{"/admin/clientes":{},"/admin":{},"/admin/catalogo":{},"/admin/pedidos":{},"/admin/envios":{},"/admin/stock":{},"/admin/produccion":{},"/admin/produccion/[id]":{},"/admin/pedidos/[id]":{}}}
+{"version":1,"functions":{"/admin/catalogo":{},"/admin/clientes":{},"/admin/catalogo/nuevo":{},"/admin/envios":{},"/admin/catalogo/[id]":{},"/admin/envios/[id]":{},"/admin":{},"/admin/clientes/[id]":{},"/admin/pedidos":{},"/admin/stock":{},"/admin/produccion":{},"/admin/produccion/[id]":{},"/admin/pedidos/[id]":{}}}

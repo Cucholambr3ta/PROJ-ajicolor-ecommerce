@@ -2,12 +2,16 @@
   "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
   "/admin/catalogo/page": "app/admin/catalogo/page.js",
-  "/admin/clientes/page": "app/admin/clientes/page.js",
-  "/admin/envios/page": "app/admin/envios/page.js",
+  "/admin/catalogo/nuevo/page": "app/admin/catalogo/nuevo/page.js",
   "/admin/page": "app/admin/page.js",
+  "/admin/clientes/[id]/page": "app/admin/clientes/[id]/page.js",
+  "/admin/envios/[id]/page": "app/admin/envios/[id]/page.js",
   "/admin/pedidos/page": "app/admin/pedidos/page.js",
-  "/admin/produccion/[id]/page": "app/admin/produccion/[id]/page.js",
-  "/admin/pedidos/[id]/page": "app/admin/pedidos/[id]/page.js",
+  "/admin/clientes/page": "app/admin/clientes/page.js",
+  "/admin/catalogo/[id]/page": "app/admin/catalogo/[id]/page.js",
+  "/admin/produccion/page": "app/admin/produccion/page.js",
   "/admin/stock/page": "app/admin/stock/page.js",
-  "/admin/produccion/page": "app/admin/produccion/page.js"
+  "/admin/produccion/[id]/page": "app/admin/produccion/[id]/page.js",
+  "/admin/envios/page": "app/admin/envios/page.js",
+  "/admin/pedidos/[id]/page": "app/admin/pedidos/[id]/page.js"
 }
