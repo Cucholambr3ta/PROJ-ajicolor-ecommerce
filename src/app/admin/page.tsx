@@ -5,24 +5,53 @@ import { Package, ShoppingCart, AlertTriangle, Factory } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [ventasHoy, pedidosPendientes, stockBajo, produccionActiva] = await Promise.all([
+  const [ventasMes, pedidosPendientes, stockBajo, produccionActiva] = await Promise.all([
     prisma.order.aggregate({
-      where: { createdAt: { gte: today }, estado: { not: "Cancelado" } },
+      where: {
+        createdAt: { gte: firstDayOfMonth },
+        estado: "Entregado",
+      },
       _sum: { total: true },
     }),
-    prisma.order.count({ where: { estado: { in: ["Pendiente", "Confirmado"] } } }),
-    (await prisma.productVariant.findMany()).filter((v) => v.stock <= v.stockMin),
-    prisma.productionBatch.count({ where: { estado: { in: ["Solicitado", "EnProceso"] } } }),
+    prisma.order.count({
+      where: { estado: "Pendiente" },
+    }),
+    prisma.$queryRawUnsafe<{ count: bigint }[]>(
+      "SELECT COUNT(*) as count FROM ProductVariant WHERE stock <= stockMin"
+    ),
+    prisma.productionBatch.count({
+      where: { estado: "En Progreso" },
+    }),
   ]);
 
   const kpis = [
-    { label: "Ventas Hoy", value: `$${ventasHoy._sum.total?.toFixed(0) ?? "0"}`, icon: ShoppingCart, color: "text-ajicolor-magenta" },
-    { label: "Pedidos Pendientes", value: String(pedidosPendientes), icon: Package, color: "text-ajicolor-purple" },
-    { label: "Stock Bajo", value: String(stockBajo.length), icon: AlertTriangle, color: "text-amber-500" },
-    { label: "Producción Activa", value: String(produccionActiva), icon: Factory, color: "text-ajicolor-yellow" },
+    {
+      label: "Ventas del Mes",
+      value: `$${ventasMes._sum.total?.toFixed(2) ?? "0.00"}`,
+      icon: ShoppingCart,
+      color: "text-ajicolor-magenta",
+    },
+    {
+      label: "Pedidos Pendientes",
+      value: String(pedidosPendientes),
+      icon: Package,
+      color: "text-ajicolor-purple",
+    },
+    {
+      label: "Stock Bajo",
+      value: String(Array.isArray(stockBajo) ? Number(stockBajo[0]?.count ?? 0) : stockBajo),
+      icon: AlertTriangle,
+      color: "text-amber-500",
+    },
+    {
+      label: "Producción Activa",
+      value: String(produccionActiva),
+      icon: Factory,
+      color: "text-ajicolor-yellow",
+    },
   ];
 
   return (
