@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Package, ShoppingCart, AlertTriangle, Factory } from "lucide-react";
+import { getVentasUltimos30Dias } from "@/lib/actions/metrics";
+import VentasChart from "./VentasChart";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +10,7 @@ export default async function AdminDashboard() {
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [ventasMes, pedidosPendientes, stockBajo, produccionActiva] = await Promise.all([
+  const [ventasMes, pedidosPendientes, variantesStockBajo, produccionActiva, ventas30d] = await Promise.all([
     prisma.order.aggregate({
       where: {
         createdAt: { gte: firstDayOfMonth },
@@ -19,13 +21,14 @@ export default async function AdminDashboard() {
     prisma.order.count({
       where: { estado: "Pendiente" },
     }),
-    prisma.$queryRawUnsafe<{ count: bigint }[]>(
-      "SELECT COUNT(*) as count FROM ProductVariant WHERE stock <= stockMin"
-    ),
+    prisma.productVariant.findMany({ select: { stock: true, stockMin: true } }),
     prisma.productionBatch.count({
       where: { estado: "En Progreso" },
     }),
+    getVentasUltimos30Dias(),
   ]);
+
+  const stockBajo = variantesStockBajo.filter((v) => v.stock <= v.stockMin).length;
 
   const kpis = [
     {
@@ -42,7 +45,7 @@ export default async function AdminDashboard() {
     },
     {
       label: "Stock Bajo",
-      value: String(Array.isArray(stockBajo) ? Number(stockBajo[0]?.count ?? 0) : stockBajo),
+      value: String(stockBajo),
       icon: AlertTriangle,
       color: "text-amber-500",
     },
@@ -70,6 +73,11 @@ export default async function AdminDashboard() {
           </Card>
         ))}
       </div>
+
+      <Card className="p-6 mt-6">
+        <h2 className="font-semibold text-gray-700 mb-4">Ventas — últimos 30 días</h2>
+        <VentasChart data={ventas30d} />
+      </Card>
     </div>
   );
 }
