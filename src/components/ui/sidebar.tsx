@@ -10,6 +10,7 @@ import {
   Truck,
   Users,
   Layers,
+  BarChart3,
 } from "lucide-react";
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/admin/envios", label: "Envíos", icon: Truck },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/catalogo", label: "Catálogo", icon: Layers },
+  { href: "/admin/reportes", label: "Reportes", icon: BarChart3 },
 ];
 
 export function Sidebar() {
