@@ -79,9 +79,22 @@ model OrderItem {
   precioUnit  Decimal
 }
 
+model Supplier {
+  id           String   @id @default(cuid())
+  nombre       String
+  contacto     String
+  leadTimeDias Int
+  costoBase    Decimal
+  calificacion Int      @default(3)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  batches      ProductionBatch[]
+}
+
 model ProductionBatch {
   id                String   @id @default(cuid())
-  proveedor         String
+  supplierId        String
+  supplier          Supplier @relation(fields: [supplierId], references: [id])
   variantes         String
   unidadesPorVar    String
   costoTotal        Decimal
