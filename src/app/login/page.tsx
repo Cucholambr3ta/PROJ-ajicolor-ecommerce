@@ -8,6 +8,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [totpToken, setTotpToken] = useState("");
+  const [needsTotp, setNeedsTotp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,16 +18,31 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
+    if (!needsTotp) {
+      const check = await fetch("/api/auth/check-2fa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      }).then((r) => r.json());
+
+      if (check.totpEnabled) {
+        setNeedsTotp(true);
+        setLoading(false);
+        return;
+      }
+    }
+
     const res = await signIn("credentials", {
       email,
       password,
+      totpToken,
       redirect: false,
     });
 
     setLoading(false);
 
     if (res?.error) {
-      setError("Credenciales inválidas");
+      setError(needsTotp ? "Código 2FA inválido" : "Credenciales inválidas");
       return;
     }
 
@@ -62,11 +79,31 @@ export default function LoginPage() {
               id="password"
               type="password"
               required
+              disabled={needsTotp}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta/50 focus:border-ajicolor-magenta"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta/50 focus:border-ajicolor-magenta disabled:bg-gray-100"
             />
           </div>
+
+          {needsTotp && (
+            <div>
+              <label htmlFor="totpToken" className="block text-sm font-medium text-gray-700 mb-1">
+                Código de autenticación (2FA)
+              </label>
+              <input
+                id="totpToken"
+                type="text"
+                inputMode="numeric"
+                autoFocus
+                required
+                maxLength={6}
+                value={totpToken}
+                onChange={(e) => setTotpToken(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta/50 focus:border-ajicolor-magenta"
+              />
+            </div>
+          )}
 
           {error && (
             <p className="text-sm text-red-600">{error}</p>
@@ -77,7 +114,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-ajicolor-magenta text-white py-2 rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
-            {loading ? "Ingresando..." : "Ingresar"}
+            {loading ? "Verificando..." : needsTotp ? "Verificar código" : "Ingresar"}
           </button>
         </form>
       </div>

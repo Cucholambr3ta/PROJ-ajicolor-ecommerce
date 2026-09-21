@@ -22,6 +22,8 @@ const requiredModels: ModelDefinition[] = [
       { name: "email", type: "String", isRequired: true, isUnique: true, isId: false, hasDefault: false },
       { name: "passwordHash", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
       { name: "rol", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: true },
+      { name: "totpSecret", type: "String?", isRequired: false, isUnique: false, isId: false, hasDefault: false },
+      { name: "totpEnabled", type: "Boolean", isRequired: true, isUnique: false, isId: false, hasDefault: true },
       { name: "createdAt", type: "DateTime", isRequired: true, isUnique: false, isId: false, hasDefault: true },
       { name: "updatedAt", type: "DateTime", isRequired: true, isUnique: false, isId: false, hasDefault: true },
     ],
