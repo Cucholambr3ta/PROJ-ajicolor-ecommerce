@@ -10,6 +10,7 @@ import {
   Truck,
   Users,
   Layers,
+  Factory,
   BarChart3,
 } from "lucide-react";
 
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
   { href: "/admin/produccion", label: "Producción", icon: Package },
+  { href: "/admin/proveedores", label: "Proveedores", icon: Factory },
   { href: "/admin/stock", label: "Stock", icon: Warehouse },
   { href: "/admin/envios", label: "Envíos", icon: Truck },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
