@@ -56,8 +56,33 @@ export default async function ClienteDetailPage({
               <span className="font-medium">Backstage Pass:</span>
               {customer.backstagePass ? <Badge>Activo</Badge> : <Badge variant="outline">Inactivo</Badge>}
             </p>
+            {customer.backstagePass && customer.backstagePassExpira && (
+              <p className="text-xs text-gray-500">
+                Expira: {customer.backstagePassExpira.toLocaleDateString()}
+              </p>
+            )}
             <p><span className="font-medium">Total gastado:</span> <span className="font-bold text-lg">${customer.totalGastado.toFixed(2)}</span></p>
             <p><span className="font-medium">Total pedidos:</span> {customer.orders.length}</p>
+            <form
+              action={async () => {
+                "use server";
+                const { activarBackstagePass, desactivarBackstagePass } = await import(
+                  "@/lib/actions/customers"
+                );
+                if (customer.backstagePass) {
+                  await desactivarBackstagePass(customer.id);
+                } else {
+                  await activarBackstagePass(customer.id);
+                }
+              }}
+            >
+              <button
+                type="submit"
+                className="mt-2 px-3 py-1.5 rounded-md border border-gray-300 text-xs font-medium hover:bg-gray-50"
+              >
+                {customer.backstagePass ? "Desactivar Backstage Pass" : "Activar Backstage Pass (30 días)"}
+              </button>
+            </form>
           </div>
         </Card>
       </div>
