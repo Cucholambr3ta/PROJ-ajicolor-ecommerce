@@ -36,6 +36,7 @@ const requiredModels: ModelDefinition[] = [
       { name: "telefono", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
       { name: "direccion", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
       { name: "backstagePass", type: "Boolean", isRequired: true, isUnique: false, isId: false, hasDefault: true },
+      { name: "backstagePassExpira", type: "DateTime?", isRequired: false, isUnique: false, isId: false, hasDefault: false },
       { name: "totalGastado", type: "Decimal", isRequired: true, isUnique: false, isId: false, hasDefault: true },
     ],
     relations: ["Order"],

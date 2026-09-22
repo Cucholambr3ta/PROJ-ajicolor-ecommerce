@@ -17,15 +17,16 @@ model User {
 }
 
 model Customer {
-  id            String   @id @default(cuid())
-  nombre        String
-  email         String   @unique
-  telefono      String
-  direccion     String
-  backstagePass Boolean  @default(false)
-  fechaRegistro DateTime @default(now())
-  totalGastado  Decimal  @default(0)
-  orders        Order[]
+  id                  String    @id @default(cuid())
+  nombre              String
+  email               String    @unique
+  telefono            String
+  direccion           String
+  backstagePass       Boolean   @default(false)
+  backstagePassExpira DateTime?
+  fechaRegistro       DateTime  @default(now())
+  totalGastado        Decimal   @default(0)
+  orders              Order[]
 }
 
 model Product {
