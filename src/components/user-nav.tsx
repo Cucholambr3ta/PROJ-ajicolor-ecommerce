@@ -1,7 +1,8 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
 interface UserNavProps {
   user?: {
@@ -30,6 +31,13 @@ export function UserNav({ user }: UserNavProps) {
           {user?.name ?? user?.email ?? "Admin"}
         </span>
       </div>
+      <Link
+        href="/admin/seguridad"
+        className="p-1.5 text-gray-400 hover:text-ajicolor-magenta transition-colors rounded-md hover:bg-gray-100"
+        title="Seguridad"
+      >
+        <ShieldCheck className="h-4 w-4" />
+      </Link>
       <button
         onClick={() => signOut({ callbackUrl: "/login" })}
         className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-md hover:bg-gray-100"
