@@ -152,10 +152,31 @@ async function main() {
   }
   console.log(`Shipments: ${shippedOrders.length}`);
 
+  // Suppliers
+  const supplierTextil = await prisma.supplier.create({
+    data: {
+      nombre: 'Textil SpA',
+      contacto: 'contacto@textilspa.cl',
+      leadTimeDias: 14,
+      costoBase: 25000,
+      calificacion: 4,
+    },
+  });
+  await prisma.supplier.create({
+    data: {
+      nombre: 'Estampados del Sur',
+      contacto: 'ventas@estampadosdelsur.cl',
+      leadTimeDias: 10,
+      costoBase: 18000,
+      calificacion: 5,
+    },
+  });
+  console.log('Suppliers: 2');
+
   // Production batch
   await prisma.productionBatch.create({
     data: {
-      proveedor: 'Textil SpA',
+      supplierId: supplierTextil.id,
       variantes: allVariants.slice(0, 8).map(v => v.sku).join(', '),
       unidadesPorVar: '10',
       costoTotal: 280000,

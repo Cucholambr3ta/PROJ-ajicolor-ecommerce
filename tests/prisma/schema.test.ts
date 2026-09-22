@@ -38,6 +38,7 @@ const requiredModels: ModelDefinition[] = [
       { name: "telefono", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
       { name: "direccion", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
       { name: "backstagePass", type: "Boolean", isRequired: true, isUnique: false, isId: false, hasDefault: true },
+      { name: "backstagePassExpira", type: "DateTime?", isRequired: false, isUnique: false, isId: false, hasDefault: false },
       { name: "totalGastado", type: "Decimal", isRequired: true, isUnique: false, isId: false, hasDefault: true },
     ],
     relations: ["Order"],
@@ -91,10 +92,22 @@ const requiredModels: ModelDefinition[] = [
     relations: [],
   },
   {
+    name: "Supplier",
+    fields: [
+      { name: "id", type: "String", isRequired: true, isUnique: false, isId: true, hasDefault: true },
+      { name: "nombre", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
+      { name: "contacto", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
+      { name: "leadTimeDias", type: "Int", isRequired: true, isUnique: false, isId: false, hasDefault: false },
+      { name: "costoBase", type: "Decimal", isRequired: true, isUnique: false, isId: false, hasDefault: false },
+      { name: "calificacion", type: "Int", isRequired: true, isUnique: false, isId: false, hasDefault: true },
+    ],
+    relations: ["ProductionBatch"],
+  },
+  {
     name: "ProductionBatch",
     fields: [
       { name: "id", type: "String", isRequired: true, isUnique: false, isId: true, hasDefault: true },
-      { name: "proveedor", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
+      { name: "supplierId", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
       { name: "variantes", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
       { name: "unidadesPorVar", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
       { name: "costoTotal", type: "Decimal", isRequired: true, isUnique: false, isId: false, hasDefault: false },
@@ -103,7 +116,7 @@ const requiredModels: ModelDefinition[] = [
       { name: "fechaRecepcion", type: "DateTime?", isRequired: false, isUnique: false, isId: false, hasDefault: false },
       { name: "estado", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: true },
     ],
-    relations: [],
+    relations: ["Supplier"],
   },
   {
     name: "StockMovement",

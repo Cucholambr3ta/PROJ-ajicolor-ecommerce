@@ -19,7 +19,7 @@ export default async function LoteDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const batch = await prisma.productionBatch.findUnique({ where: { id } });
+  const batch = await prisma.productionBatch.findUnique({ where: { id }, include: { supplier: true } });
 
   if (!batch) notFound();
 
@@ -41,7 +41,12 @@ export default async function LoteDetailPage({
           <h2 className="font-semibold text-gray-700 mb-3">Información del Lote</h2>
           <div className="space-y-2 text-sm">
             <p><span className="font-medium">ID:</span> {batch.id}</p>
-            <p><span className="font-medium">Proveedor:</span> {batch.proveedor}</p>
+            <p>
+              <span className="font-medium">Proveedor:</span>{" "}
+              <Link href={`/admin/proveedores/${batch.supplier.id}`} className="text-ajicolor-magenta hover:underline">
+                {batch.supplier.nombre}
+              </Link>
+            </p>
             <p className="flex items-center gap-2">
               <span className="font-medium">Estado:</span>
               <Badge variant="outline">{batch.estado}</Badge>
