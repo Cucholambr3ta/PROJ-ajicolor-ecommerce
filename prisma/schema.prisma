@@ -22,6 +22,7 @@ model Customer {
   id                  String    @id @default(cuid())
   nombre              String
   email               String    @unique
+  passwordHash        String?
   telefono            String
   direccion           String
   backstagePass       Boolean   @default(false)

@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { Card } from "@/components/ui/card";
 import { Package, ShoppingCart, AlertTriangle, Factory } from "lucide-react";
 import { getVentasUltimos30Dias } from "@/lib/actions/metrics";
 import VentasChart from "./VentasChart";
@@ -35,42 +34,54 @@ export default async function AdminDashboard() {
       label: "Ventas del Mes",
       value: `$${ventasMes._sum.total?.toFixed(2) ?? "0.00"}`,
       icon: ShoppingCart,
-      color: "text-ajicolor-magenta",
+      bg: "bg-ajicolor-yellow",
+      shadow: "magenta-shadow",
     },
     {
       label: "Pedidos Pendientes",
       value: String(pedidosPendientes),
       icon: Package,
-      color: "text-ajicolor-purple",
+      bg: "bg-white",
+      shadow: "pop-shadow",
     },
     {
       label: "Stock Bajo",
       value: String(stockBajo),
       icon: AlertTriangle,
-      color: "text-amber-500",
+      bg: "bg-white",
+      shadow: "pop-shadow",
     },
     {
       label: "Producción Activa",
       value: String(produccionActiva),
       icon: Factory,
-      color: "text-ajicolor-yellow",
+      bg: "bg-ajicolor-purple text-white",
+      shadow: "",
+      customShadow: "shadow-[10px_10px_0px_var(--yellow)]",
     },
   ];
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <header className="flex justify-between items-center mb-16 border-b-8 border-ajicolor-ink pb-6">
+        <div>
+          <h1 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter">Command Center</h1>
+          <p className="text-lg font-bold opacity-30">Vigilando el ritmo de ventas.</p>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {kpis.map((kpi) => (
-          <Card key={kpi.label} className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">{kpi.label}</p>
-                <p className="text-2xl font-bold">{kpi.value}</p>
-              </div>
-              <kpi.icon className={`h-8 w-8 ${kpi.color}`} />
+          <div
+            key={kpi.label}
+            className={`${kpi.bg} thick-border p-8 ${kpi.shadow} ${kpi.customShadow ?? ""}`}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] font-black uppercase tracking-widest">{kpi.label}</p>
+              <kpi.icon className="h-6 w-6 opacity-60" />
             </div>
-          </Card>
+            <h3 className="text-4xl font-black">{kpi.value}</h3>
+          </div>
         ))}
       </div>
 

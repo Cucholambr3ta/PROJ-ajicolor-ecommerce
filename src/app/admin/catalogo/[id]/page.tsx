@@ -28,10 +28,10 @@ export default async function ProductoDetailPage({
           ← Volver a Catálogo
         </Link>
         <div className="flex items-center justify-between mt-2">
-          <h1 className="text-2xl font-bold">Detalle del Producto</h1>
+          <h1 className="text-4xl font-black uppercase italic">Detalle del Producto</h1>
           <Link
             href={`/admin/catalogo/nuevo?edit=${product.id}`}
-            className="px-4 py-2 rounded-md bg-ajicolor-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity"
+            className="px-4 py-2 bg-ajicolor-yellow thick-border text-ajicolor-ink text-xs font-black uppercase hover:bg-ajicolor-ink hover:text-white transition-colors"
           >
             Editar producto
           </Link>

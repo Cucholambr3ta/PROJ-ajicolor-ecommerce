@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Outfit, Lobster } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const outfit = Outfit({ subsets: ["latin"], weight: ["300", "500", "900"], variable: "--font-outfit" });
+const lobster = Lobster({ subsets: ["latin"], weight: "400", variable: "--font-lobster" });
 
 export const metadata: Metadata = {
   title: "Ajicolor Admin",
@@ -16,7 +17,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={inter.className}>{children}</body>
+      <body className={`${outfit.variable} ${lobster.variable} font-sans`}>
+        <div className="film-grain" />
+        {children}
+      </body>
     </html>
   );
 }

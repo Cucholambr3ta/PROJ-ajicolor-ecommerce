@@ -7,5 +7,105 @@
     --magenta: #e84266;
     --purple: #4f266a;
     --yellow: #ffd141;
+    --green: #1ea96a;
+    --bg-paper: #f7f3e9;
+    --ink: #1a1a1a;
+    --border-width: 4px;
+  }
+
+  body {
+    background-color: var(--bg-paper);
+    color: var(--ink);
+    background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .toon-script {
+    font-family: var(--font-lobster), cursive;
+  }
+
+  .thick-border {
+    border: var(--border-width) solid var(--ink);
+  }
+
+  .pop-shadow {
+    box-shadow: 10px 10px 0px var(--ink);
+  }
+
+  .magenta-shadow {
+    box-shadow: 10px 10px 0px var(--magenta);
+  }
+
+  .btn-primary {
+    background-color: var(--yellow);
+    color: var(--ink);
+    padding: 12px 24px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: var(--border-width) solid var(--ink);
+    box-shadow: 6px 6px 0px var(--ink);
+    transition: all 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px var(--ink);
+  }
+
+  .btn-primary:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--ink);
+  }
+
+  .card {
+    background: white;
+    border: var(--border-width) solid var(--ink);
+    box-shadow: 8px 8px 0px var(--ink);
+    transition: transform 0.2s;
+  }
+
+  .card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 12px 12px 0px var(--ink);
+  }
+
+  .mockup-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 40px;
+    background: white;
+    border-bottom: var(--border-width) solid var(--ink);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .film-grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    z-index: 1000;
+    background-image: url('https://media.giphy.com/media/oEI9uWUqWMrBK/giphy.gif');
+  }
+}
+
+@layer utilities {
+  .wobble-hover:hover {
+    animation: wobble 0.3s infinite;
+  }
+
+  @keyframes wobble {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(1.5deg) scale(1.02); }
+    50% { transform: rotate(-1.5deg); }
+    75% { transform: rotate(1.5deg) scale(0.98); }
+    100% { transform: rotate(0deg); }
   }
 }

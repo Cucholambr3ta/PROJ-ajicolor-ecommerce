@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
+      id: "admin-login",
+      name: "Admin",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
@@ -39,6 +41,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
+    Credentials({
+      id: "cliente-login",
+      name: "Cliente",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email as string | undefined;
+        const password = credentials?.password as string | undefined;
+        if (!email || !password) return null;
+
+        const customer = await prisma.customer.findUnique({ where: { email } });
+        if (!customer || !customer.passwordHash) return null;
+
+        const valid = await compare(password, customer.passwordHash);
+        if (!valid) return null;
+
+        return { id: customer.id, email: customer.email, name: customer.nombre, rol: "Cliente" };
+      },
+    }),
   ],
   session: {
     strategy: "jwt",
@@ -51,11 +74,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.rol = (user as any).rol;
+        token.id = user.id;
       }
       return token;
     },
     async session({ session, token }) {
       (session.user as any).rol = token.rol;
+      (session.user as any).id = token.id;
       return session;
     },
   },

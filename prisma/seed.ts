@@ -20,13 +20,16 @@ async function main() {
   console.log(`Admin: ${admin.email}`);
 
   // Customers
+  const customerPasswordHash = await hash('cliente123', 12);
   const customers = await Promise.all([
     prisma.customer.create({
       data: {
         nombre: 'Camila Reyes',
         email: 'camila@test.cl',
+        passwordHash: customerPasswordHash,
         telefono: '+56912345678',
         direccion: 'Santiago, Chile',
+        backstagePass: true,
       },
     }),
     prisma.customer.create({

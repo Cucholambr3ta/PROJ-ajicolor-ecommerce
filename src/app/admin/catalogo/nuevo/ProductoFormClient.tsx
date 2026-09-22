@@ -109,7 +109,7 @@ export default function ProductoFormClient({
         <Link href="/admin/catalogo" className="text-sm text-gray-500 hover:underline">
           ← Volver a Catálogo
         </Link>
-        <h1 className="text-2xl font-bold mt-2">
+        <h1 className="text-4xl font-black uppercase italic mt-2">
           {isEdit ? "Editar Producto" : "Nuevo Producto"}
         </h1>
       </div>
@@ -174,7 +174,7 @@ export default function ProductoFormClient({
               <button
                 type="button"
                 onClick={addVariant}
-                className="px-3 py-1.5 rounded-md border border-gray-300 text-xs font-medium hover:bg-gray-50"
+                className="px-3 py-1.5 rounded-md border-2 border-ajicolor-ink text-xs font-black uppercase hover:bg-ajicolor-yellow"
               >
                 + Agregar variante
               </button>
@@ -256,14 +256,14 @@ export default function ProductoFormClient({
         <div className="flex gap-3 justify-end">
           <Link
             href="/admin/catalogo"
-            className="px-4 py-2 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50"
+            className="px-4 py-2 rounded-md border-2 border-ajicolor-ink text-xs font-black uppercase hover:bg-ajicolor-yellow"
           >
             Cancelar
           </Link>
           <button
             type="submit"
             disabled={isPending}
-            className="px-4 py-2 rounded-md bg-ajicolor-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="px-4 py-2 bg-ajicolor-yellow thick-border text-ajicolor-ink text-xs font-black uppercase hover:bg-ajicolor-ink hover:text-white transition-colors disabled:opacity-50"
           >
             {isPending ? "Guardando..." : isEdit ? "Guardar cambios" : "Crear producto"}
           </button>

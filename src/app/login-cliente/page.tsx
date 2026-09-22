@@ -2,14 +2,13 @@
 
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 
-export default function LoginPage() {
+export default function LoginClientePage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [totpToken, setTotpToken] = useState("");
-  const [needsTotp, setNeedsTotp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,43 +17,29 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    if (!needsTotp) {
-      const check = await fetch("/api/auth/check-2fa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      }).then((r) => r.json());
-
-      if (check.totpEnabled) {
-        setNeedsTotp(true);
-        setLoading(false);
-        return;
-      }
-    }
-
-    const res = await signIn("admin-login", {
+    const res = await signIn("cliente-login", {
       email,
       password,
-      totpToken,
       redirect: false,
     });
 
     setLoading(false);
 
     if (res?.error) {
-      setError(needsTotp ? "Código 2FA inválido" : "Credenciales inválidas");
+      setError("Credenciales inválidas");
       return;
     }
 
-    router.push("/admin");
+    router.push("/perfil");
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-ajicolor-paper p-6">
       <div className="w-full max-w-sm bg-white thick-border pop-shadow p-10">
-        <h1 className="text-4xl font-black italic toon-script text-ajicolor-magenta text-center mb-8">
-          Ajicolor Admin
-        </h1>
+        <Link href="/" className="block text-center text-3xl font-black italic toon-script text-ajicolor-magenta mb-2">
+          Ajicolor
+        </Link>
+        <p className="text-center text-xs font-black uppercase tracking-widest opacity-50 mb-8">My Space</p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -79,44 +64,26 @@ export default function LoginPage() {
               id="password"
               type="password"
               required
-              disabled={needsTotp}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta disabled:bg-gray-100"
+              className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
             />
           </div>
 
-          {needsTotp && (
-            <div>
-              <label htmlFor="totpToken" className="block text-xs font-black uppercase tracking-widest mb-2">
-                Código de autenticación (2FA)
-              </label>
-              <input
-                id="totpToken"
-                type="text"
-                inputMode="numeric"
-                autoFocus
-                required
-                maxLength={6}
-                value={totpToken}
-                onChange={(e) => setTotpToken(e.target.value)}
-                className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
-              />
-            </div>
-          )}
-
-          {error && (
-            <p className="text-sm font-bold text-ajicolor-magenta">{error}</p>
-          )}
+          {error && <p className="text-sm font-bold text-ajicolor-magenta">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-ajicolor-yellow thick-border py-3 text-sm font-black uppercase hover:bg-ajicolor-ink hover:text-white transition-colors disabled:opacity-50"
           >
-            {loading ? "Verificando..." : needsTotp ? "Verificar código" : "Ingresar"}
+            {loading ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
+
+        <Link href="/" className="block text-center text-xs font-black uppercase mt-6 hover:underline">
+          ← Volver a la tienda
+        </Link>
       </div>
     </div>
   );
