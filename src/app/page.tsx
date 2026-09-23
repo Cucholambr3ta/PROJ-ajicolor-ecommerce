@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getProducts } from "@/lib/actions/products";
+import CartIcon from "@/components/CartIcon";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,10 @@ export default async function TiendaPage() {
           <Link href="/login" className="text-[10px] font-bold text-gray-300 hover:text-gray-500 uppercase">
             Admin
           </Link>
-          <button className="btn-block bg-ajicolor-yellow">Login</button>
+          <CartIcon />
+          <Link href="/login-cliente" className="btn-block bg-ajicolor-yellow">
+            Login
+          </Link>
         </div>
       </nav>
 
@@ -90,8 +94,8 @@ export default async function TiendaPage() {
                   <div className="p-4">
                     <h3 className="font-black">{product.nombreSlug}</h3>
                     <p className="text-xs font-medium text-gray-400 italic mb-2">{product.temporada}</p>
-                    <p className="text-ajicolor-magenta font-black text-sm">
-                      {soldOut ? "Sin stock" : `${stockTotal} disponibles`}
+                    <p className="text-ajicolor-magenta font-black">
+                      {soldOut ? "Sin stock" : `$${Number(product.precio).toLocaleString("es-CL")}`}
                     </p>
                   </div>
                 </Link>

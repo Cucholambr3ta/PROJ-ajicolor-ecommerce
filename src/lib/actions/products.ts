@@ -22,6 +22,7 @@ export async function createProduct(data: {
   disenoUrl: string;
   artista: string;
   temporada: string;
+  precio: number;
   variants?: { talle: string; color: string; sku: string; stock?: number; stockMin?: number }[];
 }) {
   return prisma.product.create({
@@ -31,6 +32,7 @@ export async function createProduct(data: {
       disenoUrl: data.disenoUrl,
       artista: data.artista,
       temporada: data.temporada,
+      precio: data.precio,
       variants: data.variants ? { create: data.variants } : undefined,
     },
     include: { variants: true },
@@ -45,6 +47,7 @@ export async function updateProduct(
     disenoUrl?: string;
     artista?: string;
     temporada?: string;
+    precio?: number;
   }
 ) {
   return prisma.product.update({

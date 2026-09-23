@@ -1,0 +1,29 @@
+import { getCart } from "@/lib/actions/cart";
+import Link from "next/link";
+import CarritoClient from "./CarritoClient";
+
+export const dynamic = "force-dynamic";
+
+export default async function CarritoPage() {
+  const cart = await getCart();
+  const items = cart?.items ?? [];
+  const total = items.reduce((acc, item) => acc + Number(item.variant.product.precio) * item.cantidad, 0);
+
+  return (
+    <div className="min-h-screen bg-ajicolor-light">
+      <nav className="site-nav">
+        <Link href="/" className="text-2xl font-black">
+          AJI<span className="text-ajicolor-magenta">COLOR</span>
+        </Link>
+        <Link href="/" className="font-bold text-xs uppercase hover:underline">
+          ← Seguir comprando
+        </Link>
+      </nav>
+
+      <main className="max-w-3xl mx-auto py-12 p-8">
+        <h1 className="text-3xl font-black mb-8 border-b-2 border-ajicolor-ink pb-4">Mi carrito</h1>
+        <CarritoClient items={items} total={total} />
+      </main>
+    </div>
+  );
+}

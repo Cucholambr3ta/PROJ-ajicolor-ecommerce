@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { hash } from "bcryptjs";
 
 export async function getCustomers() {
   await prisma.customer.updateMany({
@@ -68,5 +69,28 @@ export async function updateCustomer(
   return prisma.customer.update({
     where: { id },
     data,
+  });
+}
+
+export async function registerCustomer(data: {
+  nombre: string;
+  email: string;
+  password: string;
+  telefono: string;
+  direccion: string;
+}) {
+  const existing = await prisma.customer.findUnique({ where: { email: data.email } });
+  if (existing) throw new Error("Ya existe una cuenta con ese email");
+
+  const passwordHash = await hash(data.password, 12);
+
+  return prisma.customer.create({
+    data: {
+      nombre: data.nombre,
+      email: data.email,
+      passwordHash,
+      telefono: data.telefono,
+      direccion: data.direccion,
+    },
   });
 }

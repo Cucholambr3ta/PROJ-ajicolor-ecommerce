@@ -23,6 +23,7 @@ export default function ProductoFormClient({
     disenoUrl: string;
     artista: string;
     temporada: string;
+    precio: number | any;
     variants: { id: string; talle: string; color: string; sku: string; stock: number; stockMin: number }[];
   };
 }) {
@@ -35,6 +36,7 @@ export default function ProductoFormClient({
   const [disenoUrl, setDisenoUrl] = useState(initialData?.disenoUrl ?? "");
   const [artista, setArtista] = useState(initialData?.artista ?? "");
   const [temporada, setTemporada] = useState(initialData?.temporada ?? "");
+  const [precio, setPrecio] = useState(initialData ? Number(initialData.precio) : 0);
   const [variants, setVariants] = useState<VariantInput[]>(
     initialData?.variants.map((v) => ({
       talle: v.talle,
@@ -85,6 +87,7 @@ export default function ProductoFormClient({
           disenoUrl,
           artista,
           temporada,
+          precio,
         });
       } else {
         const { createProduct } = await import("@/lib/actions/products");
@@ -94,6 +97,7 @@ export default function ProductoFormClient({
           disenoUrl,
           artista,
           temporada,
+          precio,
           variants,
         });
       }
@@ -152,6 +156,16 @@ export default function ProductoFormClient({
                 type="text"
                 value={disenoUrl}
                 onChange={(e) => setDisenoUrl(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+              <input
+                type="number"
+                min={0}
+                value={precio}
+                onChange={(e) => setPrecio(parseFloat(e.target.value) || 0)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               />
             </div>

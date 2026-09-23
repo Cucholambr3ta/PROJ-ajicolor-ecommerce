@@ -52,6 +52,7 @@ const requiredModels: ModelDefinition[] = [
       { name: "diseñoUrl", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
       { name: "artista", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
       { name: "temporada", type: "String", isRequired: true, isUnique: false, isId: false, hasDefault: false },
+      { name: "precio", type: "Decimal", isRequired: true, isUnique: false, isId: false, hasDefault: true },
     ],
     relations: ["ProductVariant"],
   },

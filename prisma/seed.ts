@@ -60,6 +60,7 @@ async function main() {
         disenoUrl: 'https://via.placeholder.com/600x800?text=BASS+LINE+TEE',
         artista: 'Ajicolor Studio',
         temporada: 'The Music Drop 2026',
+        precio: 16990,
       },
     }),
     prisma.product.create({
@@ -69,6 +70,7 @@ async function main() {
         disenoUrl: 'https://via.placeholder.com/600x800?text=FUNK+MASTER',
         artista: 'Ajicolor Studio',
         temporada: 'The Music Drop 2026',
+        precio: 24990,
       },
     }),
     prisma.product.create({
@@ -78,6 +80,7 @@ async function main() {
         disenoUrl: 'https://via.placeholder.com/600x800?text=JAZZ+CAT+POP',
         artista: 'Ajicolor Studio',
         temporada: 'The Music Drop 2026',
+        precio: 16990,
       },
     }),
   ]);

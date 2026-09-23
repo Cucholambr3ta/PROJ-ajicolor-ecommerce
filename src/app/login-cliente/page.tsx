@@ -81,9 +81,14 @@ export default function LoginClientePage() {
           </button>
         </form>
 
-        <Link href="/" className="block text-center text-xs font-bold uppercase mt-6 hover:underline">
-          ← Volver a la tienda
-        </Link>
+        <div className="flex justify-between mt-6">
+          <Link href="/" className="text-xs font-bold uppercase hover:underline">
+            ← Volver a la tienda
+          </Link>
+          <Link href="/registro" className="text-xs font-bold uppercase text-ajicolor-magenta hover:underline">
+            Crear cuenta
+          </Link>
+        </div>
       </div>
     </div>
   );

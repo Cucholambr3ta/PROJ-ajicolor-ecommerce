@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { LogOut, User, ShieldCheck } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import Link from "next/link";
 
 interface UserNavProps {
@@ -15,28 +15,25 @@ interface UserNavProps {
 export function UserNav({ user }: UserNavProps) {
   return (
     <div className="flex items-center gap-4">
-      <div className="flex items-center gap-2">
+      <Link
+        href="/admin/seguridad"
+        className="flex items-center gap-2 pl-2 pr-4 py-1.5 thick-border pop-shadow-sm bg-white transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
+        title="Ir a Seguridad"
+      >
         {user?.image ? (
           <img
             src={user.image}
             alt={user.name ?? "User"}
-            className="h-9 w-9 rounded-full border-2 border-ajicolor-ink"
+            className="h-8 w-8 rounded-full border-2 border-ajicolor-ink"
           />
         ) : (
-          <div className="h-9 w-9 rounded-full bg-ajicolor-purple flex items-center justify-center">
+          <div className="h-8 w-8 rounded-full bg-ajicolor-purple flex items-center justify-center">
             <User className="h-4 w-4 text-white" />
           </div>
         )}
         <span className="text-sm font-semibold">
           {user?.name ?? user?.email ?? "Admin"}
         </span>
-      </div>
-      <Link
-        href="/admin/seguridad"
-        className="p-1.5 text-gray-400 hover:text-ajicolor-magenta transition-colors rounded-md hover:bg-gray-100"
-        title="Seguridad"
-      >
-        <ShieldCheck className="h-4 w-4" />
       </Link>
       <button
         onClick={() => signOut({ callbackUrl: "/login" })}

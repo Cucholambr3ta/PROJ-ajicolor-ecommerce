@@ -1,6 +1,7 @@
 import { auth, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import CartIcon from "@/components/CartIcon";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ export default async function PerfilPage() {
           <Link href="/" className="font-bold text-xs uppercase hover:underline">
             Seguir comprando
           </Link>
+          <CartIcon />
           <form
             action={async () => {
               "use server";
