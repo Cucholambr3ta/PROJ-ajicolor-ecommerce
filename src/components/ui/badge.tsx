@@ -11,9 +11,9 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2.5 py-0.5 text-xs font-black uppercase italic border-2 border-ajicolor-ink",
+        "inline-flex items-center px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide",
         variant === "default" && "bg-ajicolor-magenta text-white",
-        variant === "outline" && "bg-white text-ajicolor-ink",
+        variant === "outline" && "bg-white text-ajicolor-ink border border-ajicolor-ink",
         variant === "secondary" && "bg-ajicolor-yellow text-ajicolor-ink",
         variant === "destructive" && "bg-ajicolor-ink text-white",
         className

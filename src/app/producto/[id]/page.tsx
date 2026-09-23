@@ -15,48 +15,55 @@ export default async function ProductoPage({
   if (!product) notFound();
 
   const talles = Array.from(new Set(product.variants.map((v) => v.talle)));
-  const colores = Array.from(new Set(product.variants.map((v) => v.color)));
   const stockTotal = product.variants.reduce((acc, v) => acc + v.stock, 0);
 
   return (
-    <div className="min-h-screen bg-ajicolor-paper">
-      <nav className="mockup-nav">
-        <Link href="/" className="text-4xl font-black italic toon-script text-ajicolor-magenta tracking-tighter">
-          Ajicolor
+    <div className="min-h-screen bg-ajicolor-light">
+      <nav className="site-nav">
+        <Link href="/" className="text-2xl font-black">
+          AJI<span className="text-ajicolor-magenta">COLOR</span>
         </Link>
-        <Link href="/" className="font-black text-xs uppercase hover:underline">
-          ← Volver a The Rack
+        <Link href="/" className="font-bold text-xs uppercase hover:underline">
+          ← Volver al catálogo
         </Link>
       </nav>
 
-      <main className="max-w-6xl mx-auto py-16 p-8">
-        <div className="grid lg:grid-cols-2 gap-16">
-          <div className="bg-white p-4 thick-border pop-shadow h-fit">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={product.disenoUrl} alt={product.nombreSlug} className="w-full h-auto" />
+      <main className="max-w-5xl mx-auto py-12 p-8">
+        <div className="grid lg:grid-cols-2 gap-12">
+          <div>
+            <div className="thick-border pop-shadow bg-white p-3 mb-2">
+              <p className="text-center font-black text-sm py-2 border-b-2 border-ajicolor-ink mb-3">Producto</p>
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={product.disenoUrl} alt={product.nombreSlug} className="w-full aspect-square object-cover" />
+                {stockTotal === 0 && (
+                  <span className="absolute top-2 left-2 bg-ajicolor-magenta text-white px-3 py-1 text-[10px] font-bold uppercase">
+                    Sold out
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
 
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="bg-ajicolor-ink text-white px-3 py-1 text-[10px] font-black uppercase">
-                {product.temporada}
-              </span>
-              {stockTotal === 0 && (
-                <span className="bg-ajicolor-magenta text-white px-3 py-1 text-[10px] font-black uppercase italic">
-                  Sold Out
-                </span>
-              )}
-            </div>
-            <h1 className="text-6xl font-black uppercase mb-4 leading-none">{product.nombreSlug}</h1>
-            <p className="text-sm font-bold uppercase tracking-widest opacity-50 mb-6">Por {product.artista}</p>
-            <p className="text-lg font-medium opacity-70 mb-10">{product.descripcion}</p>
+            <h1 className="text-5xl font-black text-ajicolor-purple leading-none mb-1">{product.nombreSlug}</h1>
+            <p className="text-2xl text-ajicolor-magenta italic font-medium mb-6">{product.temporada}</p>
+
+            <p className="text-4xl font-black text-ajicolor-magenta mb-8">
+              {stockTotal === 0 ? "Sin stock" : `${stockTotal} unidades disponibles`}
+            </p>
 
             {talles.length > 0 && (
-              <div className="mb-6">
-                <p className="text-xs font-black uppercase tracking-widest mb-3">Talles</p>
+              <div className="mb-8">
+                <p className="text-xs font-bold uppercase tracking-widest mb-3">Selecciona tu talla</p>
                 <div className="flex gap-2 flex-wrap">
-                  {talles.map((t) => (
-                    <span key={t} className="px-4 py-2 border-2 border-ajicolor-ink font-black text-sm uppercase">
+                  {talles.map((t, i) => (
+                    <span
+                      key={t}
+                      className={`w-12 h-12 flex items-center justify-center thick-border font-black text-sm ${
+                        i === 0 ? "bg-ajicolor-ink text-white" : "bg-white"
+                      }`}
+                    >
                       {t}
                     </span>
                   ))}
@@ -64,35 +71,31 @@ export default async function ProductoPage({
               </div>
             )}
 
-            {colores.length > 0 && (
-              <div className="mb-10">
-                <p className="text-xs font-black uppercase tracking-widest mb-3">Colores</p>
-                <div className="flex gap-2 flex-wrap">
-                  {colores.map((c) => (
-                    <span key={c} className="px-4 py-2 border-2 border-ajicolor-ink font-black text-sm uppercase">
-                      {c}
-                    </span>
-                  ))}
-                </div>
+            <div>
+              <p className="bg-ajicolor-ink text-white px-3 py-1.5 text-xs font-bold uppercase inline-block mb-0">
+                Especificación técnica
+              </p>
+              <div className="thick-border p-4 text-sm italic text-gray-600 font-medium">
+                {product.descripcion}
+                <br />
+                Por {product.artista}
               </div>
-            )}
-
-            <div className="border-t-4 border-ajicolor-ink pt-8">
-              <p className="text-sm font-bold uppercase tracking-widest opacity-50 mb-2">Stock disponible</p>
-              <p className="text-3xl font-black mb-8">{stockTotal} unidades</p>
-              <button
-                disabled={stockTotal === 0}
-                className="w-full py-5 bg-ajicolor-yellow thick-border font-black uppercase text-xl wobble-hover disabled:opacity-40 disabled:animate-none"
-              >
-                {stockTotal === 0 ? "Sin stock" : "Agregar al carrito"}
-              </button>
             </div>
+
+            <button
+              disabled={stockTotal === 0}
+              className="btn-block w-full justify-center py-4 mt-8 bg-ajicolor-yellow text-base disabled:opacity-40"
+            >
+              {stockTotal === 0 ? "Sin stock" : "Agregar al carrito"}
+            </button>
           </div>
         </div>
       </main>
 
-      <footer className="p-20 bg-ajicolor-ink text-white text-center">
-        <div className="toon-script text-6xl text-ajicolor-magenta mb-8">Ajicolor</div>
+      <footer className="bg-white border-t-2 border-ajicolor-ink py-10 text-center">
+        <p className="text-lg font-black">
+          AJI<span className="text-ajicolor-magenta">COLOR</span>
+        </p>
       </footer>
     </div>
   );

@@ -34,7 +34,7 @@ export function CardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn("text-lg font-black uppercase tracking-tight", className)}
+      className={cn("text-lg font-extrabold tracking-tight", className)}
       {...props}
     >
       {children}

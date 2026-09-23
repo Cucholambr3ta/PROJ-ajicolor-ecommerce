@@ -10,10 +10,10 @@ export default async function AdminLayout({
   const session = await auth();
 
   return (
-    <div className="flex h-screen bg-ajicolor-paper">
+    <div className="flex h-screen bg-ajicolor-light">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b-4 border-ajicolor-ink flex items-center justify-end px-6">
+        <header className="h-16 bg-white border-b-2 border-ajicolor-ink flex items-center justify-end px-6">
           <UserNav user={session?.user} />
         </header>
         <main className="flex-1 overflow-y-auto p-8">{children}</main>

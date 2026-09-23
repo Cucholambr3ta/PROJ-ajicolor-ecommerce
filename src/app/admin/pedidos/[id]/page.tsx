@@ -49,7 +49,7 @@ export default async function PedidoDetailPage({
         <Link href="/admin/pedidos" className="text-sm text-gray-500 hover:underline">
           ← Volver a Pedidos
         </Link>
-        <h1 className="text-4xl font-black uppercase italic mt-2">Detalle del Pedido</h1>
+        <h1 className="text-2xl font-black mt-2">Detalle del Pedido</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -136,7 +136,7 @@ export default async function PedidoDetailPage({
               }}>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-ajicolor-yellow thick-border text-ajicolor-ink text-xs font-black uppercase hover:bg-ajicolor-ink hover:text-white transition-colors"
+                  className="btn-block bg-ajicolor-magenta text-white"
                 >
                   → {estado}
                 </button>

@@ -36,7 +36,7 @@ export default async function EnvioDetailPage({
         <Link href="/admin/envios" className="text-sm text-gray-500 hover:underline">
           ← Volver a Envíos
         </Link>
-        <h1 className="text-4xl font-black uppercase italic mt-2">Detalle del Envío</h1>
+        <h1 className="text-2xl font-black mt-2">Detalle del Envío</h1>
       </div>
 
       <Card className="p-6 mb-6">

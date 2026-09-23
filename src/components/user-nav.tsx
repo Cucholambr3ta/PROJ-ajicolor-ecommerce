@@ -20,14 +20,14 @@ export function UserNav({ user }: UserNavProps) {
           <img
             src={user.image}
             alt={user.name ?? "User"}
-            className="h-9 w-9 thick-border"
+            className="h-9 w-9 rounded-full border-2 border-ajicolor-ink"
           />
         ) : (
-          <div className="h-9 w-9 bg-ajicolor-purple thick-border flex items-center justify-center">
+          <div className="h-9 w-9 rounded-full bg-ajicolor-purple flex items-center justify-center">
             <User className="h-4 w-4 text-white" />
           </div>
         )}
-        <span className="text-sm font-black uppercase">
+        <span className="text-sm font-semibold">
           {user?.name ?? user?.email ?? "Admin"}
         </span>
       </div>
@@ -40,7 +40,7 @@ export function UserNav({ user }: UserNavProps) {
       </Link>
       <button
         onClick={() => signOut({ callbackUrl: "/login" })}
-        className="p-2 bg-white thick-border hover:bg-ajicolor-yellow transition-colors"
+        className="p-2 rounded-md text-gray-400 hover:text-ajicolor-magenta hover:bg-gray-100 transition-colors"
         title="Cerrar sesión"
       >
         <LogOut className="h-4 w-4" />

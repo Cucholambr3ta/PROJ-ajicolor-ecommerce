@@ -22,7 +22,7 @@ export default async function ProduccionPage({
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-4xl font-black uppercase italic">Cola de Producción</h1>
+        <h1 className="text-2xl font-black">Cola de Producción</h1>
       </div>
       <div className="flex gap-2 mb-4 flex-wrap">
         {estados.map((e) => (

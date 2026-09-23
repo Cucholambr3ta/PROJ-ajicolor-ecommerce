@@ -30,13 +30,13 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-ajicolor-magenta border-r-4 border-ajicolor-ink flex flex-col p-5">
-      <div className="mb-10">
-        <h1 className="text-3xl font-black italic toon-script text-white flex items-center gap-2">
-          <span className="bg-black p-1.5 thick-border text-lg not-italic">A</span> Admin
-        </h1>
+    <aside className="w-60 bg-white border-r-2 border-ajicolor-ink flex flex-col p-5">
+      <div className="mb-8">
+        <span className="text-2xl font-black tracking-tight text-ajicolor-purple">
+          AJI<span className="text-ajicolor-magenta">COLOR</span>
+        </span>
       </div>
-      <nav className="flex-1 space-y-3">
+      <nav className="flex-1 space-y-1">
         {navItems.map((item) => {
           const isActive =
             item.href === "/admin"
@@ -46,10 +46,10 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 p-3 font-black uppercase text-xs transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded font-semibold text-sm transition-colors ${
                 isActive
-                  ? "bg-black text-white thick-border rotate-1"
-                  : "text-white hover:bg-white hover:text-ajicolor-ink"
+                  ? "bg-ajicolor-magenta text-white"
+                  : "text-ajicolor-ink hover:bg-gray-100"
               }`}
             >
               <item.icon className="h-4 w-4" />
@@ -58,8 +58,8 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="pt-4 mt-4 border-t-2 border-white/30">
-        <p className="text-[10px] text-white/60 font-bold uppercase tracking-widest">Ajicolor Admin v0.1.0</p>
+      <div className="pt-4 mt-4 border-t border-gray-200">
+        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">Ajicolor Admin v0.1.0</p>
       </div>
     </aside>
   );

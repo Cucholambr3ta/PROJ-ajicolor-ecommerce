@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { Outfit, Lobster } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 
-const outfit = Outfit({ subsets: ["latin"], weight: ["300", "500", "900"], variable: "--font-outfit" });
-const lobster = Lobster({ subsets: ["latin"], weight: "400", variable: "--font-lobster" });
+const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700", "800", "900"], variable: "--font-poppins" });
 
 export const metadata: Metadata = {
   title: "Ajicolor Admin",
@@ -17,10 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={`${outfit.variable} ${lobster.variable} font-sans`}>
-        <div className="film-grain" />
-        {children}
-      </body>
+      <body className={`${poppins.variable} font-sans`}>{children}</body>
     </html>
   );
 }

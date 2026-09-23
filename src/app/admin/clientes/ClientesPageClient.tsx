@@ -21,7 +21,7 @@ export default function ClientesPageClient({ clientes }: { clientes: Customer[] 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-4xl font-black uppercase italic">Clientes</h1>
+        <h1 className="text-2xl font-black">Clientes</h1>
       </div>
       <Card>
         {clientes.length === 0 ? (
@@ -57,7 +57,7 @@ export default function ClientesPageClient({ clientes }: { clientes: Customer[] 
                   <td className="p-4 text-right">
                     <Link
                       href={`/admin/clientes/${c.id}`}
-                      className="px-3 py-1.5 rounded-md border-2 border-ajicolor-ink text-xs font-black uppercase hover:bg-ajicolor-yellow"
+                      className="px-3 py-1.5 rounded-md btn-block bg-white"
                     >
                       Ver detalle
                     </Link>
