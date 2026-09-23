@@ -9,5 +9,7 @@ export default async function CatalogoPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  return <CatalogoPageClient productos={productos} />;
+  const productosSerializables = productos.map((p) => ({ ...p, precio: Number(p.precio) }));
+
+  return <CatalogoPageClient productos={productosSerializables} />;
 }

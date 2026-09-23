@@ -31,7 +31,7 @@ export default async function ProductoPage({
         </div>
       </nav>
 
-      <ProductoDetailClient product={product} />
+      <ProductoDetailClient product={{ ...product, precio: Number(product.precio) }} />
 
       <footer className="bg-white border-t-2 border-ajicolor-ink py-10 text-center">
         <div className="flex justify-center">

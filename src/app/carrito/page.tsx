@@ -7,8 +7,15 @@ export const dynamic = "force-dynamic";
 
 export default async function CarritoPage() {
   const cart = await getCart();
-  const items = cart?.items ?? [];
-  const total = items.reduce((acc, item) => acc + Number(item.variant.product.precio) * item.cantidad, 0);
+  const rawItems = cart?.items ?? [];
+  const items = rawItems.map((item) => ({
+    ...item,
+    variant: {
+      ...item.variant,
+      product: { ...item.variant.product, precio: Number(item.variant.product.precio) },
+    },
+  }));
+  const total = items.reduce((acc, item) => acc + item.variant.product.precio * item.cantidad, 0);
 
   return (
     <div className="min-h-screen bg-ajicolor-light">
