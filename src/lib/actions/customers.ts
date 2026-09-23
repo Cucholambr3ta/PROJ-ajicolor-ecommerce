@@ -2,8 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
+import { requireAdmin } from "@/lib/auth-guard";
 
 export async function getCustomers() {
+  await requireAdmin();
   await prisma.customer.updateMany({
     where: { backstagePass: true, backstagePassExpira: { lt: new Date() } },
     data: { backstagePass: false, backstagePassExpira: null },
@@ -15,6 +17,7 @@ export async function getCustomers() {
 }
 
 export async function getCustomerById(id: string) {
+  await requireAdmin();
   await expireBackstagePassIfNeeded(id);
   return prisma.customer.findUnique({
     where: { id },
@@ -30,6 +33,7 @@ async function expireBackstagePassIfNeeded(id: string) {
 }
 
 export async function activarBackstagePass(id: string) {
+  await requireAdmin();
   const expira = new Date();
   expira.setDate(expira.getDate() + 30);
   return prisma.customer.update({
@@ -39,6 +43,7 @@ export async function activarBackstagePass(id: string) {
 }
 
 export async function desactivarBackstagePass(id: string) {
+  await requireAdmin();
   return prisma.customer.update({
     where: { id },
     data: { backstagePass: false, backstagePassExpira: null },
@@ -46,6 +51,7 @@ export async function desactivarBackstagePass(id: string) {
 }
 
 export async function getCustomerOrders(customerId: string) {
+  await requireAdmin();
   return prisma.order.findMany({
     where: { customerId },
     include: {
@@ -66,6 +72,7 @@ export async function updateCustomer(
     backstagePass?: boolean;
   }
 ) {
+  await requireAdmin();
   return prisma.customer.update({
     where: { id },
     data,

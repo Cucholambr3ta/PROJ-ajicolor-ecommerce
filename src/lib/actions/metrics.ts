@@ -1,8 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth-guard";
 
 export async function getVentasUltimos30Dias() {
+  await requireAdmin();
   const hoy = new Date();
   hoy.setHours(23, 59, 59, 999);
   const hace30Dias = new Date(hoy);
@@ -33,6 +35,7 @@ export async function getVentasUltimos30Dias() {
 }
 
 export async function getReporteEnvios() {
+  await requireAdmin();
   const envios = await prisma.shipment.findMany({
     where: { estado: "Entregado", fechaDespacho: { not: null }, fechaEntrega: { not: null } },
     select: { fechaDespacho: true, fechaEntrega: true, costo: true, transportista: true },
@@ -60,6 +63,7 @@ export async function getReporteEnvios() {
 }
 
 export async function getRotacionStock() {
+  await requireAdmin();
   const treintaDiasAtras = new Date();
   treintaDiasAtras.setDate(treintaDiasAtras.getDate() - 30);
 
@@ -90,6 +94,7 @@ export async function getRotacionStock() {
 }
 
 export async function getMetricasResumen() {
+  await requireAdmin();
   const [ventas30d, envios, rotacion] = await Promise.all([
     getVentasUltimos30Dias(),
     getReporteEnvios(),
@@ -105,6 +110,7 @@ export async function getMetricasResumen() {
 }
 
 export async function exportPedidosCSV() {
+  await requireAdmin();
   const orders = await prisma.order.findMany({
     include: { customer: true, items: true },
     orderBy: { createdAt: "desc" },
@@ -126,6 +132,7 @@ export async function exportPedidosCSV() {
 }
 
 export async function exportStockCSV() {
+  await requireAdmin();
   const variants = await prisma.productVariant.findMany({
     include: { product: true },
     orderBy: { sku: "asc" },
@@ -145,6 +152,7 @@ export async function exportStockCSV() {
 }
 
 export async function exportClientesCSV() {
+  await requireAdmin();
   const customers = await prisma.customer.findMany({
     include: { orders: true },
     orderBy: { fechaRegistro: "desc" },

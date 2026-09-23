@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth-guard";
 
 const ORDER_TRANSITIONS: Record<string, string[]> = {
   Pendiente: ["Confirmado", "Cancelado"],
@@ -12,6 +13,7 @@ const ORDER_TRANSITIONS: Record<string, string[]> = {
 };
 
 export async function getOrders(estado?: string) {
+  await requireAdmin();
   return prisma.order.findMany({
     where: estado && estado !== "Todos" ? { estado } : undefined,
     include: {
@@ -24,6 +26,7 @@ export async function getOrders(estado?: string) {
 }
 
 export async function getOrderById(id: string) {
+  await requireAdmin();
   return prisma.order.findUnique({
     where: { id },
     include: {
@@ -35,6 +38,7 @@ export async function getOrderById(id: string) {
 }
 
 export async function updateOrderStatus(id: string, nuevoEstado: string) {
+  await requireAdmin();
   const order = await prisma.order.findUnique({ where: { id } });
   if (!order) throw new Error("Pedido no encontrado");
 
@@ -54,6 +58,7 @@ export async function createOrder(data: {
   notas?: string;
   items: { variantId: string; cantidad: number; precioUnit: number }[];
 }) {
+  await requireAdmin();
   const total = data.items.reduce(
     (sum, item) => sum + item.cantidad * item.precioUnit,
     0

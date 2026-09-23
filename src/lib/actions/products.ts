@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth-guard";
 
 export async function getProducts() {
   return prisma.product.findMany({
@@ -25,6 +26,7 @@ export async function createProduct(data: {
   precio: number;
   variants?: { talle: string; color: string; sku: string; stock?: number; stockMin?: number }[];
 }) {
+  await requireAdmin();
   return prisma.product.create({
     data: {
       nombreSlug: data.nombreSlug,
@@ -50,6 +52,7 @@ export async function updateProduct(
     precio?: number;
   }
 ) {
+  await requireAdmin();
   return prisma.product.update({
     where: { id },
     data,
@@ -58,5 +61,6 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string) {
+  await requireAdmin();
   return prisma.product.delete({ where: { id } });
 }
