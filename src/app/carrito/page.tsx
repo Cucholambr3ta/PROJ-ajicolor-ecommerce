@@ -1,5 +1,6 @@
 import { getCart } from "@/lib/actions/cart";
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import CarritoClient from "./CarritoClient";
 
 export const dynamic = "force-dynamic";
@@ -12,8 +13,8 @@ export default async function CarritoPage() {
   return (
     <div className="min-h-screen bg-ajicolor-light">
       <nav className="site-nav">
-        <Link href="/" className="text-2xl font-black">
-          AJI<span className="text-ajicolor-magenta">COLOR</span>
+        <Link href="/">
+          <Logo />
         </Link>
         <Link href="/" className="font-bold text-xs uppercase hover:underline">
           ← Seguir comprando

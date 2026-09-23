@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { Logo } from "@/components/Logo";
 
 export default function LoginClientePage() {
   const router = useRouter();
@@ -36,8 +37,8 @@ export default function LoginClientePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-ajicolor-light p-6">
       <div className="w-full max-w-sm bg-white thick-border pop-shadow p-10">
-        <Link href="/" className="block text-center text-2xl font-black mb-1">
-          AJI<span className="text-ajicolor-magenta">COLOR</span>
+        <Link href="/" className="flex justify-center mb-1">
+          <Logo />
         </Link>
         <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-8">My Space</p>
 
@@ -72,12 +73,14 @@ export default function LoginClientePage() {
 
           {error && <p className="text-sm font-semibold text-ajicolor-magenta">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-block w-full bg-ajicolor-yellow justify-center py-3 disabled:opacity-50"
-          >
-            {loading ? "Ingresando..." : "Ingresar"}
+          <button type="submit" disabled={loading} className="relative w-full disabled:opacity-60">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/botones/iniciar-sesion.png" alt="Iniciar sesión" className="w-full h-auto" />
+            {loading && (
+              <span className="absolute inset-0 flex items-center justify-center bg-white/70 text-xs font-bold uppercase">
+                Ingresando...
+              </span>
+            )}
           </button>
         </form>
 

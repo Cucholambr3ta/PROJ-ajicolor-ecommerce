@@ -2,6 +2,7 @@ import { auth, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import CartIcon from "@/components/CartIcon";
+import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,8 @@ export default async function PerfilPage() {
   return (
     <div className="min-h-screen bg-ajicolor-light">
       <nav className="site-nav">
-        <Link href="/" className="text-2xl font-black">
-          AJI<span className="text-ajicolor-magenta">COLOR</span>
+        <Link href="/">
+          <Logo />
         </Link>
         <div className="flex items-center gap-6">
           <Link href="/" className="font-bold text-xs uppercase hover:underline">

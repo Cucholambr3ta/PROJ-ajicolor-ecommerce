@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Logo } from "@/components/Logo";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -32,9 +33,7 @@ export function Sidebar() {
   return (
     <aside className="w-60 bg-white border-r-2 border-ajicolor-ink flex flex-col p-5">
       <div className="mb-8">
-        <span className="text-2xl font-black tracking-tight text-ajicolor-purple">
-          AJI<span className="text-ajicolor-magenta">COLOR</span>
-        </span>
+        <Logo className="h-12 w-auto" />
       </div>
       <nav className="flex-1 space-y-1">
         {navItems.map((item) => {

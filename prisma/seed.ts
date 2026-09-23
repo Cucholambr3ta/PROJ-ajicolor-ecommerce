@@ -1,7 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcryptjs';
+import { readdirSync } from 'fs';
+import { join } from 'path';
 
 const prisma = new PrismaClient();
+
+function tituloDesdeSlug(slug: string): string {
+  return slug
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
 
 async function main() {
   console.log('Seeding database...');
@@ -51,62 +60,56 @@ async function main() {
   ]);
   console.log(`Customers: ${customers.length}`);
 
-  // Products
-  const products = await Promise.all([
-    prisma.product.create({
-      data: {
-        nombreSlug: 'bass-line-anthem',
-        descripcion: 'Polera Bass Line Anthem - Colección The Music Drop',
-        disenoUrl: 'https://via.placeholder.com/600x800?text=BASS+LINE+TEE',
-        artista: 'Ajicolor Studio',
-        temporada: 'The Music Drop 2026',
-        precio: 16990,
-      },
-    }),
-    prisma.product.create({
-      data: {
-        nombreSlug: 'funk-master-hoodie',
-        descripcion: 'Polera Funk Master Hoodie - Colección The Music Drop',
-        disenoUrl: 'https://via.placeholder.com/600x800?text=FUNK+MASTER',
-        artista: 'Ajicolor Studio',
-        temporada: 'The Music Drop 2026',
-        precio: 24990,
-      },
-    }),
-    prisma.product.create({
-      data: {
-        nombreSlug: 'jazz-cat-pop-art',
-        descripcion: 'Polera Jazz Cat Pop Art - Colección The Music Drop',
-        disenoUrl: 'https://via.placeholder.com/600x800?text=JAZZ+CAT+POP',
-        artista: 'Ajicolor Studio',
-        temporada: 'The Music Drop 2026',
-        precio: 16990,
-      },
-    }),
-  ]);
-  console.log(`Products: ${products.length}`);
+  // Products — generados desde public/productos/{negras,claras}
+  const publicDir = join(__dirname, '..', 'public', 'productos');
+  const negras = readdirSync(join(publicDir, 'negras')).map((f) => ({
+    file: f,
+    color: 'Negro',
+    disenoUrl: `/productos/negras/${f}`,
+  }));
+  const claras = readdirSync(join(publicDir, 'claras')).map((f) => ({
+    file: f,
+    color: 'Blanco',
+    disenoUrl: `/productos/claras/${f}`,
+  }));
+  const catalogoFuente = [...negras, ...claras];
 
-  // Variants
   const sizes = ['S', 'M', 'L', 'XL'];
-  const colors = ['Negro', 'Blanco'];
+  const products = [];
   const allVariants = [];
 
-  for (const product of products) {
-    for (const color of colors) {
-      for (const size of sizes) {
-        const variant = await prisma.productVariant.create({
-          data: {
-            productId: product.id,
-            talle: size,
-            color,
-            sku: `${product.nombreSlug.toUpperCase().slice(0, 3)}-${size}-${color.slice(0, 3).toUpperCase()}`,
-            stock: Math.floor(Math.random() * 20) + 5,
-          },
-        });
-        allVariants.push(variant);
-      }
+  for (const item of catalogoFuente) {
+    const slugBase = item.file.replace(/\.png$/, '');
+    const slug = `${slugBase}-${item.color.toLowerCase()}`;
+    const nombre = tituloDesdeSlug(slugBase);
+
+    const product = await prisma.product.create({
+      data: {
+        nombreSlug: slug,
+        descripcion: `Polera ${nombre} - Colección Bandas`,
+        disenoUrl: item.disenoUrl,
+        artista: nombre,
+        temporada: 'Bandas 2026',
+        precio: 16990,
+      },
+    });
+    products.push(product);
+
+    const skuBase = `AJI${products.length.toString().padStart(3, '0')}`;
+    for (const size of sizes) {
+      const variant = await prisma.productVariant.create({
+        data: {
+          productId: product.id,
+          talle: size,
+          color: item.color,
+          sku: `${skuBase}-${size}-${item.color.slice(0, 3).toUpperCase()}`,
+          stock: Math.floor(Math.random() * 20) + 5,
+        },
+      });
+      allVariants.push(variant);
     }
   }
+  console.log(`Products: ${products.length}`);
   console.log(`Variants: ${allVariants.length}`);
 
   // Orders
