@@ -18,12 +18,11 @@ export default async function TiendaPage() {
           <Logo />
         </Link>
         <div className="hidden lg:flex gap-10 font-bold text-sm text-ajicolor-purple">
+          <Link href="/conoce-al-aji">Conoce al Ají</Link>
           <Link href="/" className="underline decoration-2 underline-offset-4">
             Catálogo
           </Link>
-          <Link href="/login-cliente" className="hover:text-ajicolor-magenta">
-            Mi cuenta
-          </Link>
+          <Link href="/contacto">Contacto</Link>
         </div>
         <div className="flex items-center gap-5">
           <Link href="/login" className="text-[10px] font-bold text-gray-300 hover:text-gray-500 uppercase">

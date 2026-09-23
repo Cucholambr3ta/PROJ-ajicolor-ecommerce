@@ -24,6 +24,11 @@ export default async function ProductoPage({
         <Link href="/">
           <Logo />
         </Link>
+        <div className="hidden lg:flex gap-10 font-bold text-sm text-ajicolor-purple">
+          <Link href="/conoce-al-aji">Conoce al Ají</Link>
+          <Link href="/">Catálogo</Link>
+          <Link href="/contacto">Contacto</Link>
+        </div>
         <div className="flex items-center gap-4">
           <CartIcon />
           <Link href="/" className="font-bold text-xs uppercase hover:underline">
