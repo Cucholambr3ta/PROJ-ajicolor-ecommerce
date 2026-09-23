@@ -120,14 +120,12 @@ export default function RegistroPage() {
 
           {error && <p className="text-sm font-semibold text-ajicolor-magenta">{error}</p>}
 
-          <button type="submit" disabled={loading} className="relative w-full disabled:opacity-60">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/botones/crear-cuenta.png" alt="Crear cuenta" className="w-full h-auto" />
-            {loading && (
-              <span className="absolute inset-0 flex items-center justify-center bg-white/70 text-xs font-bold uppercase">
-                Creando cuenta...
-              </span>
-            )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-block w-full bg-ajicolor-yellow justify-center py-3 disabled:opacity-50"
+          >
+            {loading ? "Creando cuenta..." : "Crear cuenta"}
           </button>
         </form>
 
