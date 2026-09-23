@@ -15,7 +15,7 @@ export default async function ProduccionPage({
   const { estado } = await searchParams;
   const lotes = await prisma.productionBatch.findMany({
     where: estado && estado !== "Todos" ? { estado } : undefined,
-    include: { supplier: true },
+    include: { supplier: true, items: { include: { variant: { include: { product: true } } } } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -45,7 +45,8 @@ export default async function ProduccionPage({
                 <div>
                   <p className="font-medium">{l.supplier.nombre}</p>
                   <p className="text-sm text-gray-500">
-                    {l.variantes} — {l.unidadesPorVar} u/var
+                    {l.items.length} variante{l.items.length === 1 ? "" : "s"} —{" "}
+                    {l.items.reduce((acc, i) => acc + i.cantidad, 0)} u totales
                   </p>
                   <p className="text-sm text-gray-400">
                     Estimado: {l.fechaEstimada.toLocaleDateString()}

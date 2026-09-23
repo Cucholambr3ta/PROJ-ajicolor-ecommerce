@@ -19,13 +19,14 @@ export default async function LoteDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const batch = await prisma.productionBatch.findUnique({ where: { id }, include: { supplier: true } });
+  const batch = await prisma.productionBatch.findUnique({
+    where: { id },
+    include: { supplier: true, items: { include: { variant: { include: { product: true } } } } },
+  });
 
   if (!batch) notFound();
 
   const allowed = BATCH_TRANSITIONS[batch.estado] ?? [];
-  const variantesList = batch.variantes.split(",").map((v) => v.trim());
-  const unidadesList = batch.unidadesPorVar.split(",").map((u) => u.trim());
 
   return (
     <div>
@@ -76,13 +77,17 @@ export default async function LoteDetailPage({
             <tr className="border-b text-left text-gray-500">
               <th className="pb-2">Variante</th>
               <th className="pb-2 text-right">Unidades</th>
+              <th className="pb-2 text-right">Costo unit.</th>
             </tr>
           </thead>
           <tbody>
-            {variantesList.map((v, i) => (
-              <tr key={i} className="border-b last:border-0">
-                <td className="py-2">{v}</td>
-                <td className="py-2 text-right">{unidadesList[i] ?? "—"}</td>
+            {batch.items.map((item) => (
+              <tr key={item.id} className="border-b last:border-0">
+                <td className="py-2">
+                  {item.variant.product.nombreSlug} — {item.variant.color} / {item.variant.talle}
+                </td>
+                <td className="py-2 text-right">{item.cantidad}</td>
+                <td className="py-2 text-right">${item.costoUnitario.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

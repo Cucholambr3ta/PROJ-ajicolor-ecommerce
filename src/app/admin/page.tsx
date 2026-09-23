@@ -22,7 +22,7 @@ export default async function AdminDashboard() {
     }),
     prisma.productVariant.findMany({ select: { stock: true, stockMin: true } }),
     prisma.productionBatch.count({
-      where: { estado: "En Progreso" },
+      where: { estado: "EnProgreso" },
     }),
     getVentasUltimos30Dias(),
   ]);

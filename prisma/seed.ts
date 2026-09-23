@@ -115,27 +115,30 @@ async function main() {
   // Orders
   const orderData = [
     { customerId: customers[0].id, total: 32000, estado: 'Pendiente', canal: 'Instagram' },
-    { customerId: customers[1].id, total: 45000, estado: 'En Producción', canal: 'WhatsApp' },
+    { customerId: customers[1].id, total: 45000, estado: 'EnProduccion', canal: 'WhatsApp' },
     { customerId: customers[2].id, total: 32000, estado: 'Enviado', canal: 'Feria' },
     { customerId: customers[0].id, total: 64000, estado: 'Entregado', canal: 'Instagram' },
     { customerId: customers[1].id, total: 32000, estado: 'Pendiente', canal: 'WhatsApp' },
-    { customerId: customers[2].id, total: 45000, estado: 'En Producción', canal: 'Feria' },
+    { customerId: customers[2].id, total: 45000, estado: 'EnProduccion', canal: 'Feria' },
   ];
 
   const orders = [];
   for (const o of orderData) {
+    const variant = allVariants[Math.floor(Math.random() * allVariants.length)];
     const order = await prisma.order.create({
       data: {
         customerId: o.customerId,
+        subtotal: o.total,
         total: o.total,
         estado: o.estado,
+        estadoPago: o.estado === 'Entregado' ? 'Pagado' : 'PendienteTransferencia',
         canal: o.canal,
         notas: `Pedido ${o.estado}`,
         items: {
           create: {
-            variantId: allVariants[Math.floor(Math.random() * allVariants.length)].id,
+            variantId: variant.id,
             cantidad: 1,
-            precioUnit: o.total,
+            precioUnit: 16990,
           },
         },
       },
@@ -183,14 +186,20 @@ async function main() {
   console.log('Suppliers: 2');
 
   // Production batch
+  const loteVariants = allVariants.slice(0, 8);
   await prisma.productionBatch.create({
     data: {
       supplierId: supplierTextil.id,
-      variantes: allVariants.slice(0, 8).map(v => v.sku).join(', '),
-      unidadesPorVar: '10',
       costoTotal: 280000,
       fechaEstimada: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-      estado: 'En Progreso',
+      estado: 'EnProgreso',
+      items: {
+        create: loteVariants.map((v) => ({
+          variantId: v.id,
+          cantidad: 10,
+          costoUnitario: 3500,
+        })),
+      },
     },
   });
   console.log('Production batch created');
