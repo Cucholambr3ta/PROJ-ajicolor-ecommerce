@@ -1,6 +1,7 @@
 import { getCart } from "@/lib/actions/cart";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { Footer } from "@/components/Footer";
 import CarritoClient from "./CarritoClient";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,8 @@ export default async function CarritoPage() {
         <h1 className="text-3xl font-black mb-8 border-b-2 border-ajicolor-ink pb-4">Mi carrito</h1>
         <CarritoClient items={items} total={total} />
       </main>
+
+      <Footer />
     </div>
   );
 }

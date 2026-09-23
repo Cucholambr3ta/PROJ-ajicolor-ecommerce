@@ -5,13 +5,14 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const rol = (req.auth?.user as { rol?: string } | undefined)?.rol;
   const isOnAdmin = req.nextUrl.pathname.startsWith("/admin");
-  const isOnPerfil = req.nextUrl.pathname.startsWith("/perfil");
+  const isOnClienteArea =
+    req.nextUrl.pathname.startsWith("/perfil") || req.nextUrl.pathname.startsWith("/carrito");
 
   if (isOnAdmin && (!isLoggedIn || rol === "Cliente")) {
     return NextResponse.redirect(new URL("/login", req.nextUrl.origin));
   }
 
-  if (isOnPerfil && (!isLoggedIn || rol !== "Cliente")) {
+  if (isOnClienteArea && (!isLoggedIn || rol !== "Cliente")) {
     return NextResponse.redirect(new URL("/login-cliente", req.nextUrl.origin));
   }
 
@@ -19,5 +20,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin/:path*", "/perfil/:path*"],
+  matcher: ["/admin/:path*", "/perfil/:path*", "/carrito/:path*"],
 };

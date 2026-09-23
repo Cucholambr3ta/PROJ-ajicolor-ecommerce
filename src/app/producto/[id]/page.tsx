@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getProductById } from "@/lib/actions/products";
 import CartIcon from "@/components/CartIcon";
 import { Logo } from "@/components/Logo";
+import { Footer } from "@/components/Footer";
 import ProductoDetailClient from "./ProductoDetailClient";
 
 export const dynamic = "force-dynamic";
@@ -33,11 +34,7 @@ export default async function ProductoPage({
 
       <ProductoDetailClient product={{ ...product, precio: Number(product.precio) }} />
 
-      <footer className="bg-white border-t-2 border-ajicolor-ink py-10 text-center">
-        <div className="flex justify-center">
-          <Logo className="h-8 w-auto" />
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

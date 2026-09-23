@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import CartIcon from "@/components/CartIcon";
 import { Logo } from "@/components/Logo";
+import { Footer } from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
 
@@ -125,6 +126,8 @@ export default async function PerfilPage() {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

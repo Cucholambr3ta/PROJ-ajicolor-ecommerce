@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getProducts } from "@/lib/actions/products";
 import CartIcon from "@/components/CartIcon";
 import { Logo } from "@/components/Logo";
+import { Footer } from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
 
@@ -106,12 +107,7 @@ export default async function TiendaPage() {
         )}
       </section>
 
-      <footer className="bg-white border-t-2 border-ajicolor-ink py-10 text-center">
-        <div className="flex justify-center mb-1">
-          <Logo className="h-8 w-auto" />
-        </div>
-        <p className="text-xs text-gray-400 font-medium">Hecho en Chile · 2026</p>
-      </footer>
+      <Footer />
     </div>
   );
 }
