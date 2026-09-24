@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { SHIPMENT_TRANSITIONS } from "@/lib/state-machines";
 import { revalidatePath } from "next/cache";
+import { createShipmentSchema, parseOrThrow } from "@/lib/schemas";
 
 export async function getShipments(estado?: string) {
   await requireAdmin();
@@ -22,18 +23,19 @@ export async function createShipment(data: {
   fechaEstimada?: Date;
 }) {
   await requireAdmin();
+  const parsed = parseOrThrow(createShipmentSchema, data);
   const shipment = await prisma.shipment.create({
     data: {
-      orderId: data.orderId,
-      trackingNumber: data.trackingNumber,
-      transportista: data.transportista,
-      costo: data.costo,
-      fechaEstimada: data.fechaEstimada,
+      orderId: parsed.orderId,
+      trackingNumber: parsed.trackingNumber,
+      transportista: parsed.transportista,
+      costo: parsed.costo,
+      fechaEstimada: parsed.fechaEstimada,
     },
     include: { order: true },
   });
   revalidatePath("/admin/envios");
-  revalidatePath(`/admin/pedidos/${data.orderId}`);
+  revalidatePath(`/admin/pedidos/${parsed.orderId}`);
   return shipment;
 }
 

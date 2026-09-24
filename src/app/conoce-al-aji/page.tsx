@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Conoce al Ají",
+  description: "La historia de Ajicolor: poleras exclusivas de bandas, hechas en Chile.",
+};
 
 export default function ConoceAlAjiPage() {
   return (

@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/user-nav";
+
+export const metadata: Metadata = {
+  title: {
+    default: "Panel Admin",
+    template: "%s | Ajicolor Admin",
+  },
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminLayout({
   children,

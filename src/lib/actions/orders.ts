@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { ORDER_TRANSITIONS } from "@/lib/state-machines";
 import { revalidatePath } from "next/cache";
+import { createOrderSchema, parseOrThrow } from "@/lib/schemas";
 
 export async function getOrders(estado?: string) {
   await requireAdmin();
@@ -88,14 +89,15 @@ export async function createOrder(data: {
   items: { variantId: string; cantidad: number; precioUnit: number }[];
 }) {
   const session = await requireAdmin();
-  const total = data.items.reduce(
+  const parsed = parseOrThrow(createOrderSchema, data);
+  const total = parsed.items.reduce(
     (sum, item) => sum + item.cantidad * item.precioUnit,
     0
   );
   const userId = (session.user as { id?: string } | undefined)?.id;
 
   return prisma.$transaction(async (tx) => {
-    for (const item of data.items) {
+    for (const item of parsed.items) {
       const result = await tx.productVariant.updateMany({
         where: { id: item.variantId, stock: { gte: item.cantidad } },
         data: { stock: { decrement: item.cantidad } },
@@ -107,23 +109,23 @@ export async function createOrder(data: {
 
     const order = await tx.order.create({
       data: {
-        customerId: data.customerId,
-        canal: data.canal,
-        notas: data.notas,
+        customerId: parsed.customerId,
+        canal: parsed.canal,
+        notas: parsed.notas,
         total,
-        items: { create: data.items },
+        items: { create: parsed.items },
       },
       include: { items: true },
     });
 
-    for (const item of data.items) {
+    for (const item of parsed.items) {
       await tx.stockMovement.create({
         data: {
           variantId: item.variantId,
           userId,
           cantidad: -item.cantidad,
           tipo: "Salida",
-          origen: `Venta ${data.canal}`,
+          origen: `Venta ${parsed.canal}`,
           descripcion: `Pedido ${order.id}`,
         },
       });

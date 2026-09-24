@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -6,6 +7,7 @@ import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Confirmación de pedido", robots: { index: false, follow: false } };
 
 export default async function PedidoConfirmacionPage({
   params,

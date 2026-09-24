@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Términos y Condiciones",
+  description: "Términos y condiciones de compra en Ajicolor, según la Ley 19.496.",
+};
 
 export default function TerminosPage() {
   return (

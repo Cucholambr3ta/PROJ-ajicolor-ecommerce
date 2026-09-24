@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Política de Privacidad",
+  description: "Cómo Ajicolor trata tus datos personales, según la Ley 19.628.",
+};
 
 export default function PrivacidadPage() {
   return (

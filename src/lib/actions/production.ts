@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { BATCH_TRANSITIONS } from "@/lib/state-machines";
 import { revalidatePath } from "next/cache";
+import { createBatchSchema, parseOrThrow } from "@/lib/schemas";
 
 export async function getBatches(estado?: string) {
   await requireAdmin();
@@ -28,23 +29,24 @@ export async function createBatch(data: {
   items: { variantId: string; cantidad: number; costoUnitario: number }[];
 }) {
   await requireAdmin();
-  const totalUnidades = data.items.reduce((acc, item) => acc + item.cantidad, 0);
+  const parsed = parseOrThrow(createBatchSchema, data);
+  const totalUnidades = parsed.items.reduce((acc, item) => acc + item.cantidad, 0);
   if (totalUnidades < 10) {
     throw new Error("El lote debe tener un mínimo de 10 unidades");
   }
-  const costoTotal = data.items.reduce((acc, item) => acc + item.cantidad * item.costoUnitario, 0);
+  const costoTotal = parsed.items.reduce((acc, item) => acc + item.cantidad * item.costoUnitario, 0);
 
   const batch = await prisma.productionBatch.create({
     data: {
-      supplierId: data.supplierId,
-      fechaEstimada: data.fechaEstimada,
+      supplierId: parsed.supplierId,
+      fechaEstimada: parsed.fechaEstimada,
       costoTotal,
-      items: { create: data.items },
+      items: { create: parsed.items },
     },
     include: { supplier: true, items: { include: { variant: { include: { product: true } } } } },
   });
   revalidatePath("/admin/produccion");
-  revalidatePath(`/admin/proveedores/${data.supplierId}`);
+  revalidatePath(`/admin/proveedores/${parsed.supplierId}`);
   return batch;
 }
 

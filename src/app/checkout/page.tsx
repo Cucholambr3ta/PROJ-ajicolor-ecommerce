@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -8,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import CheckoutClient from "./CheckoutClient";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Confirmar compra", robots: { index: false, follow: false } };
 
 export default async function CheckoutPage() {
   const session = await auth();

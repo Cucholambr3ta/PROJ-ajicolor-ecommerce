@@ -16,8 +16,11 @@ const roboto = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Ajicolor Admin",
-  description: "Panel de administración Ajicolor",
+  title: {
+    default: "Ajicolor — Poleras de bandas",
+    template: "%s | Ajicolor",
+  },
+  description: "Poleras exclusivas de bandas y artistas, hechas en Chile. Colecciones limitadas para melómanos.",
 };
 
 export default function RootLayout({

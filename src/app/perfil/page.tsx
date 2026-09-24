@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { auth, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -6,6 +7,7 @@ import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Mi perfil", robots: { index: false, follow: false } };
 
 export default async function PerfilPage() {
   const session = await auth();

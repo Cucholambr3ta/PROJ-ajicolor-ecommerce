@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-guard";
+import { createSupplierSchema, parseOrThrow } from "@/lib/schemas";
 
 export async function getSuppliers() {
   await requireAdmin();
@@ -28,10 +29,8 @@ export async function createSupplier(data: {
   calificacion: number;
 }) {
   await requireAdmin();
-  if (data.calificacion < 1 || data.calificacion > 5) {
-    throw new Error("La calificación debe estar entre 1 y 5");
-  }
-  const supplier = await prisma.supplier.create({ data });
+  const parsed = parseOrThrow(createSupplierSchema, data);
+  const supplier = await prisma.supplier.create({ data: parsed });
   revalidatePath("/admin/proveedores");
   return supplier;
 }

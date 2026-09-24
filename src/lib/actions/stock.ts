@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
+import { adjustStockSchema, parseOrThrow } from "@/lib/schemas";
 
 export async function getLowStock() {
   await requireAdmin();
@@ -13,13 +14,21 @@ export async function getLowStock() {
 }
 
 export async function adjustStock(
-  variantId: string,
-  cantidad: number,
-  tipo: "Entrada" | "Salida" | "Ajuste",
-  origen: string,
-  descripcion?: string
+  variantIdInput: string,
+  cantidadInput: number,
+  tipoInput: "Entrada" | "Salida" | "Ajuste",
+  origenInput: string,
+  descripcionInput?: string
 ) {
   await requireAdmin();
+  const { variantId, cantidad, tipo, origen, descripcion } = parseOrThrow(adjustStockSchema, {
+    variantId: variantIdInput,
+    cantidad: cantidadInput,
+    tipo: tipoInput,
+    origen: origenInput,
+    descripcion: descripcionInput,
+  });
+
   const variant = await prisma.productVariant.findUnique({ where: { id: variantId } });
   if (!variant) throw new Error("Variante no encontrada");
 

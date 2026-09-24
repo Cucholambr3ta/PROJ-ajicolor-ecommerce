@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { requireCliente } from "@/lib/auth-guard";
+import { addToCartSchema, updateCartItemSchema, checkoutAddressSchema, parseOrThrow } from "@/lib/schemas";
 
 async function getOrCreateCart(customerId: string) {
   const existing = await prisma.cart.findUnique({ where: { customerId } });
@@ -37,7 +38,8 @@ export async function getCartCount() {
   return cart?.items.reduce((acc, i) => acc + i.cantidad, 0) ?? 0;
 }
 
-export async function addToCart(variantId: string, cantidad: number = 1) {
+export async function addToCart(variantIdInput: string, cantidadInput: number = 1) {
+  const { variantId, cantidad } = parseOrThrow(addToCartSchema, { variantId: variantIdInput, cantidad: cantidadInput });
   const customerId = await requireCliente();
   const cart = await getOrCreateCart(customerId);
 
@@ -63,7 +65,8 @@ export async function addToCart(variantId: string, cantidad: number = 1) {
   });
 }
 
-export async function updateCartItem(itemId: string, cantidad: number) {
+export async function updateCartItem(itemIdInput: string, cantidadInput: number) {
+  const { itemId, cantidad } = parseOrThrow(updateCartItemSchema, { itemId: itemIdInput, cantidad: cantidadInput });
   const customerId = await requireCliente();
   const item = await prisma.cartItem.findUnique({
     where: { id: itemId },
@@ -89,7 +92,7 @@ export async function removeFromCart(itemId: string) {
 
 const COSTO_ENVIO = 5000;
 
-export async function checkout(direccion: {
+export async function checkout(direccionInput: {
   nombre: string;
   telefono: string;
   calle: string;
@@ -97,6 +100,7 @@ export async function checkout(direccion: {
   comuna: string;
   region: string;
 }) {
+  const direccion = parseOrThrow(checkoutAddressSchema, direccionInput);
   const customerId = await requireCliente();
   const cart = await prisma.cart.findUnique({
     where: { customerId },

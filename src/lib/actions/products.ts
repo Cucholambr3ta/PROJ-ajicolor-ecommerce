@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
+import { createProductSchema, parseOrThrow } from "@/lib/schemas";
 
 export async function getProducts() {
   return prisma.product.findMany({
@@ -28,15 +29,16 @@ export async function createProduct(data: {
   variants?: { talle: string; color: string; sku: string; stock?: number; stockMin?: number }[];
 }) {
   await requireAdmin();
+  const parsed = parseOrThrow(createProductSchema, data);
   const product = await prisma.product.create({
     data: {
-      nombreSlug: data.nombreSlug,
-      descripcion: data.descripcion,
-      disenoUrl: data.disenoUrl,
-      artista: data.artista,
-      temporada: data.temporada,
-      precio: data.precio,
-      variants: data.variants ? { create: data.variants } : undefined,
+      nombreSlug: parsed.nombreSlug,
+      descripcion: parsed.descripcion,
+      disenoUrl: parsed.disenoUrl,
+      artista: parsed.artista,
+      temporada: parsed.temporada,
+      precio: parsed.precio,
+      variants: parsed.variants ? { create: parsed.variants } : undefined,
     },
     include: { variants: true },
   });

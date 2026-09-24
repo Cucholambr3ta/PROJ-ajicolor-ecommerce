@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Devoluciones y Garantía",
+  description: "Política de cambios, devoluciones y garantía legal de Ajicolor.",
+};
 
 export default function DevolucionesPage() {
   return (
