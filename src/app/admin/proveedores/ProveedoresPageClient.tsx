@@ -50,11 +50,11 @@ export default function ProveedoresPageClient({ proveedores }: { proveedores: Su
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
       <Card>
         {proveedores.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">No hay proveedores registrados.</div>
+          <div className="p-4 text-center text-gray-500 dark:text-neutral-400">No hay proveedores registrados.</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left text-gray-500">
+              <tr className="border-b text-left text-gray-500 dark:text-neutral-400 dark:border-neutral-700">
                 <th className="p-4 pb-2">Nombre</th>
                 <th className="p-4 pb-2">Contacto</th>
                 <th className="p-4 pb-2 text-right">Lead time</th>
@@ -66,13 +66,13 @@ export default function ProveedoresPageClient({ proveedores }: { proveedores: Su
             </thead>
             <tbody>
               {proveedores.map((p) => (
-                <tr key={p.id} className="border-b last:border-0">
+                <tr key={p.id} className="border-b last:border-0 dark:border-neutral-700">
                   <td className="p-4">
                     <Link href={`/admin/proveedores/${p.id}`} className="font-medium hover:underline">
                       {p.nombre}
                     </Link>
                   </td>
-                  <td className="p-4 text-gray-600">{p.contacto}</td>
+                  <td className="p-4 text-gray-600 dark:text-neutral-300">{p.contacto}</td>
                   <td className="p-4 text-right">{p.leadTimeDias} días</td>
                   <td className="p-4 text-right font-bold">${Number(p.costoBase).toFixed(2)}</td>
                   <td className="p-4 text-center">{"★".repeat(p.calificacion)}{"☆".repeat(5 - p.calificacion)}</td>
@@ -81,7 +81,7 @@ export default function ProveedoresPageClient({ proveedores }: { proveedores: Su
                     <div className="flex gap-2 justify-end">
                       <Link
                         href={`/admin/proveedores/nuevo?edit=${p.id}`}
-                        className="px-3 py-1.5 rounded-md border border-gray-300 text-xs font-medium hover:bg-gray-50"
+                        className="px-3 py-1.5 rounded-md border border-gray-300 dark:border-neutral-700 text-xs font-medium hover:bg-gray-50 dark:hover:bg-neutral-800"
                       >
                         Editar
                       </Link>

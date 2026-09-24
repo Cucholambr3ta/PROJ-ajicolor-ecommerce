@@ -6,6 +6,7 @@ import { getCart } from "@/lib/actions/cart";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import CheckoutClient from "./CheckoutClient";
 
 export const dynamic = "force-dynamic";
@@ -37,9 +38,12 @@ export default async function CheckoutPage() {
         <Link href="/">
           <Logo />
         </Link>
-        <Link href="/carrito" className="font-bold text-xs uppercase hover:underline">
-          ← Volver al carrito
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/carrito" className="font-bold text-xs uppercase hover:underline">
+            ← Volver al carrito
+          </Link>
+          <ThemeToggle />
+        </div>
       </nav>
 
       <main className="max-w-3xl mx-auto py-12 p-8">

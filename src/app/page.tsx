@@ -3,6 +3,7 @@ import { getProducts } from "@/lib/actions/products";
 import CartIcon from "@/components/CartIcon";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -25,13 +26,14 @@ export default async function TiendaPage() {
           <Link href="/contacto">Contacto</Link>
         </div>
         <div className="flex items-center gap-5">
-          <Link href="/login" className="text-[10px] font-bold text-gray-300 hover:text-gray-500 uppercase">
+          <Link href="/login" className="text-[10px] font-bold text-gray-300 dark:text-neutral-600 hover:text-gray-500 dark:hover:text-neutral-400 uppercase">
             Admin
           </Link>
           <CartIcon />
           <Link href="/login-cliente" className="btn-block bg-ajicolor-yellow">
             Login
           </Link>
+          <ThemeToggle />
         </div>
       </nav>
 
@@ -75,7 +77,7 @@ export default async function TiendaPage() {
         </div>
 
         {products.length === 0 ? (
-          <p className="text-center text-gray-400 font-medium py-20">No hay productos disponibles todavía.</p>
+          <p className="text-center text-gray-400 dark:text-neutral-500 font-medium py-20">No hay productos disponibles todavía.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-20">
             {rest.map((product) => {
@@ -84,7 +86,7 @@ export default async function TiendaPage() {
 
               return (
                 <Link key={product.id} href={`/producto/${product.id}`} className="card overflow-hidden flex flex-col">
-                  <div className="bg-gray-100 relative overflow-hidden aspect-square">
+                  <div className="bg-gray-100 dark:bg-neutral-800 relative overflow-hidden aspect-square">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={product.disenoUrl}
@@ -94,7 +96,7 @@ export default async function TiendaPage() {
                   </div>
                   <div className="p-4">
                     <h3 className="font-black">{product.nombreSlug}</h3>
-                    <p className="text-xs font-medium text-gray-400 italic mb-2">{product.temporada}</p>
+                    <p className="text-xs font-medium text-gray-400 dark:text-neutral-500 italic mb-2">{product.temporada}</p>
                     <p className="text-ajicolor-magenta font-black">
                       {soldOut ? "Sin stock" : `$${Number(product.precio).toLocaleString("es-CL")}`}
                     </p>

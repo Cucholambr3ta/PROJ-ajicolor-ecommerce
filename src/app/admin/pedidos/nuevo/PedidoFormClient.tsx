@@ -73,10 +73,10 @@ export default function PedidoFormClient({
   if (customers.length === 0 || variants.length === 0) {
     return (
       <div>
-        <Link href="/admin/pedidos" className="text-sm text-gray-500 hover:underline">
+        <Link href="/admin/pedidos" className="text-sm text-gray-500 dark:text-neutral-400 hover:underline">
           ← Volver a Pedidos
         </Link>
-        <p className="text-sm text-gray-500 mt-4">
+        <p className="text-sm text-gray-500 dark:text-neutral-400 mt-4">
           Necesitas al menos un cliente y una variante de producto registrados para crear un pedido.
         </p>
       </div>
@@ -86,22 +86,22 @@ export default function PedidoFormClient({
   return (
     <div>
       <div className="mb-6">
-        <Link href="/admin/pedidos" className="text-sm text-gray-500 hover:underline">
+        <Link href="/admin/pedidos" className="text-sm text-gray-500 dark:text-neutral-400 hover:underline">
           ← Volver a Pedidos
         </Link>
-        <h1 className="text-2xl font-black mt-2">Nuevo Pedido (venta manual)</h1>
+        <h1 className="text-2xl font-black mt-2 dark:text-neutral-100">Nuevo Pedido (venta manual)</h1>
       </div>
 
       <form onSubmit={handleSubmit}>
         <Card className="p-6 mb-6">
-          <h2 className="font-semibold text-gray-700 mb-4">Información del Pedido</h2>
+          <h2 className="font-semibold text-gray-700 dark:text-neutral-300 mb-4">Información del Pedido</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Cliente *</label>
               <select
                 value={customerId}
                 onChange={(e) => setCustomerId(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-800 dark:text-neutral-100"
               >
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>{c.nombre} ({c.email})</option>
@@ -109,11 +109,11 @@ export default function PedidoFormClient({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Canal *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Canal *</label>
               <select
                 value={canal}
                 onChange={(e) => setCanal(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-800 dark:text-neutral-100"
               >
                 {CANALES.map((c) => (
                   <option key={c} value={c}>{c}</option>
@@ -121,12 +121,12 @@ export default function PedidoFormClient({
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Notas</label>
               <textarea
                 value={notas}
                 onChange={(e) => setNotas(e.target.value)}
                 rows={2}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-800 dark:text-neutral-100"
               />
             </div>
           </div>
@@ -134,8 +134,8 @@ export default function PedidoFormClient({
 
         <Card className="p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-700">Items</h2>
-            <button type="button" onClick={addItem} className="px-3 py-1.5 rounded-md btn-block bg-white">
+            <h2 className="font-semibold text-gray-700 dark:text-neutral-300">Items</h2>
+            <button type="button" onClick={addItem} className="px-3 py-1.5 rounded-md btn-block bg-white dark:bg-neutral-800 dark:text-neutral-100">
               + Agregar item
             </button>
           </div>
@@ -145,13 +145,13 @@ export default function PedidoFormClient({
               return (
                 <div key={i} className="grid grid-cols-4 gap-3 items-end">
                   <div className="col-span-2">
-                    <label className="block text-xs text-gray-500 mb-1">
+                    <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">
                       Variante {variant && `(stock: ${variant.stock})`}
                     </label>
                     <select
                       value={item.variantId}
                       onChange={(e) => updateItem(i, "variantId", e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-800 dark:text-neutral-100"
                     >
                       {variants.map((v) => (
                         <option key={v.id} value={v.id}>{v.label}</option>
@@ -159,31 +159,31 @@ export default function PedidoFormClient({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Cantidad</label>
+                    <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Cantidad</label>
                     <input
                       type="number"
                       min={1}
                       value={item.cantidad}
                       onChange={(e) => updateItem(i, "cantidad", parseInt(e.target.value) || 0)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-800 dark:text-neutral-100"
                     />
                   </div>
                   <div className="flex gap-2">
                     <div className="flex-1">
-                      <label className="block text-xs text-gray-500 mb-1">Precio unit.</label>
+                      <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Precio unit.</label>
                       <input
                         type="number"
                         min={0}
                         step="0.01"
                         value={item.precioUnit}
                         onChange={(e) => updateItem(i, "precioUnit", parseFloat(e.target.value) || 0)}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-800 dark:text-neutral-100"
                       />
                     </div>
                     <button
                       type="button"
                       onClick={() => removeItem(i)}
-                      className="self-end px-2 py-2 rounded-md text-red-500 hover:bg-red-50 text-xs"
+                      className="self-end px-2 py-2 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-950 text-xs"
                     >
                       ✕
                     </button>
@@ -192,7 +192,7 @@ export default function PedidoFormClient({
               );
             })}
           </div>
-          <div className="mt-4 pt-4 border-t text-sm text-gray-600">
+          <div className="mt-4 pt-4 border-t dark:border-neutral-700 text-sm text-gray-600 dark:text-neutral-300">
             <p><span className="font-medium">Total:</span> ${total.toFixed(2)}</p>
           </div>
         </Card>
@@ -200,7 +200,7 @@ export default function PedidoFormClient({
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
         <div className="flex gap-3 justify-end">
-          <Link href="/admin/pedidos" className="px-4 py-2 rounded-md btn-block bg-white">
+          <Link href="/admin/pedidos" className="px-4 py-2 rounded-md btn-block bg-white dark:bg-neutral-800 dark:text-neutral-100">
             Cancelar
           </Link>
           <button

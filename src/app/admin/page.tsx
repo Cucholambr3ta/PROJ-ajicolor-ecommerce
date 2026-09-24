@@ -31,15 +31,15 @@ export default async function AdminDashboard() {
 
   const kpis = [
     { label: "Ventas del mes", value: `$${ventasMes._sum.total?.toFixed(0) ?? "0"}`, bg: "bg-ajicolor-yellow" },
-    { label: "Pedidos pendientes", value: String(pedidosPendientes), bg: "bg-white" },
-    { label: "Stock bajo", value: String(stockBajo), bg: "bg-white" },
+    { label: "Pedidos pendientes", value: String(pedidosPendientes), bg: "bg-white dark:bg-neutral-900" },
+    { label: "Stock bajo", value: String(stockBajo), bg: "bg-white dark:bg-neutral-900" },
     { label: "Producción activa", value: String(produccionActiva), bg: "bg-ajicolor-purple text-white" },
   ];
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-black">Centro de Comandos</h1>
+        <h1 className="text-3xl font-black dark:text-neutral-100">Centro de Comandos</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

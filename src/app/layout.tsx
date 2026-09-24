@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import StyledComponentsRegistry from "@/lib/styled-registry";
 
 const poppins = localFont({
   src: [
@@ -29,8 +30,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className={`${poppins.variable} ${roboto.variable} font-sans`}>{children}</body>
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem("theme");
+                  var dark = stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+                  if (dark) document.documentElement.classList.add("dark");
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className={`${poppins.variable} ${roboto.variable} font-sans`}>
+        <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+      </body>
     </html>
   );
 }

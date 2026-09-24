@@ -51,14 +51,14 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
       </div>
       <Card>
         {variants.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">No hay stock para mostrar.</div>
+          <div className="p-4 text-center text-gray-500 dark:text-neutral-400">No hay stock para mostrar.</div>
         ) : (
           <div className="divide-y">
             {variants.map((v) => (
               <div key={v.id} className="p-4 flex items-center justify-between">
                 <div>
                   <p className="font-medium">{v.product.nombreSlug}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-neutral-400">
                     {v.talle} / {v.color} — SKU: {v.sku}
                   </p>
                 </div>
@@ -84,20 +84,20 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
 
       {modal.open && modal.variant && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+          <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 w-full max-w-md shadow-xl">
             <h2 className="text-lg font-bold mb-4">Ajustar Stock</h2>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">
               {modal.variant.product.nombreSlug} — {modal.variant.talle} / {modal.variant.color}
               <br />
               Stock actual: <span className="font-bold">{modal.variant.stock}</span> u.
             </p>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-1">Tipo</label>
                 <select
                   value={tipo}
                   onChange={(e) => setTipo(e.target.value as typeof tipo)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
                 >
                   <option value="Entrada">Entrada</option>
                   <option value="Salida">Salida</option>
@@ -105,33 +105,33 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-1">Cantidad</label>
                 <input
                   type="number"
                   min={1}
                   value={cantidad}
                   onChange={(e) => setCantidad(parseInt(e.target.value) || 1)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Origen</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-1">Origen</label>
                 <input
                   type="text"
                   value={origen}
                   onChange={(e) => setOrigen(e.target.value)}
                   placeholder="Ej: Recepción de lote, Devolución..."
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción (opcional)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-1">Descripción (opcional)</label>
                 <input
                   type="text"
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -139,7 +139,7 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
                 <button
                   type="button"
                   onClick={() => { setModal({ open: false }); setError(""); }}
-                  className="px-4 py-2 rounded-md btn-block bg-white"
+                  className="px-4 py-2 rounded-md btn-block bg-white dark:bg-neutral-800"
                 >
                   Cancelar
                 </button>

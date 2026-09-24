@@ -52,11 +52,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-ajicolor-light p-6">
-      <div className="w-full max-w-sm bg-white thick-border pop-shadow p-10">
+      <div className="w-full max-w-sm bg-white dark:bg-neutral-900 thick-border pop-shadow p-10">
         <div className="flex justify-center mb-1">
           <Logo />
         </div>
-        <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-8">Admin</p>
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-8">Admin</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -84,7 +84,7 @@ export default function LoginPage() {
               disabled={needsTotp}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta disabled:bg-gray-100"
+              className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta disabled:bg-gray-100 dark:disabled:bg-neutral-800"
             />
           </div>
 

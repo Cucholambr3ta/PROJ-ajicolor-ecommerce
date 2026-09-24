@@ -7,7 +7,7 @@ export function Card({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("bg-white thick-border pop-shadow", className)}
+      className={cn("bg-white dark:bg-neutral-900 thick-border pop-shadow", className)}
       {...props}
     >
       {children}

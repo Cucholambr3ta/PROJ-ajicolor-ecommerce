@@ -58,11 +58,11 @@ export default function CheckoutClient({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white thick-border pop-shadow p-6">
+      <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6">
         <h2 className="font-black uppercase text-sm mb-4">Dirección de envío</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Nombre completo</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 dark:text-neutral-400 mb-1">Nombre completo</label>
             <input
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
@@ -70,7 +70,7 @@ export default function CheckoutClient({
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Teléfono</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 dark:text-neutral-400 mb-1">Teléfono</label>
             <input
               value={telefono}
               onChange={(e) => setTelefono(e.target.value)}
@@ -78,7 +78,7 @@ export default function CheckoutClient({
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Calle</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 dark:text-neutral-400 mb-1">Calle</label>
             <input
               value={calle}
               onChange={(e) => setCalle(e.target.value)}
@@ -86,7 +86,7 @@ export default function CheckoutClient({
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Número / Depto</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 dark:text-neutral-400 mb-1">Número / Depto</label>
             <input
               value={numero}
               onChange={(e) => setNumero(e.target.value)}
@@ -94,7 +94,7 @@ export default function CheckoutClient({
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Comuna</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 dark:text-neutral-400 mb-1">Comuna</label>
             <input
               value={comuna}
               onChange={(e) => setComuna(e.target.value)}
@@ -102,7 +102,7 @@ export default function CheckoutClient({
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Región</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 dark:text-neutral-400 mb-1">Región</label>
             <input
               value={region}
               onChange={(e) => setRegion(e.target.value)}
@@ -112,11 +112,11 @@ export default function CheckoutClient({
         </div>
       </div>
 
-      <div className="bg-white thick-border pop-shadow p-6">
+      <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6">
         <h2 className="font-black uppercase text-sm mb-4">Resumen</h2>
         <div className="space-y-2 text-sm">
           {items.map((item) => (
-            <div key={item.id} className="flex justify-between text-gray-600">
+            <div key={item.id} className="flex justify-between text-gray-600 dark:text-neutral-300">
               <span>
                 {item.variant.product.nombreSlug} ({item.variant.talle}/{item.variant.color}) ×{item.cantidad}
               </span>
@@ -124,13 +124,13 @@ export default function CheckoutClient({
             </div>
           ))}
         </div>
-        <div className="h-px bg-gray-200 my-4" />
+        <div className="h-px bg-gray-200 dark:bg-neutral-700 my-4" />
         <div className="space-y-1 text-sm">
-          <div className="flex justify-between text-gray-600">
+          <div className="flex justify-between text-gray-600 dark:text-neutral-300">
             <span>Subtotal</span>
             <span>${subtotal.toLocaleString("es-CL")}</span>
           </div>
-          <div className="flex justify-between text-gray-600">
+          <div className="flex justify-between text-gray-600 dark:text-neutral-300">
             <span>Envío</span>
             <span>${COSTO_ENVIO.toLocaleString("es-CL")}</span>
           </div>

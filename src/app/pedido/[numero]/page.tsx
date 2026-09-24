@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Confirmación de pedido", robots: { index: false, follow: false } };
@@ -34,9 +35,12 @@ export default async function PedidoConfirmacionPage({
         <Link href="/">
           <Logo />
         </Link>
-        <Link href="/perfil" className="font-bold text-xs uppercase hover:underline">
-          Ir a mi perfil
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/perfil" className="font-bold text-xs uppercase hover:underline">
+            Ir a mi perfil
+          </Link>
+          <ThemeToggle />
+        </div>
       </nav>
 
       <main className="max-w-2xl mx-auto py-16 p-8 text-center">
@@ -44,15 +48,15 @@ export default async function PedidoConfirmacionPage({
           ✓
         </div>
         <h1 className="text-3xl font-black mb-2">¡Pedido confirmado!</h1>
-        <p className="text-gray-500 mb-8">
+        <p className="text-gray-500 dark:text-neutral-400 mb-8">
           Orden <span className="font-black text-ajicolor-magenta">#{String(order.numero).padStart(4, "0")}</span>
         </p>
 
-        <div className="bg-white thick-border pop-shadow p-6 text-left mb-6">
+        <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6 text-left mb-6">
           <h2 className="font-black uppercase text-sm mb-4">Items</h2>
           <div className="space-y-2 text-sm">
             {order.items.map((item) => (
-              <div key={item.id} className="flex justify-between text-gray-600">
+              <div key={item.id} className="flex justify-between text-gray-600 dark:text-neutral-300">
                 <span>
                   {item.variant.product.nombreSlug} ({item.variant.talle}/{item.variant.color}) ×{item.cantidad}
                 </span>
@@ -60,13 +64,13 @@ export default async function PedidoConfirmacionPage({
               </div>
             ))}
           </div>
-          <div className="h-px bg-gray-200 my-4" />
+          <div className="h-px bg-gray-200 dark:bg-neutral-700 my-4" />
           <div className="space-y-1 text-sm">
-            <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-gray-600 dark:text-neutral-300">
               <span>Subtotal</span>
               <span>${Number(order.subtotal).toLocaleString("es-CL")}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-gray-600 dark:text-neutral-300">
               <span>Envío</span>
               <span>${Number(order.costoEnvio).toLocaleString("es-CL")}</span>
             </div>
@@ -77,9 +81,9 @@ export default async function PedidoConfirmacionPage({
           </div>
         </div>
 
-        <div className="bg-white thick-border pop-shadow p-6 text-left mb-6">
+        <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6 text-left mb-6">
           <h2 className="font-black uppercase text-sm mb-4">Envío a</h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-neutral-300">
             {order.envioNombre}<br />
             {order.envioCalle} {order.envioNumero}, {order.envioComuna}, {order.envioRegion}<br />
             {order.envioTelefono}

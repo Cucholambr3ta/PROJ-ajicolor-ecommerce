@@ -25,7 +25,7 @@ export default async function PedidosPage({
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black">Pedidos</h1>
+        <h1 className="text-2xl font-black dark:text-neutral-100">Pedidos</h1>
         <Link
           href="/admin/pedidos/nuevo"
           className="px-4 py-2 rounded-md bg-ajicolor-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity"
@@ -47,20 +47,20 @@ export default async function PedidosPage({
       </div>
       <Card>
         {pedidos.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">No hay pedidos para mostrar.</div>
+          <div className="p-4 text-center text-gray-500 dark:text-neutral-400">No hay pedidos para mostrar.</div>
         ) : (
-          <div className="divide-y">
+          <div className="divide-y dark:divide-neutral-700">
             {pedidos.map((p) => (
               <div key={p.id} className="p-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{p.customer.nombre}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-medium dark:text-neutral-100">{p.customer.nombre}</p>
+                  <p className="text-sm text-gray-500 dark:text-neutral-400">
                     {p.items.length} item(s) — {p.canal}
                   </p>
                 </div>
                 <div className="text-right flex items-center gap-3">
                   <div>
-                    <p className="font-bold">${p.total.toFixed(2)}</p>
+                    <p className="font-bold dark:text-neutral-100">${p.total.toFixed(2)}</p>
                     <Badge variant="outline">{p.estado}</Badge>
                   </div>
                   <Link

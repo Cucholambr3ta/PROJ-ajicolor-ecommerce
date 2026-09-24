@@ -5,6 +5,7 @@ import Link from "next/link";
 import CartIcon from "@/components/CartIcon";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Mi perfil", robots: { index: false, follow: false } };
@@ -47,13 +48,14 @@ export default async function PerfilPage() {
           >
             <button className="btn-block bg-ajicolor-yellow">Logout</button>
           </form>
+          <ThemeToggle />
         </div>
       </nav>
 
       <main className="max-w-6xl mx-auto py-16 p-8">
         <div className="grid lg:grid-cols-3 gap-10">
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white p-8 thick-border pop-shadow text-center">
+            <div className="bg-white dark:bg-neutral-900 p-8 thick-border pop-shadow text-center">
               <div className="w-28 h-28 rounded-full bg-ajicolor-purple mx-auto mb-5 flex items-center justify-center overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -66,8 +68,8 @@ export default async function PerfilPage() {
               <p className="text-xs font-bold uppercase tracking-widest text-ajicolor-magenta mb-5">
                 Miembro desde {customer.fechaRegistro.getFullYear()}
               </p>
-              <div className="h-px bg-gray-200 w-full mb-5" />
-              <div className="text-left space-y-2 text-sm font-medium text-gray-600">
+              <div className="h-px bg-gray-200 dark:bg-neutral-700 w-full mb-5" />
+              <div className="text-left space-y-2 text-sm font-medium text-gray-600 dark:text-neutral-300">
                 <p>📍 {customer.direccion}</p>
                 <p>📧 {customer.email}</p>
                 <p>📱 {customer.telefono}</p>
@@ -97,14 +99,14 @@ export default async function PerfilPage() {
             <h2 className="text-2xl font-black border-b-2 border-ajicolor-ink pb-3">Historial de compra</h2>
 
             {customer.orders.length === 0 ? (
-              <div className="p-10 border-2 border-dashed border-gray-300 text-center">
-                <p className="text-gray-400 font-medium">Sin pedidos todavía.</p>
+              <div className="p-10 border-2 border-dashed border-gray-300 dark:border-neutral-700 text-center">
+                <p className="text-gray-400 dark:text-neutral-500 font-medium">Sin pedidos todavía.</p>
               </div>
             ) : (
               customer.orders.map((order) => {
                 const isDelivered = order.estado === "Entregado";
                 return (
-                  <div key={order.id} className="bg-white p-6 thick-border pop-shadow flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+                  <div key={order.id} className="bg-white dark:bg-neutral-900 p-6 thick-border pop-shadow flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
                     <div>
                       <Link
                         href={`/pedido/${order.numero}`}
@@ -115,7 +117,7 @@ export default async function PerfilPage() {
                       <h3 className="text-lg font-black mb-1">
                         {order.items.length} item{order.items.length !== 1 ? "s" : ""}
                       </h3>
-                      <p className="text-xs font-medium text-gray-400 mb-2">
+                      <p className="text-xs font-medium text-gray-400 dark:text-neutral-500 mb-2">
                         {order.createdAt.toLocaleDateString()}
                         {order.shipment?.transportista && ` · ${order.shipment.transportista}`}
                       </p>
@@ -138,7 +140,7 @@ export default async function PerfilPage() {
                     </div>
                     <div className="text-right flex flex-col items-end gap-2">
                       <p className="text-2xl font-black text-ajicolor-magenta">${Number(order.total).toFixed(0)}</p>
-                      <span className={`px-3 py-1 text-[10px] font-bold uppercase ${isDelivered ? "bg-ajicolor-green text-white" : "bg-gray-100 text-gray-600"}`}>
+                      <span className={`px-3 py-1 text-[10px] font-bold uppercase ${isDelivered ? "bg-ajicolor-green text-white" : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300"}`}>
                         {order.estado}
                       </span>
                     </div>
