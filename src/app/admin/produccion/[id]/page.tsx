@@ -3,15 +3,9 @@ import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { BATCH_TRANSITIONS } from "@/lib/state-machines";
 
 export const dynamic = "force-dynamic";
-
-const BATCH_TRANSITIONS: Record<string, string[]> = {
-  Solicitado: ["EnProgreso"],
-  EnProgreso: ["Completado"],
-  Completado: ["Recibido"],
-  Recibido: [],
-};
 
 export default async function LoteDetailPage({
   params,

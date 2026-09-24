@@ -2,13 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
-
-const BATCH_TRANSITIONS: Record<string, string[]> = {
-  Solicitado: ["EnProgreso"],
-  EnProgreso: ["Completado"],
-  Completado: ["Recibido"],
-  Recibido: [],
-};
+import { BATCH_TRANSITIONS } from "@/lib/state-machines";
 
 export async function getBatches(estado?: string) {
   await requireAdmin();

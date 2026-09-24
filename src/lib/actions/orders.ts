@@ -2,15 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
-
-const ORDER_TRANSITIONS: Record<string, string[]> = {
-  Pendiente: ["Confirmado", "Cancelado"],
-  Confirmado: ["EnProduccion", "Cancelado"],
-  EnProduccion: ["Enviado", "Cancelado"],
-  Enviado: ["Entregado"],
-  Entregado: [],
-  Cancelado: [],
-};
+import { ORDER_TRANSITIONS } from "@/lib/state-machines";
 
 export async function getOrders(estado?: string) {
   await requireAdmin();
@@ -38,8 +30,11 @@ export async function getOrderById(id: string) {
 }
 
 export async function updateOrderStatus(id: string, nuevoEstado: string) {
-  await requireAdmin();
-  const order = await prisma.order.findUnique({ where: { id } });
+  const session = await requireAdmin();
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: { items: true, shipment: true },
+  });
   if (!order) throw new Error("Pedido no encontrado");
 
   const allowed = ORDER_TRANSITIONS[order.estado] ?? [];
@@ -49,7 +44,33 @@ export async function updateOrderStatus(id: string, nuevoEstado: string) {
     );
   }
 
-  return prisma.order.update({ where: { id }, data: { estado: nuevoEstado } });
+  return prisma.$transaction(async (tx) => {
+    if (nuevoEstado === "Cancelado") {
+      const userId = (session.user as { id?: string } | undefined)?.id;
+      for (const item of order.items) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { stock: { increment: item.cantidad } },
+        });
+        await tx.stockMovement.create({
+          data: {
+            variantId: item.variantId,
+            userId,
+            cantidad: item.cantidad,
+            tipo: "Entrada",
+            origen: "Cancelación",
+            descripcion: `Pedido ${order.id} cancelado`,
+          },
+        });
+      }
+    }
+
+    if (nuevoEstado === "Enviado" && !order.shipment) {
+      await tx.shipment.create({ data: { orderId: order.id } });
+    }
+
+    return tx.order.update({ where: { id }, data: { estado: nuevoEstado } });
+  });
 }
 
 export async function createOrder(data: {

@@ -3,17 +3,9 @@ import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { ORDER_TRANSITIONS } from "@/lib/state-machines";
 
 export const dynamic = "force-dynamic";
-
-const TRANSITIONS: Record<string, string[]> = {
-  Pendiente: ["Confirmado", "Cancelado"],
-  Confirmado: ["EnProduccion", "Cancelado"],
-  EnProduccion: ["Enviado", "Cancelado"],
-  Enviado: ["Entregado"],
-  Entregado: [],
-  Cancelado: [],
-};
 
 const ESTADO_COLORS: Record<string, string> = {
   Pendiente: "bg-yellow-100 text-yellow-800",
@@ -41,7 +33,7 @@ export default async function PedidoDetailPage({
 
   if (!order) notFound();
 
-  const allowed = TRANSITIONS[order.estado] ?? [];
+  const allowed = ORDER_TRANSITIONS[order.estado] ?? [];
 
   return (
     <div>
