@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
+import { revalidatePath } from "next/cache";
 
 export async function getLowStock() {
   await requireAdmin();
@@ -43,5 +44,7 @@ export async function adjustStock(
     }),
   ]);
 
+  revalidatePath("/admin/stock");
+  revalidatePath("/admin");
   return { variant: updatedVariant, movement };
 }

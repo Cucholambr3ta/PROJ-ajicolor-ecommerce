@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { SHIPMENT_TRANSITIONS } from "@/lib/state-machines";
+import { revalidatePath } from "next/cache";
 
 export async function getShipments(estado?: string) {
   await requireAdmin();
@@ -21,7 +22,7 @@ export async function createShipment(data: {
   fechaEstimada?: Date;
 }) {
   await requireAdmin();
-  return prisma.shipment.create({
+  const shipment = await prisma.shipment.create({
     data: {
       orderId: data.orderId,
       trackingNumber: data.trackingNumber,
@@ -31,6 +32,20 @@ export async function createShipment(data: {
     },
     include: { order: true },
   });
+  revalidatePath("/admin/envios");
+  revalidatePath(`/admin/pedidos/${data.orderId}`);
+  return shipment;
+}
+
+export async function updateShipmentDetails(
+  id: string,
+  data: { trackingNumber?: string; transportista?: string; costo?: number }
+) {
+  await requireAdmin();
+  const updated = await prisma.shipment.update({ where: { id }, data });
+  revalidatePath("/admin/envios");
+  revalidatePath(`/admin/envios/${id}`);
+  return updated;
 }
 
 export async function updateShipmentStatus(
@@ -49,8 +64,8 @@ export async function updateShipmentStatus(
     );
   }
 
-  return prisma.$transaction(async (tx) => {
-    const updated = await tx.shipment.update({
+  const updated = await prisma.$transaction(async (tx) => {
+    const result = await tx.shipment.update({
       where: { id },
       data: { estado: nuevoEstado, ...data },
     });
@@ -62,6 +77,13 @@ export async function updateShipmentStatus(
       });
     }
 
-    return updated;
+    return result;
   });
+
+  revalidatePath("/admin/envios");
+  revalidatePath(`/admin/envios/${id}`);
+  revalidatePath("/admin/pedidos");
+  revalidatePath(`/admin/pedidos/${shipment.orderId}`);
+  revalidatePath("/admin");
+  return updated;
 }

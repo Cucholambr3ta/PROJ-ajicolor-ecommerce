@@ -13,6 +13,7 @@ import {
   Layers,
   Factory,
   BarChart3,
+  ShieldCheck,
 } from "lucide-react";
 
 const navItems = [
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/catalogo", label: "Catálogo", icon: Layers },
   { href: "/admin/reportes", label: "Reportes", icon: BarChart3 },
+  { href: "/admin/seguridad", label: "Seguridad", icon: ShieldCheck },
 ];
 
 export function Sidebar() {

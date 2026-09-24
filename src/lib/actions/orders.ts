@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { ORDER_TRANSITIONS } from "@/lib/state-machines";
+import { revalidatePath } from "next/cache";
 
 export async function getOrders(estado?: string) {
   await requireAdmin();
@@ -69,7 +70,14 @@ export async function updateOrderStatus(id: string, nuevoEstado: string) {
       await tx.shipment.create({ data: { orderId: order.id } });
     }
 
-    return tx.order.update({ where: { id }, data: { estado: nuevoEstado } });
+    const updated = await tx.order.update({ where: { id }, data: { estado: nuevoEstado } });
+    return updated;
+  }).then((updated) => {
+    revalidatePath("/admin/pedidos");
+    revalidatePath(`/admin/pedidos/${id}`);
+    revalidatePath("/admin/envios");
+    revalidatePath("/admin");
+    return updated;
   });
 }
 
@@ -79,19 +87,52 @@ export async function createOrder(data: {
   notas?: string;
   items: { variantId: string; cantidad: number; precioUnit: number }[];
 }) {
-  await requireAdmin();
+  const session = await requireAdmin();
   const total = data.items.reduce(
     (sum, item) => sum + item.cantidad * item.precioUnit,
     0
   );
-  return prisma.order.create({
-    data: {
-      customerId: data.customerId,
-      canal: data.canal,
-      notas: data.notas,
-      total,
-      items: { create: data.items },
-    },
-    include: { items: true },
+  const userId = (session.user as { id?: string } | undefined)?.id;
+
+  return prisma.$transaction(async (tx) => {
+    for (const item of data.items) {
+      const result = await tx.productVariant.updateMany({
+        where: { id: item.variantId, stock: { gte: item.cantidad } },
+        data: { stock: { decrement: item.cantidad } },
+      });
+      if (result.count === 0) {
+        throw new Error("Sin stock suficiente para una de las variantes seleccionadas");
+      }
+    }
+
+    const order = await tx.order.create({
+      data: {
+        customerId: data.customerId,
+        canal: data.canal,
+        notas: data.notas,
+        total,
+        items: { create: data.items },
+      },
+      include: { items: true },
+    });
+
+    for (const item of data.items) {
+      await tx.stockMovement.create({
+        data: {
+          variantId: item.variantId,
+          userId,
+          cantidad: -item.cantidad,
+          tipo: "Salida",
+          origen: `Venta ${data.canal}`,
+          descripcion: `Pedido ${order.id}`,
+        },
+      });
+    }
+
+    return order;
+  }).then((order) => {
+    revalidatePath("/admin/pedidos");
+    revalidatePath("/admin");
+    return order;
   });
 }

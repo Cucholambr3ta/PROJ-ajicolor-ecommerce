@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 
 interface VariantInput {
+  id?: string;
   talle: string;
   color: string;
   sku: string;
@@ -39,6 +40,7 @@ export default function ProductoFormClient({
   const [precio, setPrecio] = useState(initialData ? Number(initialData.precio) : 0);
   const [variants, setVariants] = useState<VariantInput[]>(
     initialData?.variants.map((v) => ({
+      id: v.id,
       talle: v.talle,
       color: v.color,
       sku: v.sku,
@@ -88,6 +90,7 @@ export default function ProductoFormClient({
           artista,
           temporada,
           precio,
+          variants,
         });
       } else {
         const { createProduct } = await import("@/lib/actions/products");

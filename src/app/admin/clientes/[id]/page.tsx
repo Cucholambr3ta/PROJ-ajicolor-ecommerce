@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -39,14 +40,64 @@ export default async function ClienteDetailPage({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="p-6">
           <h2 className="font-semibold text-gray-700 mb-3">Información del Cliente</h2>
-          <div className="space-y-2 text-sm">
-            <p><span className="font-medium">ID:</span> {customer.id}</p>
-            <p><span className="font-medium">Nombre:</span> {customer.nombre}</p>
-            <p><span className="font-medium">Email:</span> {customer.email}</p>
-            <p><span className="font-medium">Teléfono:</span> {customer.telefono}</p>
-            <p><span className="font-medium">Dirección:</span> {customer.direccion}</p>
-            <p><span className="font-medium">Registro:</span> {customer.fechaRegistro.toLocaleDateString()}</p>
-          </div>
+          <form
+            action={async (formData: FormData) => {
+              "use server";
+              const { updateCustomer } = await import("@/lib/actions/customers");
+              await updateCustomer(customer.id, {
+                nombre: String(formData.get("nombre") ?? ""),
+                email: String(formData.get("email") ?? ""),
+                telefono: String(formData.get("telefono") ?? ""),
+                direccion: String(formData.get("direccion") ?? ""),
+              });
+              revalidatePath(`/admin/clientes/${customer.id}`);
+            }}
+            className="space-y-3"
+          >
+            <p className="text-xs text-gray-400">ID: {customer.id}</p>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Nombre</label>
+              <input
+                name="nombre"
+                defaultValue={customer.nombre}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Email</label>
+              <input
+                name="email"
+                type="email"
+                defaultValue={customer.email}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Teléfono</label>
+              <input
+                name="telefono"
+                defaultValue={customer.telefono}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Dirección</label>
+              <input
+                name="direccion"
+                defaultValue={customer.direccion}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <p className="text-xs text-gray-400">
+              Registro: {customer.fechaRegistro.toLocaleDateString()}
+            </p>
+            <button
+              type="submit"
+              className="px-3 py-1.5 rounded-md bg-ajicolor-magenta text-white text-xs font-medium hover:opacity-90"
+            >
+              Guardar cambios
+            </button>
+          </form>
         </Card>
 
         <Card className="p-6">

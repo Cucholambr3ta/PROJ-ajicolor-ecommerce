@@ -26,16 +26,23 @@ export default async function PedidosPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-black">Pedidos</h1>
+        <Link
+          href="/admin/pedidos/nuevo"
+          className="px-4 py-2 rounded-md bg-ajicolor-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          + Nuevo pedido
+        </Link>
       </div>
       <div className="flex gap-2 mb-4 flex-wrap">
         {estados.map((e) => (
-          <Badge
-            key={e}
-            variant={estado === e || (!estado && e === "Todos") ? "default" : "outline"}
-            className="cursor-pointer"
-          >
-            {e}
-          </Badge>
+          <Link key={e} href={e === "Todos" ? "/admin/pedidos" : `/admin/pedidos?estado=${e}`}>
+            <Badge
+              variant={estado === e || (!estado && e === "Todos") ? "default" : "outline"}
+              className="cursor-pointer"
+            >
+              {e}
+            </Badge>
+          </Link>
         ))}
       </div>
       <Card>

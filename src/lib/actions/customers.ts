@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
 import { requireAdmin } from "@/lib/auth-guard";
+import { revalidatePath } from "next/cache";
 
 export async function getCustomers() {
   await requireAdmin();
@@ -36,18 +37,24 @@ export async function activarBackstagePass(id: string) {
   await requireAdmin();
   const expira = new Date();
   expira.setDate(expira.getDate() + 30);
-  return prisma.customer.update({
+  const customer = await prisma.customer.update({
     where: { id },
     data: { backstagePass: true, backstagePassExpira: expira },
   });
+  revalidatePath("/admin/clientes");
+  revalidatePath(`/admin/clientes/${id}`);
+  return customer;
 }
 
 export async function desactivarBackstagePass(id: string) {
   await requireAdmin();
-  return prisma.customer.update({
+  const customer = await prisma.customer.update({
     where: { id },
     data: { backstagePass: false, backstagePassExpira: null },
   });
+  revalidatePath("/admin/clientes");
+  revalidatePath(`/admin/clientes/${id}`);
+  return customer;
 }
 
 export async function getCustomerOrders(customerId: string) {
@@ -73,10 +80,13 @@ export async function updateCustomer(
   }
 ) {
   await requireAdmin();
-  return prisma.customer.update({
+  const customer = await prisma.customer.update({
     where: { id },
     data,
   });
+  revalidatePath("/admin/clientes");
+  revalidatePath(`/admin/clientes/${id}`);
+  return customer;
 }
 
 export async function registerCustomer(data: {

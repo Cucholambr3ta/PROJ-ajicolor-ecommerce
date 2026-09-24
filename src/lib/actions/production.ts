@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { BATCH_TRANSITIONS } from "@/lib/state-machines";
+import { revalidatePath } from "next/cache";
 
 export async function getBatches(estado?: string) {
   await requireAdmin();
@@ -33,7 +34,7 @@ export async function createBatch(data: {
   }
   const costoTotal = data.items.reduce((acc, item) => acc + item.cantidad * item.costoUnitario, 0);
 
-  return prisma.productionBatch.create({
+  const batch = await prisma.productionBatch.create({
     data: {
       supplierId: data.supplierId,
       fechaEstimada: data.fechaEstimada,
@@ -42,6 +43,9 @@ export async function createBatch(data: {
     },
     include: { supplier: true, items: { include: { variant: { include: { product: true } } } } },
   });
+  revalidatePath("/admin/produccion");
+  revalidatePath(`/admin/proveedores/${data.supplierId}`);
+  return batch;
 }
 
 export async function updateBatchStatus(id: string, nuevoEstado: string, fechaRecepcion?: Date) {
@@ -56,8 +60,9 @@ export async function updateBatchStatus(id: string, nuevoEstado: string, fechaRe
     );
   }
 
+  let updated;
   if (nuevoEstado === "Recibido") {
-    return prisma.$transaction(async (tx) => {
+    updated = await prisma.$transaction(async (tx) => {
       for (const item of batch.items) {
         await tx.productVariant.update({
           where: { id: item.variantId },
@@ -79,10 +84,16 @@ export async function updateBatchStatus(id: string, nuevoEstado: string, fechaRe
         data: { estado: nuevoEstado, fechaRecepcion: fechaRecepcion ?? new Date() },
       });
     });
+  } else {
+    updated = await prisma.productionBatch.update({
+      where: { id },
+      data: { estado: nuevoEstado },
+    });
   }
 
-  return prisma.productionBatch.update({
-    where: { id },
-    data: { estado: nuevoEstado },
-  });
+  revalidatePath("/admin/produccion");
+  revalidatePath(`/admin/produccion/${id}`);
+  revalidatePath("/admin/stock");
+  revalidatePath("/admin");
+  return updated;
 }

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -77,13 +78,58 @@ export default async function EnvioDetailPage({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="p-6">
           <h2 className="font-semibold text-gray-700 mb-3">Información del Envío</h2>
-          <div className="space-y-2 text-sm">
-            <p><span className="font-medium">ID:</span> {shipment.id}</p>
-            <p><span className="font-medium">Estado:</span> <Badge variant="outline">{shipment.estado}</Badge></p>
-            <p><span className="font-medium">Transportista:</span> {shipment.transportista ?? "—"}</p>
-            <p><span className="font-medium">Tracking:</span> {shipment.trackingNumber ?? "—"}</p>
-            <p><span className="font-medium">Costo:</span> {shipment.costo != null ? `$${Number(shipment.costo).toFixed(2)}` : "—"}</p>
-          </div>
+          <p className="text-sm mb-2"><span className="font-medium">ID:</span> {shipment.id}</p>
+          <p className="text-sm mb-4 flex items-center gap-2">
+            <span className="font-medium">Estado:</span> <Badge variant="outline">{shipment.estado}</Badge>
+          </p>
+          <form
+            action={async (formData: FormData) => {
+              "use server";
+              const { updateShipmentDetails } = await import("@/lib/actions/shipments");
+              const costoRaw = formData.get("costo");
+              await updateShipmentDetails(shipment.id, {
+                transportista: String(formData.get("transportista") ?? "") || undefined,
+                trackingNumber: String(formData.get("trackingNumber") ?? "") || undefined,
+                costo: costoRaw ? parseFloat(String(costoRaw)) : undefined,
+              });
+              revalidatePath(`/admin/envios/${shipment.id}`);
+            }}
+            className="space-y-3"
+          >
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Transportista</label>
+              <input
+                name="transportista"
+                defaultValue={shipment.transportista ?? ""}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Número de tracking</label>
+              <input
+                name="trackingNumber"
+                defaultValue={shipment.trackingNumber ?? ""}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Costo</label>
+              <input
+                name="costo"
+                type="number"
+                min={0}
+                step="0.01"
+                defaultValue={shipment.costo != null ? Number(shipment.costo) : ""}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-3 py-1.5 rounded-md bg-ajicolor-magenta text-white text-xs font-medium hover:opacity-90"
+            >
+              Guardar cambios
+            </button>
+          </form>
         </Card>
 
         <Card className="p-6">
