@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth-guard";
 
 export async function getProducts() {
   return prisma.product.findMany({
@@ -22,8 +23,10 @@ export async function createProduct(data: {
   disenoUrl: string;
   artista: string;
   temporada: string;
+  precio: number;
   variants?: { talle: string; color: string; sku: string; stock?: number; stockMin?: number }[];
 }) {
+  await requireAdmin();
   return prisma.product.create({
     data: {
       nombreSlug: data.nombreSlug,
@@ -31,6 +34,7 @@ export async function createProduct(data: {
       disenoUrl: data.disenoUrl,
       artista: data.artista,
       temporada: data.temporada,
+      precio: data.precio,
       variants: data.variants ? { create: data.variants } : undefined,
     },
     include: { variants: true },
@@ -45,8 +49,10 @@ export async function updateProduct(
     disenoUrl?: string;
     artista?: string;
     temporada?: string;
+    precio?: number;
   }
 ) {
+  await requireAdmin();
   return prisma.product.update({
     where: { id },
     data,
@@ -55,5 +61,6 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string) {
+  await requireAdmin();
   return prisma.product.delete({ where: { id } });
 }

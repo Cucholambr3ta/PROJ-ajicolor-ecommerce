@@ -23,6 +23,7 @@ export default function ProductoFormClient({
     disenoUrl: string;
     artista: string;
     temporada: string;
+    precio: number | any;
     variants: { id: string; talle: string; color: string; sku: string; stock: number; stockMin: number }[];
   };
 }) {
@@ -35,6 +36,7 @@ export default function ProductoFormClient({
   const [disenoUrl, setDisenoUrl] = useState(initialData?.disenoUrl ?? "");
   const [artista, setArtista] = useState(initialData?.artista ?? "");
   const [temporada, setTemporada] = useState(initialData?.temporada ?? "");
+  const [precio, setPrecio] = useState(initialData ? Number(initialData.precio) : 0);
   const [variants, setVariants] = useState<VariantInput[]>(
     initialData?.variants.map((v) => ({
       talle: v.talle,
@@ -85,6 +87,7 @@ export default function ProductoFormClient({
           disenoUrl,
           artista,
           temporada,
+          precio,
         });
       } else {
         const { createProduct } = await import("@/lib/actions/products");
@@ -94,6 +97,7 @@ export default function ProductoFormClient({
           disenoUrl,
           artista,
           temporada,
+          precio,
           variants,
         });
       }
@@ -109,7 +113,7 @@ export default function ProductoFormClient({
         <Link href="/admin/catalogo" className="text-sm text-gray-500 hover:underline">
           ← Volver a Catálogo
         </Link>
-        <h1 className="text-2xl font-bold mt-2">
+        <h1 className="text-2xl font-black mt-2">
           {isEdit ? "Editar Producto" : "Nuevo Producto"}
         </h1>
       </div>
@@ -155,6 +159,16 @@ export default function ProductoFormClient({
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+              <input
+                type="number"
+                min={0}
+                value={precio}
+                onChange={(e) => setPrecio(parseFloat(e.target.value) || 0)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
               <textarea
@@ -174,7 +188,7 @@ export default function ProductoFormClient({
               <button
                 type="button"
                 onClick={addVariant}
-                className="px-3 py-1.5 rounded-md border border-gray-300 text-xs font-medium hover:bg-gray-50"
+                className="px-3 py-1.5 rounded-md btn-block bg-white"
               >
                 + Agregar variante
               </button>
@@ -256,14 +270,14 @@ export default function ProductoFormClient({
         <div className="flex gap-3 justify-end">
           <Link
             href="/admin/catalogo"
-            className="px-4 py-2 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50"
+            className="px-4 py-2 rounded-md btn-block bg-white"
           >
             Cancelar
           </Link>
           <button
             type="submit"
             disabled={isPending}
-            className="px-4 py-2 rounded-md bg-ajicolor-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="btn-block bg-ajicolor-magenta text-white disabled:opacity-50"
           >
             {isPending ? "Guardando..." : isEdit ? "Guardar cambios" : "Crear producto"}
           </button>

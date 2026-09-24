@@ -1,8 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth-guard";
 
 export async function getShipments(estado?: string) {
+  await requireAdmin();
   return prisma.shipment.findMany({
     where: estado && estado !== "Todos" ? { estado } : undefined,
     include: { order: { include: { customer: true } } },
@@ -17,6 +19,7 @@ export async function createShipment(data: {
   costo?: number;
   fechaEstimada?: Date;
 }) {
+  await requireAdmin();
   return prisma.shipment.create({
     data: {
       orderId: data.orderId,
@@ -34,6 +37,7 @@ export async function updateShipmentStatus(
   estado: string,
   data?: { trackingNumber?: string; fechaDespacho?: Date; fechaEntrega?: Date }
 ) {
+  await requireAdmin();
   return prisma.shipment.update({
     where: { id },
     data: { estado, ...data },

@@ -47,7 +47,7 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Inventario</h1>
+        <h1 className="text-2xl font-black">Inventario</h1>
       </div>
       <Card>
         {variants.length === 0 ? (
@@ -139,14 +139,14 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
                 <button
                   type="button"
                   onClick={() => { setModal({ open: false }); setError(""); }}
-                  className="px-4 py-2 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50"
+                  className="px-4 py-2 rounded-md btn-block bg-white"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-4 py-2 rounded-md bg-ajicolor-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="btn-block bg-ajicolor-magenta text-white disabled:opacity-50"
                 >
                   {isPending ? "Guardando..." : "Aplicar"}
                 </button>

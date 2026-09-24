@@ -33,7 +33,7 @@ export default async function ClienteDetailPage({
         <Link href="/admin/clientes" className="text-sm text-gray-500 hover:underline">
           ← Volver a Clientes
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Detalle del Cliente</h1>
+        <h1 className="text-2xl font-black mt-2">Detalle del Cliente</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

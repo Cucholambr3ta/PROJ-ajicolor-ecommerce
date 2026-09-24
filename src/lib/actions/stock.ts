@@ -1,8 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth-guard";
 
 export async function getLowStock() {
+  await requireAdmin();
   const variants = await prisma.productVariant.findMany({
     include: { product: true },
   });
@@ -16,6 +18,7 @@ export async function adjustStock(
   origen: string,
   descripcion?: string
 ) {
+  await requireAdmin();
   const variant = await prisma.productVariant.findUnique({ where: { id: variantId } });
   if (!variant) throw new Error("Variante no encontrada");
 

@@ -9,5 +9,10 @@ export default async function StockPage() {
     orderBy: { product: { nombreSlug: "asc" } },
   });
 
-  return <StockPageClient variants={variants} />;
+  const variantsSerializables = variants.map((v) => ({
+    ...v,
+    product: { ...v.product, precio: Number(v.product.precio) },
+  }));
+
+  return <StockPageClient variants={variantsSerializables} />;
 }

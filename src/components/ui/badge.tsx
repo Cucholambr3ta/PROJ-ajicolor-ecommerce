@@ -11,11 +11,11 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
-        variant === "default" && "border-transparent bg-ajicolor-magenta text-white",
-        variant === "outline" && "border-gray-200 text-gray-700",
-        variant === "secondary" && "border-transparent bg-gray-100 text-gray-700",
-        variant === "destructive" && "border-transparent bg-red-500 text-white",
+        "inline-flex items-center px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide",
+        variant === "default" && "bg-ajicolor-magenta text-white",
+        variant === "outline" && "bg-white text-ajicolor-ink border border-ajicolor-ink",
+        variant === "secondary" && "bg-ajicolor-yellow text-ajicolor-ink",
+        variant === "destructive" && "bg-ajicolor-ink text-white",
         className
       )}
       {...props}

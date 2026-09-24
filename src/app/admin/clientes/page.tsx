@@ -9,5 +9,7 @@ export default async function ClientesPage() {
     orderBy: { fechaRegistro: "desc" },
   });
 
-  return <ClientesPageClient clientes={clientes} />;
+  const clientesSerializables = clientes.map((c) => ({ ...c, totalGastado: Number(c.totalGastado) }));
+
+  return <ClientesPageClient clientes={clientesSerializables} />;
 }

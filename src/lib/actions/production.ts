@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth-guard";
 
 const BATCH_TRANSITIONS: Record<string, string[]> = {
   Solicitado: ["EnProgreso"],
@@ -10,6 +11,7 @@ const BATCH_TRANSITIONS: Record<string, string[]> = {
 };
 
 export async function getBatches(estado?: string) {
+  await requireAdmin();
   return prisma.productionBatch.findMany({
     where: estado && estado !== "Todos" ? { estado } : undefined,
     include: { supplier: true },
@@ -18,6 +20,7 @@ export async function getBatches(estado?: string) {
 }
 
 export async function getBatchById(id: string) {
+  await requireAdmin();
   return prisma.productionBatch.findUnique({ where: { id }, include: { supplier: true } });
 }
 
@@ -28,6 +31,7 @@ export async function createBatch(data: {
   costoTotal: number;
   fechaEstimada: Date;
 }) {
+  await requireAdmin();
   const totalUnidades = data.unidadesPorVar
     .split(",")
     .map((u) => parseInt(u.trim(), 10) || 0)
@@ -39,6 +43,7 @@ export async function createBatch(data: {
 }
 
 export async function updateBatchStatus(id: string, nuevoEstado: string, fechaRecepcion?: Date) {
+  await requireAdmin();
   const batch = await prisma.productionBatch.findUnique({ where: { id } });
   if (!batch) throw new Error("Lote no encontrado");
 
@@ -53,8 +58,7 @@ export async function updateBatchStatus(id: string, nuevoEstado: string, fechaRe
     where: { id },
     data: {
       estado: nuevoEstado,
-      ...(nuevoEstado === "Recibido" && fechaRecepcion ? { fechaRecepcion } : {}),
-      ...(nuevoEstado === "Recibido" ? { fechaRecepcion: new Date() } : {}),
+      ...(nuevoEstado === "Recibido" ? { fechaRecepcion: fechaRecepcion ?? new Date() } : {}),
     },
   });
 }

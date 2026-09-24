@@ -1,8 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth-guard";
 
 export async function getSuppliers() {
+  await requireAdmin();
   return prisma.supplier.findMany({
     include: { batches: true },
     orderBy: { nombre: "asc" },
@@ -10,6 +12,7 @@ export async function getSuppliers() {
 }
 
 export async function getSupplierById(id: string) {
+  await requireAdmin();
   return prisma.supplier.findUnique({
     where: { id },
     include: { batches: { orderBy: { createdAt: "desc" } } },
@@ -23,6 +26,7 @@ export async function createSupplier(data: {
   costoBase: number;
   calificacion: number;
 }) {
+  await requireAdmin();
   if (data.calificacion < 1 || data.calificacion > 5) {
     throw new Error("La calificación debe estar entre 1 y 5");
   }
@@ -39,6 +43,7 @@ export async function updateSupplier(
     calificacion?: number;
   }
 ) {
+  await requireAdmin();
   if (data.calificacion != null && (data.calificacion < 1 || data.calificacion > 5)) {
     throw new Error("La calificación debe estar entre 1 y 5");
   }
@@ -46,6 +51,7 @@ export async function updateSupplier(
 }
 
 export async function deleteSupplier(id: string) {
+  await requireAdmin();
   const batchCount = await prisma.productionBatch.count({ where: { supplierId: id } });
   if (batchCount > 0) {
     throw new Error("No se puede eliminar un proveedor con lotes de producción asociados");

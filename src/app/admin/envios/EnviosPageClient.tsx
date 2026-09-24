@@ -62,7 +62,7 @@ export default function EnviosPageClient({
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Envíos</h1>
+        <h1 className="text-2xl font-black">Envíos</h1>
       </div>
       <div className="flex gap-2 mb-4 flex-wrap">
         {ESTADOS.map((e) => (
@@ -127,7 +127,7 @@ export default function EnviosPageClient({
                         )}
                         <Link
                           href={`/admin/envios/${env.id}`}
-                          className="px-3 py-1.5 rounded-md border border-gray-300 text-xs font-medium hover:bg-gray-50"
+                          className="px-3 py-1.5 rounded-md btn-block bg-white"
                         >
                           Detalle
                         </Link>

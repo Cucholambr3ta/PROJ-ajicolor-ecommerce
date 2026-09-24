@@ -32,10 +32,10 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Catálogo</h1>
+        <h1 className="text-2xl font-black">Catálogo</h1>
         <Link
           href="/admin/catalogo/nuevo"
-          className="px-4 py-2 rounded-md bg-ajicolor-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          className="btn-block bg-ajicolor-magenta text-white"
         >
           + Nuevo producto
         </Link>
@@ -76,7 +76,7 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
                     <div className="flex gap-2 justify-end">
                       <Link
                         href={`/admin/catalogo/${p.id}`}
-                        className="px-3 py-1.5 rounded-md border border-gray-300 text-xs font-medium hover:bg-gray-50"
+                        className="px-3 py-1.5 rounded-md btn-block bg-white"
                       >
                         Editar
                       </Link>
