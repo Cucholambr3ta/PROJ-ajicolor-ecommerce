@@ -47,7 +47,7 @@ export default function ExportButtons() {
           type="button"
           onClick={() => handleExport(exp.key, exp.filename)}
           disabled={loading !== null}
-          className="px-4 py-2 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+          className="px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 disabled:opacity-50"
         >
           {loading === exp.key ? "Exportando..." : `Exportar ${exp.label}`}
         </button>

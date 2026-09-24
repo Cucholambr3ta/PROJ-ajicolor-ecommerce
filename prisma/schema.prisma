@@ -3,19 +3,21 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  rol          String   @default("Propietario")
-  totpSecret   String?
-  totpEnabled  Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String          @id @default(cuid())
+  email          String          @unique
+  passwordHash   String
+  rol            String          @default("Propietario")
+  totpSecret     String?
+  totpEnabled    Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  stockMovements StockMovement[]
+  auditLogs      AuditLog[]
 }
 
 model Customer {
@@ -81,20 +83,31 @@ model ProductVariant {
   orderItems OrderItem[]
   movements StockMovement[]
   cartItems CartItem[]
+  batchItems ProductionBatchItem[]
 }
 
 model Order {
-  id          String      @id @default(cuid())
-  customerId  String
-  customer    Customer    @relation(fields: [customerId], references: [id])
-  total       Decimal
-  estado      String      @default("Pendiente")
-  canal       String
-  notas       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  items       OrderItem[]
-  shipment    Shipment?
+  id            String      @id @default(cuid())
+  numero        Int         @unique @default(autoincrement())
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  subtotal      Decimal     @default(0)
+  costoEnvio    Decimal     @default(0)
+  total         Decimal
+  estado        String      @default("Pendiente")
+  estadoPago    String      @default("PendienteTransferencia")
+  canal         String
+  notas         String?
+  envioNombre   String?
+  envioTelefono String?
+  envioCalle    String?
+  envioNumero   String?
+  envioComuna   String?
+  envioRegion   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  items         OrderItem[]
+  shipment      Shipment?
 }
 
 model OrderItem {
@@ -120,29 +133,51 @@ model Supplier {
 }
 
 model ProductionBatch {
-  id                String   @id @default(cuid())
-  supplierId        String
-  supplier          Supplier @relation(fields: [supplierId], references: [id])
-  variantes         String
-  unidadesPorVar    String
-  costoTotal        Decimal
-  fechaPedido       DateTime @default(now())
-  fechaEstimada     DateTime
-  fechaRecepcion    DateTime?
-  estado            String   @default("Solicitado")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id             String              @id @default(cuid())
+  supplierId     String
+  supplier       Supplier            @relation(fields: [supplierId], references: [id])
+  costoTotal     Decimal
+  fechaPedido    DateTime            @default(now())
+  fechaEstimada  DateTime
+  fechaRecepcion DateTime?
+  estado         String              @default("Solicitado")
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  items          ProductionBatchItem[]
+}
+
+model ProductionBatchItem {
+  id             String         @id @default(cuid())
+  batchId        String
+  batch          ProductionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  variantId      String
+  variant        ProductVariant @relation(fields: [variantId], references: [id])
+  cantidad       Int
+  costoUnitario  Decimal
 }
 
 model StockMovement {
   id          String         @id @default(cuid())
   variantId   String
   variant     ProductVariant @relation(fields: [variantId], references: [id])
+  userId      String?
+  user        User?          @relation(fields: [userId], references: [id])
   cantidad    Int
   tipo        String
   origen      String
   descripcion String?
   createdAt   DateTime       @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  entidad    String
+  entidadId  String
+  accion     String
+  payload    String?
+  createdAt  DateTime @default(now())
 }
 
 model Shipment {

@@ -48,23 +48,14 @@ export default function CarritoClient({ items, total }: { items: CartItemData[];
     }
   }
 
-  async function handleCheckout() {
-    setLoading("checkout");
-    setError("");
-    try {
-      const { checkout } = await import("@/lib/actions/cart");
-      await checkout();
-      router.push("/perfil");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al confirmar el pedido");
-      setLoading(null);
-    }
+  function handleCheckout() {
+    router.push("/checkout");
   }
 
   if (items.length === 0) {
     return (
-      <div className="p-10 border-2 border-dashed border-gray-300 text-center">
-        <p className="text-gray-400 font-medium mb-4">Tu carrito está vacío.</p>
+      <div className="p-10 border-2 border-dashed border-gray-300 dark:border-neutral-700 text-center">
+        <p className="text-gray-400 dark:text-neutral-500 font-medium mb-4">Tu carrito está vacío.</p>
         <Link href="/" className="btn-block bg-ajicolor-yellow inline-flex">
           Ir al catálogo
         </Link>
@@ -75,7 +66,7 @@ export default function CarritoClient({ items, total }: { items: CartItemData[];
   return (
     <div className="space-y-6">
       {items.map((item) => (
-        <div key={item.id} className="bg-white thick-border pop-shadow p-4 flex gap-4 items-center">
+        <div key={item.id} className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-4 flex gap-4 items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={item.variant.product.disenoUrl}
@@ -84,7 +75,7 @@ export default function CarritoClient({ items, total }: { items: CartItemData[];
           />
           <div className="flex-1">
             <h3 className="font-black">{item.variant.product.nombreSlug}</h3>
-            <p className="text-xs text-gray-400 font-medium">
+            <p className="text-xs text-gray-400 dark:text-neutral-500 font-medium">
               {item.variant.talle} / {item.variant.color}
             </p>
             <p className="text-ajicolor-magenta font-black">
@@ -95,7 +86,7 @@ export default function CarritoClient({ items, total }: { items: CartItemData[];
             <button
               onClick={() => handleUpdate(item.id, item.cantidad - 1)}
               disabled={loading === item.id}
-              className="w-8 h-8 thick-border bg-white font-black disabled:opacity-50"
+              className="w-8 h-8 thick-border bg-white dark:bg-neutral-900 font-black disabled:opacity-50"
             >
               −
             </button>
@@ -103,7 +94,7 @@ export default function CarritoClient({ items, total }: { items: CartItemData[];
             <button
               onClick={() => handleUpdate(item.id, item.cantidad + 1)}
               disabled={loading === item.id || item.cantidad >= item.variant.stock}
-              className="w-8 h-8 thick-border bg-white font-black disabled:opacity-50"
+              className="w-8 h-8 thick-border bg-white dark:bg-neutral-900 font-black disabled:opacity-50"
             >
               +
             </button>
@@ -120,17 +111,16 @@ export default function CarritoClient({ items, total }: { items: CartItemData[];
 
       {error && <p className="text-sm font-semibold text-ajicolor-magenta">{error}</p>}
 
-      <div className="bg-white thick-border pop-shadow p-6 flex items-center justify-between">
+      <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6 flex items-center justify-between">
         <span className="font-black text-lg">Total</span>
         <span className="font-black text-2xl text-ajicolor-magenta">${total.toLocaleString("es-CL")}</span>
       </div>
 
       <button
         onClick={handleCheckout}
-        disabled={loading === "checkout"}
-        className="btn-block w-full bg-ajicolor-green text-white justify-center py-4 text-base disabled:opacity-50"
+        className="btn-block w-full bg-ajicolor-green text-white justify-center py-4 text-base"
       >
-        {loading === "checkout" ? "Procesando..." : "Confirmar pedido"}
+        Continuar al pago
       </button>
     </div>
   );

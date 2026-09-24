@@ -42,11 +42,11 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
       </div>
       <Card>
         {productos.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">No hay productos para mostrar.</div>
+          <div className="p-4 text-center text-gray-500 dark:text-neutral-400">No hay productos para mostrar.</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left text-gray-500">
+              <tr className="border-b text-left text-gray-500 dark:border-neutral-700 dark:text-neutral-400">
                 <th className="p-4 pb-2">Producto</th>
                 <th className="p-4 pb-2">Artista</th>
                 <th className="p-4 pb-2">Temporada</th>
@@ -57,15 +57,15 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
             </thead>
             <tbody>
               {productos.map((p) => (
-                <tr key={p.id} className="border-b last:border-0">
+                <tr key={p.id} className="border-b last:border-0 dark:border-neutral-700">
                   <td className="p-4">
                     <Link href={`/admin/catalogo/${p.id}`} className="font-medium hover:underline">
                       {p.nombreSlug}
                     </Link>
-                    <p className="text-xs text-gray-400 line-clamp-1">{p.descripcion}</p>
+                    <p className="text-xs text-gray-400 line-clamp-1 dark:text-neutral-500">{p.descripcion}</p>
                   </td>
-                  <td className="p-4 text-gray-600">{p.artista}</td>
-                  <td className="p-4 text-gray-600">{p.temporada}</td>
+                  <td className="p-4 text-gray-600 dark:text-neutral-300">{p.artista}</td>
+                  <td className="p-4 text-gray-600 dark:text-neutral-300">{p.temporada}</td>
                   <td className="p-4 text-center">
                     <Badge variant="outline">{p.variants.length}</Badge>
                   </td>
@@ -76,14 +76,14 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
                     <div className="flex gap-2 justify-end">
                       <Link
                         href={`/admin/catalogo/${p.id}`}
-                        className="px-3 py-1.5 rounded-md btn-block bg-white"
+                        className="px-3 py-1.5 rounded-md btn-block bg-white dark:bg-neutral-900"
                       >
                         Editar
                       </Link>
                       <button
                         onClick={() => handleDelete(p.id)}
                         disabled={deleting === p.id || isPending}
-                        className="px-3 py-1.5 rounded-md bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
+                        className="px-3 py-1.5 rounded-md bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50 dark:bg-red-950 dark:text-red-400 dark:hover:bg-red-900"
                       >
                         {deleting === p.id ? "..." : "Eliminar"}
                       </button>

@@ -19,7 +19,7 @@ export default async function ProveedorDetailPage({
   return (
     <div>
       <div className="mb-6">
-        <Link href="/admin/proveedores" className="text-sm text-gray-500 hover:underline">
+        <Link href="/admin/proveedores" className="text-sm text-gray-500 dark:text-neutral-400 hover:underline">
           ← Volver a Proveedores
         </Link>
         <div className="flex items-center justify-between mt-2">
@@ -35,7 +35,7 @@ export default async function ProveedorDetailPage({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="p-6">
-          <h2 className="font-semibold text-gray-700 mb-3">Información</h2>
+          <h2 className="font-semibold text-gray-700 dark:text-neutral-200 mb-3">Información</h2>
           <div className="space-y-2 text-sm">
             <p><span className="font-medium">Contacto:</span> {supplier.contacto}</p>
             <p><span className="font-medium">Lead time:</span> {supplier.leadTimeDias} días</p>
@@ -47,7 +47,7 @@ export default async function ProveedorDetailPage({
           </div>
         </Card>
         <Card className="p-6">
-          <h2 className="font-semibold text-gray-700 mb-3">Resumen</h2>
+          <h2 className="font-semibold text-gray-700 dark:text-neutral-200 mb-3">Resumen</h2>
           <div className="space-y-2 text-sm">
             <p><span className="font-medium">Lotes totales:</span> {supplier.batches.length}</p>
           </div>
@@ -55,13 +55,13 @@ export default async function ProveedorDetailPage({
       </div>
 
       <Card className="p-6">
-        <h2 className="font-semibold text-gray-700 mb-3">Historial de lotes</h2>
+        <h2 className="font-semibold text-gray-700 dark:text-neutral-200 mb-3">Historial de lotes</h2>
         {supplier.batches.length === 0 ? (
-          <p className="text-sm text-gray-500">Sin lotes registrados.</p>
+          <p className="text-sm text-gray-500 dark:text-neutral-400">Sin lotes registrados.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left text-gray-500">
+              <tr className="border-b text-left text-gray-500 dark:text-neutral-400 dark:border-neutral-700">
                 <th className="pb-2">Fecha pedido</th>
                 <th className="pb-2 text-right">Costo</th>
                 <th className="pb-2 text-right">Estado</th>
@@ -70,7 +70,7 @@ export default async function ProveedorDetailPage({
             </thead>
             <tbody>
               {supplier.batches.map((b) => (
-                <tr key={b.id} className="border-b last:border-0">
+                <tr key={b.id} className="border-b last:border-0 dark:border-neutral-700">
                   <td className="py-2">{b.fechaPedido.toLocaleDateString()}</td>
                   <td className="py-2 text-right font-medium">${Number(b.costoTotal).toFixed(2)}</td>
                   <td className="py-2 text-right"><Badge variant="outline">{b.estado}</Badge></td>

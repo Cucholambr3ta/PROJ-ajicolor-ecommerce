@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 
 interface VariantInput {
+  id?: string;
   talle: string;
   color: string;
   sku: string;
@@ -39,6 +40,7 @@ export default function ProductoFormClient({
   const [precio, setPrecio] = useState(initialData ? Number(initialData.precio) : 0);
   const [variants, setVariants] = useState<VariantInput[]>(
     initialData?.variants.map((v) => ({
+      id: v.id,
       talle: v.talle,
       color: v.color,
       sku: v.sku,
@@ -88,6 +90,7 @@ export default function ProductoFormClient({
           artista,
           temporada,
           precio,
+          variants,
         });
       } else {
         const { createProduct } = await import("@/lib/actions/products");
@@ -110,7 +113,7 @@ export default function ProductoFormClient({
   return (
     <div>
       <div className="mb-6">
-        <Link href="/admin/catalogo" className="text-sm text-gray-500 hover:underline">
+        <Link href="/admin/catalogo" className="text-sm text-gray-500 hover:underline dark:text-neutral-400">
           ← Volver a Catálogo
         </Link>
         <h1 className="text-2xl font-black mt-2">
@@ -120,62 +123,62 @@ export default function ProductoFormClient({
 
       <form onSubmit={handleSubmit}>
         <Card className="p-6 mb-6">
-          <h2 className="font-semibold text-gray-700 mb-4">Información del Producto</h2>
+          <h2 className="font-semibold text-gray-700 mb-4 dark:text-neutral-200">Información del Producto</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre / Slug *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Nombre / Slug *</label>
               <input
                 type="text"
                 value={nombreSlug}
                 onChange={(e) => setNombreSlug(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Artista</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Artista</label>
               <input
                 type="text"
                 value={artista}
                 onChange={(e) => setArtista(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Temporada</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Temporada</label>
               <input
                 type="text"
                 value={temporada}
                 onChange={(e) => setTemporada(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL del Diseño</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">URL del Diseño</label>
               <input
                 type="text"
                 value={disenoUrl}
                 onChange={(e) => setDisenoUrl(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Precio</label>
               <input
                 type="number"
                 min={0}
                 value={precio}
                 onChange={(e) => setPrecio(parseFloat(e.target.value) || 0)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Descripción</label>
               <textarea
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
                 rows={3}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
           </div>
@@ -183,78 +186,78 @@ export default function ProductoFormClient({
 
         <Card className="p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-700">Variantes</h2>
+            <h2 className="font-semibold text-gray-700 dark:text-neutral-200">Variantes</h2>
             {isEdit && (
               <button
                 type="button"
                 onClick={addVariant}
-                className="px-3 py-1.5 rounded-md btn-block bg-white"
+                className="px-3 py-1.5 rounded-md btn-block bg-white dark:bg-neutral-900"
               >
                 + Agregar variante
               </button>
             )}
           </div>
           {!isEdit && (
-            <p className="text-xs text-gray-400 mb-4">Las variantes se crean al guardar el producto.</p>
+            <p className="text-xs text-gray-400 mb-4 dark:text-neutral-500">Las variantes se crean al guardar el producto.</p>
           )}
           {isEdit && variants.length === 0 ? (
-            <p className="text-sm text-gray-500">No hay variantes.</p>
+            <p className="text-sm text-gray-500 dark:text-neutral-400">No hay variantes.</p>
           ) : isEdit ? (
             <div className="space-y-4">
               {variants.map((v, i) => (
                 <div key={i} className="grid grid-cols-5 gap-3 items-end">
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Talle</label>
+                    <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Talle</label>
                     <input
                       type="text"
                       value={v.talle}
                       onChange={(e) => updateVariant(i, "talle", e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Color</label>
+                    <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Color</label>
                     <input
                       type="text"
                       value={v.color}
                       onChange={(e) => updateVariant(i, "color", e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">SKU</label>
+                    <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">SKU</label>
                     <input
                       type="text"
                       value={v.sku}
                       onChange={(e) => updateVariant(i, "sku", e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Stock</label>
+                    <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Stock</label>
                     <input
                       type="number"
                       min={0}
                       value={v.stock}
                       onChange={(e) => updateVariant(i, "stock", parseInt(e.target.value) || 0)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                     />
                   </div>
                   <div className="flex gap-2">
                     <div className="flex-1">
-                      <label className="block text-xs text-gray-500 mb-1">Mín.</label>
+                      <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Mín.</label>
                       <input
                         type="number"
                         min={0}
                         value={v.stockMin}
                         onChange={(e) => updateVariant(i, "stockMin", parseInt(e.target.value) || 0)}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                       />
                     </div>
                     <button
                       type="button"
                       onClick={() => removeVariant(i)}
-                      className="self-end px-2 py-2 rounded-md text-red-500 hover:bg-red-50 text-xs"
+                      className="self-end px-2 py-2 rounded-md text-red-500 hover:bg-red-50 text-xs dark:text-red-400 dark:hover:bg-red-950"
                     >
                       ✕
                     </button>
@@ -265,12 +268,12 @@ export default function ProductoFormClient({
           ) : null}
         </Card>
 
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+        {error && <p className="text-red-500 text-sm mb-4 dark:text-red-400">{error}</p>}
 
         <div className="flex gap-3 justify-end">
           <Link
             href="/admin/catalogo"
-            className="px-4 py-2 rounded-md btn-block bg-white"
+            className="px-4 py-2 rounded-md btn-block bg-white dark:bg-neutral-900"
           >
             Cancelar
           </Link>

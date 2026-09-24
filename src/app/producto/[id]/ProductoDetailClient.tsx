@@ -91,7 +91,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
     <main className="max-w-5xl mx-auto py-12 p-8">
       <div className="grid lg:grid-cols-2 gap-12">
         <div>
-          <div className="thick-border pop-shadow bg-white p-3">
+          <div className="thick-border pop-shadow bg-white dark:bg-neutral-900 p-3">
             <p className="text-center font-black text-sm py-2 border-b-2 border-ajicolor-ink mb-3">Producto</p>
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -115,7 +115,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                       title={color}
                       aria-label={color}
                       className={`w-6 h-6 rounded-full border-2 transition-transform ${
-                        color === selectedColor ? "border-ajicolor-ink scale-110" : "border-gray-300"
+                        color === selectedColor ? "border-ajicolor-ink scale-110" : "border-gray-300 dark:border-neutral-700"
                       }`}
                       style={{ backgroundColor: COLOR_HEX[color] ?? "#ccc" }}
                     />
@@ -149,8 +149,8 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                       talle === selectedTalle && disponible
                         ? "bg-ajicolor-ink text-white"
                         : disponible
-                          ? "bg-white hover:bg-gray-50"
-                          : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                          ? "bg-white dark:bg-neutral-900 hover:bg-gray-50 dark:hover:bg-neutral-800"
+                          : "bg-gray-100 dark:bg-neutral-800 text-gray-300 dark:text-neutral-600 cursor-not-allowed"
                     }`}
                   >
                     {talle}
@@ -159,7 +159,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
               })}
             </div>
             {selectedVariant && selectedVariant.stock > 0 && (
-              <p className="text-xs text-gray-400 font-medium mt-2">{selectedVariant.stock} disponibles</p>
+              <p className="text-xs text-gray-400 dark:text-neutral-500 font-medium mt-2">{selectedVariant.stock} disponibles</p>
             )}
           </div>
 
@@ -167,7 +167,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
             <p className="bg-ajicolor-ink text-white px-3 py-1.5 text-xs font-bold uppercase inline-block mb-0">
               Especificación técnica
             </p>
-            <div className="thick-border p-4 text-sm italic text-gray-600 font-medium">
+            <div className="thick-border p-4 text-sm italic text-gray-600 dark:text-neutral-300 font-medium">
               Polera {product.artista} Hombre MC
               <br />
               100% Algodón Heavy Weight · 195 Grs

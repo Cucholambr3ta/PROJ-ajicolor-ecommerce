@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+export const metadata: Metadata = {
+  title: "Devoluciones y Garantía",
+  description: "Política de cambios, devoluciones y garantía legal de Ajicolor.",
+};
 
 export default function DevolucionesPage() {
   return (
@@ -9,15 +16,18 @@ export default function DevolucionesPage() {
         <Link href="/">
           <Logo />
         </Link>
-        <Link href="/" className="font-bold text-xs uppercase hover:underline">
-          ← Volver a la tienda
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="font-bold text-xs uppercase hover:underline">
+            ← Volver a la tienda
+          </Link>
+          <ThemeToggle />
+        </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto py-16 p-8 flex-1 space-y-8 text-gray-700">
+      <main className="max-w-3xl mx-auto py-16 p-8 flex-1 space-y-8 text-gray-700 dark:text-neutral-300">
         <h1 className="text-4xl font-black border-b-2 border-ajicolor-ink pb-4">Cambios y devoluciones</h1>
 
-        <section className="bg-white thick-border pop-shadow p-8 space-y-4">
+        <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
           <h2 className="text-xl font-black text-ajicolor-purple">Derecho a retracto</h2>
           <p className="text-sm leading-relaxed">
             De acuerdo al Artículo 3 bis de la Ley N° 19.496 sobre Protección de los Derechos de los
@@ -32,7 +42,7 @@ export default function DevolucionesPage() {
           </p>
         </section>
 
-        <section className="bg-white thick-border pop-shadow p-8 space-y-4">
+        <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
           <h2 className="text-xl font-black text-ajicolor-purple">Cambios de talla</h2>
           <p className="text-sm leading-relaxed">
             Si el talle no corresponde, podés solicitar un cambio dentro de los 10 días corridos posteriores
@@ -40,7 +50,7 @@ export default function DevolucionesPage() {
           </p>
         </section>
 
-        <section className="bg-white thick-border pop-shadow p-8 space-y-4">
+        <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
           <h2 className="text-xl font-black text-ajicolor-purple">Garantía legal</h2>
           <p className="text-sm leading-relaxed">
             Todo producto cuenta con la garantía legal establecida en el Artículo 20 de la Ley N° 19.496.
@@ -49,7 +59,7 @@ export default function DevolucionesPage() {
           </p>
         </section>
 
-        <section className="bg-white thick-border pop-shadow p-8 space-y-4">
+        <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
           <h2 className="text-xl font-black text-ajicolor-purple">Cómo solicitar un cambio o devolución</h2>
           <p className="text-sm leading-relaxed">
             Escribinos a través de la sección{" "}

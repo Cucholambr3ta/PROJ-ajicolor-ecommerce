@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+export const metadata: Metadata = {
+  title: "Conoce al Ají",
+  description: "La historia de Ajicolor: poleras exclusivas de bandas, hechas en Chile.",
+};
 
 export default function ConoceAlAjiPage() {
   return (
@@ -16,16 +23,19 @@ export default function ConoceAlAjiPage() {
           <Link href="/">Catálogo</Link>
           <Link href="/contacto">Contacto</Link>
         </div>
-        <Link href="/" className="font-bold text-xs uppercase hover:underline">
-          ← Volver a la tienda
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="font-bold text-xs uppercase hover:underline">
+            ← Volver a la tienda
+          </Link>
+          <ThemeToggle />
+        </div>
       </nav>
 
       <main className="max-w-3xl mx-auto py-16 p-8 flex-1 text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo/icono.png" alt="Ají Ajicolor" className="w-32 h-32 mx-auto mb-8" />
         <h1 className="text-4xl font-black mb-6">Le ponemos color</h1>
-        <div className="bg-white thick-border pop-shadow p-8 text-left space-y-4 text-gray-700">
+        <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 text-left space-y-4 text-gray-700 dark:text-neutral-300">
           <p className="text-sm leading-relaxed">
             Ajicolor nació con una idea simple: vestir el ritmo. Cada polera es producto exclusivo, hecho a
             mano, 100% algodón, pensado para melómanos que quieren llevar su música favorita puesta.

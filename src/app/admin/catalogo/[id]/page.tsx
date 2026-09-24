@@ -24,7 +24,7 @@ export default async function ProductoDetailPage({
   return (
     <div>
       <div className="mb-6">
-        <Link href="/admin/catalogo" className="text-sm text-gray-500 hover:underline">
+        <Link href="/admin/catalogo" className="text-sm text-gray-500 hover:underline dark:text-neutral-400">
           ← Volver a Catálogo
         </Link>
         <div className="flex items-center justify-between mt-2">
@@ -40,7 +40,7 @@ export default async function ProductoDetailPage({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="p-6">
-          <h2 className="font-semibold text-gray-700 mb-3">Información del Producto</h2>
+          <h2 className="font-semibold text-gray-700 mb-3 dark:text-neutral-200">Información del Producto</h2>
           <div className="space-y-2 text-sm">
             <p><span className="font-medium">ID:</span> {product.id}</p>
             <p><span className="font-medium">Nombre/Slug:</span> {product.nombreSlug}</p>
@@ -52,7 +52,7 @@ export default async function ProductoDetailPage({
         </Card>
 
         <Card className="p-6">
-          <h2 className="font-semibold text-gray-700 mb-3">Resumen</h2>
+          <h2 className="font-semibold text-gray-700 mb-3 dark:text-neutral-200">Resumen</h2>
           <div className="space-y-2 text-sm">
             <p><span className="font-medium">Variantes:</span> {product.variants.length}</p>
             <p><span className="font-medium">Stock total:</span> {stockTotal} u.</p>
@@ -74,13 +74,13 @@ export default async function ProductoDetailPage({
       </div>
 
       <Card className="p-6">
-        <h2 className="font-semibold text-gray-700 mb-3">Variantes</h2>
+        <h2 className="font-semibold text-gray-700 mb-3 dark:text-neutral-200">Variantes</h2>
         {product.variants.length === 0 ? (
-          <p className="text-sm text-gray-500">No hay variantes registradas.</p>
+          <p className="text-sm text-gray-500 dark:text-neutral-400">No hay variantes registradas.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left text-gray-500">
+              <tr className="border-b text-left text-gray-500 dark:border-neutral-700 dark:text-neutral-400">
                 <th className="pb-2">SKU</th>
                 <th className="pb-2">Talle</th>
                 <th className="pb-2">Color</th>
@@ -91,12 +91,12 @@ export default async function ProductoDetailPage({
             </thead>
             <tbody>
               {product.variants.map((v) => (
-                <tr key={v.id} className="border-b last:border-0">
+                <tr key={v.id} className="border-b last:border-0 dark:border-neutral-700">
                   <td className="py-2 font-mono text-xs">{v.sku}</td>
                   <td className="py-2">{v.talle}</td>
                   <td className="py-2">{v.color}</td>
                   <td className="py-2 text-right font-medium">{v.stock}</td>
-                  <td className="py-2 text-right text-gray-500">{v.stockMin}</td>
+                  <td className="py-2 text-right text-gray-500 dark:text-neutral-400">{v.stockMin}</td>
                   <td className="py-2 text-right">
                     {v.stock <= v.stockMin ? (
                       <Badge variant="destructive">Bajo</Badge>

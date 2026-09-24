@@ -185,8 +185,8 @@ for (const model of requiredModels) {
   }
 }
 
-const dataSource = { provider: "sqlite" };
-if (dataSource.provider !== "sqlite") throw new Error("Database provider must be sqlite");
+const dataSource = { provider: "postgresql" };
+if (dataSource.provider !== "postgresql") throw new Error("Database provider must be postgresql");
 
 const generator = { provider: "prisma-client-js" };
 if (generator.provider !== "prisma-client-js") throw new Error("Generator must be prisma-client-js");

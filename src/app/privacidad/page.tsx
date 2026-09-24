@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+export const metadata: Metadata = {
+  title: "Política de Privacidad",
+  description: "Cómo Ajicolor trata tus datos personales, según la Ley 19.628.",
+};
 
 export default function PrivacidadPage() {
   return (
@@ -9,12 +16,15 @@ export default function PrivacidadPage() {
         <Link href="/">
           <Logo />
         </Link>
-        <Link href="/" className="font-bold text-xs uppercase hover:underline">
-          ← Volver a la tienda
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="font-bold text-xs uppercase hover:underline">
+            ← Volver a la tienda
+          </Link>
+          <ThemeToggle />
+        </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto py-16 p-8 flex-1 space-y-8 text-gray-700">
+      <main className="max-w-3xl mx-auto py-16 p-8 flex-1 space-y-8 text-gray-700 dark:text-neutral-300">
         <h1 className="text-4xl font-black border-b-2 border-ajicolor-ink pb-4">Política de privacidad</h1>
 
         <section className="space-y-3">
@@ -70,7 +80,7 @@ export default function PrivacidadPage() {
           </p>
         </section>
 
-        <p className="text-xs text-gray-400">Última actualización: {new Date().toLocaleDateString("es-CL")}</p>
+        <p className="text-xs text-gray-400 dark:text-neutral-500">Última actualización: {new Date().toLocaleDateString("es-CL")}</p>
       </main>
 
       <Footer />

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { requireCliente } from "@/lib/auth-guard";
+import { addToCartSchema, updateCartItemSchema, checkoutAddressSchema, parseOrThrow } from "@/lib/schemas";
 
 async function getOrCreateCart(customerId: string) {
   const existing = await prisma.cart.findUnique({ where: { customerId } });
@@ -37,7 +38,8 @@ export async function getCartCount() {
   return cart?.items.reduce((acc, i) => acc + i.cantidad, 0) ?? 0;
 }
 
-export async function addToCart(variantId: string, cantidad: number = 1) {
+export async function addToCart(variantIdInput: string, cantidadInput: number = 1) {
+  const { variantId, cantidad } = parseOrThrow(addToCartSchema, { variantId: variantIdInput, cantidad: cantidadInput });
   const customerId = await requireCliente();
   const cart = await getOrCreateCart(customerId);
 
@@ -63,7 +65,8 @@ export async function addToCart(variantId: string, cantidad: number = 1) {
   });
 }
 
-export async function updateCartItem(itemId: string, cantidad: number) {
+export async function updateCartItem(itemIdInput: string, cantidadInput: number) {
+  const { itemId, cantidad } = parseOrThrow(updateCartItemSchema, { itemId: itemIdInput, cantidad: cantidadInput });
   const customerId = await requireCliente();
   const item = await prisma.cartItem.findUnique({
     where: { id: itemId },
@@ -87,7 +90,17 @@ export async function removeFromCart(itemId: string) {
   return prisma.cartItem.delete({ where: { id: itemId } });
 }
 
-export async function checkout() {
+const COSTO_ENVIO = 5000;
+
+export async function checkout(direccionInput: {
+  nombre: string;
+  telefono: string;
+  calle: string;
+  numero: string;
+  comuna: string;
+  region: string;
+}) {
+  const direccion = parseOrThrow(checkoutAddressSchema, direccionInput);
   const customerId = await requireCliente();
   const cart = await prisma.cart.findUnique({
     where: { customerId },
@@ -96,10 +109,11 @@ export async function checkout() {
 
   if (!cart || cart.items.length === 0) throw new Error("El carrito está vacío");
 
-  const total = cart.items.reduce(
+  const subtotal = cart.items.reduce(
     (acc, item) => acc + Number(item.variant.product.precio) * item.cantidad,
     0
   );
+  const total = subtotal + COSTO_ENVIO;
 
   const order = await prisma.$transaction(async (tx) => {
     // Descuenta stock de forma atómica: el `updateMany` solo afecta filas con
@@ -118,9 +132,18 @@ export async function checkout() {
     const newOrder = await tx.order.create({
       data: {
         customerId,
+        subtotal,
+        costoEnvio: COSTO_ENVIO,
         total,
         estado: "Pendiente",
+        estadoPago: "PendienteTransferencia",
         canal: "Web",
+        envioNombre: direccion.nombre,
+        envioTelefono: direccion.telefono,
+        envioCalle: direccion.calle,
+        envioNumero: direccion.numero,
+        envioComuna: direccion.comuna,
+        envioRegion: direccion.region,
         items: {
           create: cart.items.map((item) => ({
             variantId: item.variantId,

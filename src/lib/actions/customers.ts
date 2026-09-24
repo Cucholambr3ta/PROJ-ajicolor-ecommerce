@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
 import { requireAdmin } from "@/lib/auth-guard";
+import { revalidatePath } from "next/cache";
+import { updateCustomerSchema, registerCustomerSchema, parseOrThrow } from "@/lib/schemas";
 
 export async function getCustomers() {
   await requireAdmin();
@@ -36,18 +38,24 @@ export async function activarBackstagePass(id: string) {
   await requireAdmin();
   const expira = new Date();
   expira.setDate(expira.getDate() + 30);
-  return prisma.customer.update({
+  const customer = await prisma.customer.update({
     where: { id },
     data: { backstagePass: true, backstagePassExpira: expira },
   });
+  revalidatePath("/admin/clientes");
+  revalidatePath(`/admin/clientes/${id}`);
+  return customer;
 }
 
 export async function desactivarBackstagePass(id: string) {
   await requireAdmin();
-  return prisma.customer.update({
+  const customer = await prisma.customer.update({
     where: { id },
     data: { backstagePass: false, backstagePassExpira: null },
   });
+  revalidatePath("/admin/clientes");
+  revalidatePath(`/admin/clientes/${id}`);
+  return customer;
 }
 
 export async function getCustomerOrders(customerId: string) {
@@ -73,10 +81,14 @@ export async function updateCustomer(
   }
 ) {
   await requireAdmin();
-  return prisma.customer.update({
+  const parsed = parseOrThrow(updateCustomerSchema, data);
+  const customer = await prisma.customer.update({
     where: { id },
-    data,
+    data: parsed,
   });
+  revalidatePath("/admin/clientes");
+  revalidatePath(`/admin/clientes/${id}`);
+  return customer;
 }
 
 export async function registerCustomer(data: {
@@ -86,18 +98,19 @@ export async function registerCustomer(data: {
   telefono: string;
   direccion: string;
 }) {
-  const existing = await prisma.customer.findUnique({ where: { email: data.email } });
+  const parsed = parseOrThrow(registerCustomerSchema, data);
+  const existing = await prisma.customer.findUnique({ where: { email: parsed.email } });
   if (existing) throw new Error("Ya existe una cuenta con ese email");
 
-  const passwordHash = await hash(data.password, 12);
+  const passwordHash = await hash(parsed.password, 12);
 
   return prisma.customer.create({
     data: {
-      nombre: data.nombre,
-      email: data.email,
+      nombre: parsed.nombre,
+      email: parsed.email,
       passwordHash,
-      telefono: data.telefono,
-      direccion: data.direccion,
+      telefono: parsed.telefono,
+      direccion: parsed.direccion,
     },
   });
 }

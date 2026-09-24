@@ -66,13 +66,13 @@ export default function SeguridadPageClient({ totpEnabled }: { totpEnabled: bool
 
       <Card className="p-6 max-w-md">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-gray-700">Autenticación de dos factores (2FA)</h2>
+          <h2 className="font-semibold text-gray-700 dark:text-neutral-200">Autenticación de dos factores (2FA)</h2>
           {totpEnabled ? <Badge>Activo</Badge> : <Badge variant="outline">Inactivo</Badge>}
         </div>
 
         {totpEnabled ? (
           <div>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">
               2FA está activo. Cada inicio de sesión requerirá un código de tu app de autenticación.
             </p>
             <button
@@ -85,13 +85,13 @@ export default function SeguridadPageClient({ totpEnabled }: { totpEnabled: bool
           </div>
         ) : qrCodeDataUrl ? (
           <form onSubmit={handleConfirm}>
-            <p className="text-sm text-gray-500 mb-3">
+            <p className="text-sm text-gray-500 dark:text-neutral-400 mb-3">
               Escaneá el código con Google Authenticator, Authy o similar, luego ingresá el código de 6 dígitos.
             </p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={qrCodeDataUrl} alt="Código QR 2FA" className="mx-auto mb-3" />
             {secret && (
-              <p className="text-xs text-gray-400 text-center mb-4 font-mono break-all">
+              <p className="text-xs text-gray-400 dark:text-neutral-500 text-center mb-4 font-mono break-all">
                 Clave manual: {secret}
               </p>
             )}
@@ -102,7 +102,7 @@ export default function SeguridadPageClient({ totpEnabled }: { totpEnabled: bool
               placeholder="123456"
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-center tracking-widest mb-3"
+              className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm text-center tracking-widest mb-3"
               required
             />
             <button
@@ -115,7 +115,7 @@ export default function SeguridadPageClient({ totpEnabled }: { totpEnabled: bool
           </form>
         ) : (
           <div>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">
               Agregá una capa extra de seguridad a tu cuenta con un código de 6 dígitos generado por app.
             </p>
             <button

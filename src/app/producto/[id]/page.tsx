@@ -1,12 +1,34 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getProductById } from "@/lib/actions/products";
 import CartIcon from "@/components/CartIcon";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import ProductoDetailClient from "./ProductoDetailClient";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProductById(id);
+  if (!product) return { title: "Producto no encontrado" };
+
+  return {
+    title: product.artista,
+    description: product.descripcion,
+    openGraph: {
+      title: `${product.artista} | Ajicolor`,
+      description: product.descripcion,
+      images: [{ url: product.disenoUrl }],
+    },
+  };
+}
 
 export default async function ProductoPage({
   params,
@@ -34,6 +56,7 @@ export default async function ProductoPage({
           <Link href="/" className="font-bold text-xs uppercase hover:underline">
             ← Volver al catálogo
           </Link>
+          <ThemeToggle />
         </div>
       </nav>
 

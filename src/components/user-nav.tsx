@@ -17,7 +17,7 @@ export function UserNav({ user }: UserNavProps) {
     <div className="flex items-center gap-4">
       <Link
         href="/admin/seguridad"
-        className="flex items-center gap-2 pl-2 pr-4 py-1.5 thick-border pop-shadow-sm bg-white transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
+        className="flex items-center gap-2 pl-2 pr-4 py-1.5 thick-border pop-shadow-sm bg-white dark:bg-neutral-900 transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
         title="Ir a Seguridad"
       >
         {user?.image ? (
@@ -37,7 +37,7 @@ export function UserNav({ user }: UserNavProps) {
       </Link>
       <button
         onClick={() => signOut({ callbackUrl: "/login" })}
-        className="p-2 rounded-md text-gray-400 hover:text-ajicolor-magenta hover:bg-gray-100 transition-colors"
+        className="p-2 rounded-md text-gray-400 dark:text-neutral-500 hover:text-ajicolor-magenta hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
         title="Cerrar sesión"
       >
         <LogOut className="h-4 w-4" />

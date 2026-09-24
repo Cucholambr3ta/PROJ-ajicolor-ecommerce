@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -13,6 +14,7 @@ import {
   Layers,
   Factory,
   BarChart3,
+  ShieldCheck,
 } from "lucide-react";
 
 const navItems = [
@@ -25,13 +27,14 @@ const navItems = [
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/catalogo", label: "Catálogo", icon: Layers },
   { href: "/admin/reportes", label: "Reportes", icon: BarChart3 },
+  { href: "/admin/seguridad", label: "Seguridad", icon: ShieldCheck },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 bg-white border-r-2 border-ajicolor-ink flex flex-col p-5">
+    <aside className="w-60 bg-white dark:bg-neutral-900 border-r-2 border-ajicolor-ink flex flex-col p-5">
       <div className="mb-8">
         <Logo className="h-12 w-auto" />
       </div>
@@ -48,7 +51,7 @@ export function Sidebar() {
               className={`flex items-center gap-3 px-3 py-2.5 rounded font-semibold text-sm transition-colors ${
                 isActive
                   ? "bg-ajicolor-magenta text-white"
-                  : "text-ajicolor-ink hover:bg-gray-100"
+                  : "text-ajicolor-ink hover:bg-gray-100 dark:hover:bg-neutral-800"
               }`}
             >
               <item.icon className="h-4 w-4" />
@@ -57,8 +60,9 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="pt-4 mt-4 border-t border-gray-200">
-        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">Ajicolor Admin v0.1.0</p>
+      <div className="pt-4 mt-4 border-t border-gray-200 dark:border-neutral-700 flex items-center justify-between gap-3">
+        <p className="text-[10px] text-gray-400 dark:text-neutral-500 font-semibold uppercase tracking-widest">Ajicolor Admin v0.1.0</p>
+        <ThemeToggle />
       </div>
     </aside>
   );
