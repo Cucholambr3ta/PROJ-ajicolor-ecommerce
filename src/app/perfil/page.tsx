@@ -19,6 +19,11 @@ export default async function PerfilPage() {
     },
   });
 
+  const TRACKING_URLS: Record<string, (tracking: string) => string> = {
+    Chilexpress: (t) => `https://www.chilexpress.cl/seguimiento/${t}`,
+    Starken: (t) => `https://www.starken.cl/seguimiento?codigo=${t}`,
+  };
+
   if (!customer) return null;
 
   return (
@@ -99,9 +104,12 @@ export default async function PerfilPage() {
                 return (
                   <div key={order.id} className="bg-white p-6 thick-border pop-shadow flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
                     <div>
-                      <span className="inline-block bg-ajicolor-ink text-white px-3 py-1 text-[10px] font-bold uppercase mb-3">
-                        Orden #{order.id.slice(0, 8).toUpperCase()}
-                      </span>
+                      <Link
+                        href={`/pedido/${order.numero}`}
+                        className="inline-block bg-ajicolor-ink text-white px-3 py-1 text-[10px] font-bold uppercase mb-3 hover:opacity-80"
+                      >
+                        Orden #{String(order.numero).padStart(4, "0")}
+                      </Link>
                       <h3 className="text-lg font-black mb-1">
                         {order.items.length} item{order.items.length !== 1 ? "s" : ""}
                       </h3>
@@ -109,8 +117,21 @@ export default async function PerfilPage() {
                         {order.createdAt.toLocaleDateString()}
                         {order.shipment?.transportista && ` · ${order.shipment.transportista}`}
                       </p>
-                      {!isDelivered && (
-                        <span className="btn-block bg-ajicolor-yellow text-[10px] py-1.5 px-3">Sigue tu envío</span>
+                      {!isDelivered && order.shipment?.trackingNumber && (
+                        order.shipment.transportista && TRACKING_URLS[order.shipment.transportista] ? (
+                          <a
+                            href={TRACKING_URLS[order.shipment.transportista](order.shipment.trackingNumber)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-block bg-ajicolor-yellow text-[10px] py-1.5 px-3"
+                          >
+                            Sigue tu envío
+                          </a>
+                        ) : (
+                          <span className="btn-block bg-ajicolor-yellow text-[10px] py-1.5 px-3">
+                            Tracking: {order.shipment.trackingNumber}
+                          </span>
+                        )
                       )}
                     </div>
                     <div className="text-right flex flex-col items-end gap-2">

@@ -48,17 +48,8 @@ export default function CarritoClient({ items, total }: { items: CartItemData[];
     }
   }
 
-  async function handleCheckout() {
-    setLoading("checkout");
-    setError("");
-    try {
-      const { checkout } = await import("@/lib/actions/cart");
-      await checkout();
-      router.push("/perfil");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al confirmar el pedido");
-      setLoading(null);
-    }
+  function handleCheckout() {
+    router.push("/checkout");
   }
 
   if (items.length === 0) {
@@ -127,10 +118,9 @@ export default function CarritoClient({ items, total }: { items: CartItemData[];
 
       <button
         onClick={handleCheckout}
-        disabled={loading === "checkout"}
-        className="btn-block w-full bg-ajicolor-green text-white justify-center py-4 text-base disabled:opacity-50"
+        className="btn-block w-full bg-ajicolor-green text-white justify-center py-4 text-base"
       >
-        {loading === "checkout" ? "Procesando..." : "Confirmar pedido"}
+        Continuar al pago
       </button>
     </div>
   );

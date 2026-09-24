@@ -1,0 +1,55 @@
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getCart } from "@/lib/actions/cart";
+import Link from "next/link";
+import { Logo } from "@/components/Logo";
+import { Footer } from "@/components/Footer";
+import CheckoutClient from "./CheckoutClient";
+
+export const dynamic = "force-dynamic";
+
+export default async function CheckoutPage() {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login-cliente");
+
+  const customer = await prisma.customer.findUnique({ where: { id: session.user.id as string } });
+  if (!customer) redirect("/login-cliente");
+
+  const cart = await getCart();
+  const rawItems = cart?.items ?? [];
+  if (rawItems.length === 0) redirect("/carrito");
+
+  const items = rawItems.map((item) => ({
+    ...item,
+    variant: {
+      ...item.variant,
+      product: { ...item.variant.product, precio: Number(item.variant.product.precio) },
+    },
+  }));
+  const subtotal = items.reduce((acc, item) => acc + item.variant.product.precio * item.cantidad, 0);
+
+  return (
+    <div className="min-h-screen bg-ajicolor-light">
+      <nav className="site-nav">
+        <Link href="/">
+          <Logo />
+        </Link>
+        <Link href="/carrito" className="font-bold text-xs uppercase hover:underline">
+          ← Volver al carrito
+        </Link>
+      </nav>
+
+      <main className="max-w-3xl mx-auto py-12 p-8">
+        <h1 className="text-3xl font-black mb-8 border-b-2 border-ajicolor-ink pb-4">Confirmar compra</h1>
+        <CheckoutClient
+          customer={{ nombre: customer.nombre, telefono: customer.telefono, direccion: customer.direccion }}
+          items={items}
+          subtotal={subtotal}
+        />
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
