@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCart } from "@/lib/actions/cart";
+import { getStoreSettings } from "@/lib/actions/settings";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
@@ -31,6 +32,7 @@ export default async function CheckoutPage() {
     },
   }));
   const subtotal = items.reduce((acc, item) => acc + item.variant.product.precio * item.cantidad, 0);
+  const settings = await getStoreSettings();
 
   return (
     <div className="min-h-screen bg-ajicolor-light">
@@ -52,6 +54,7 @@ export default async function CheckoutPage() {
           customer={{ nombre: customer.nombre, telefono: customer.telefono ?? "", direccion: customer.direccion ?? "" }}
           items={items}
           subtotal={subtotal}
+          costoEnvioCorreos={Number(settings.costoEnvioCorreos)}
         />
       </main>
 

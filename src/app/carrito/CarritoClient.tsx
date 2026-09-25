@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 
+const CANTIDAD_MAXIMA_POR_LINEA = 10;
+
 interface CartItemData {
   id: string;
   cantidad: number;
@@ -11,7 +13,7 @@ interface CartItemData {
     talle: string;
     color: string;
     stock: number;
-    product: { id: string; nombreSlug: string; disenoUrl: string; precio: number | any };
+    product: { id: string; nombre: string; disenoUrl: string; precio: number | any };
   };
 }
 
@@ -70,11 +72,11 @@ export default function CarritoClient({ items, total }: { items: CartItemData[];
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={item.variant.product.disenoUrl}
-            alt={item.variant.product.nombreSlug}
+            alt={item.variant.product.nombre}
             className="w-20 h-20 object-cover thick-border"
           />
           <div className="flex-1">
-            <h3 className="font-black">{item.variant.product.nombreSlug}</h3>
+            <h3 className="font-black">{item.variant.product.nombre}</h3>
             <p className="text-xs text-gray-400 dark:text-neutral-500 font-medium">
               {item.variant.talle} / {item.variant.color}
             </p>
@@ -93,7 +95,7 @@ export default function CarritoClient({ items, total }: { items: CartItemData[];
             <span className="w-8 text-center font-bold">{item.cantidad}</span>
             <button
               onClick={() => handleUpdate(item.id, item.cantidad + 1)}
-              disabled={loading === item.id || item.cantidad >= item.variant.stock}
+              disabled={loading === item.id || item.cantidad >= CANTIDAD_MAXIMA_POR_LINEA}
               className="w-8 h-8 thick-border bg-white dark:bg-neutral-900 font-black disabled:opacity-50"
             >
               +

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface Variant {
   id: string;
-  product: { nombreSlug: string };
+  product: { nombre: string };
   talle: string;
   color: string;
   sku: string;
@@ -57,7 +57,7 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
             {variants.map((v) => (
               <div key={v.id} className="p-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{v.product.nombreSlug}</p>
+                  <p className="font-medium">{v.product.nombre}</p>
                   <p className="text-sm text-gray-500 dark:text-neutral-400">
                     {v.talle} / {v.color} — SKU: {v.sku}
                   </p>
@@ -87,7 +87,7 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
           <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 w-full max-w-md shadow-xl">
             <h2 className="text-lg font-bold mb-4">Ajustar Stock</h2>
             <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">
-              {modal.variant.product.nombreSlug} — {modal.variant.talle} / {modal.variant.color}
+              {modal.variant.product.nombre} — {modal.variant.talle} / {modal.variant.color}
               <br />
               Stock actual: <span className="font-bold">{modal.variant.stock}</span> u.
             </p>

@@ -167,7 +167,7 @@ export default async function EnvioDetailPage({
           <tbody>
             {shipment.order.items.map((item) => (
               <tr key={item.id} className="border-b last:border-0 dark:border-neutral-700">
-                <td className="py-2">{item.variant.product.nombreSlug}</td>
+                <td className="py-2">{item.variant.product.nombre}</td>
                 <td className="py-2">{item.variant.talle} / {item.variant.color}</td>
                 <td className="py-2 text-right">{item.cantidad}</td>
                 <td className="py-2 text-right">${Number(item.precioUnit).toFixed(2)}</td>
