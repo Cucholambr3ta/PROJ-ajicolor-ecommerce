@@ -6,6 +6,8 @@ import { SHIPMENT_TRANSITIONS } from "@/lib/state-machines";
 import { revalidatePath } from "next/cache";
 import { createShipmentSchema, parseOrThrow } from "@/lib/schemas";
 import type { EstadoEnvio } from "@prisma/client";
+import { sendEmail } from "@/lib/email/send";
+import { pedidoEnviadoTemplate, pedidoEntregadoTemplate } from "@/lib/email/templates";
 
 export async function getShipments(estado?: EstadoEnvio | "Todos") {
   await requireAdmin();
@@ -57,7 +59,7 @@ export async function updateShipmentStatus(
   data?: { trackingNumber?: string; fechaDespacho?: Date; fechaEntrega?: Date }
 ) {
   await requireAdmin();
-  const shipment = await prisma.shipment.findUnique({ where: { id } });
+  const shipment = await prisma.shipment.findUnique({ where: { id }, include: { order: { include: { customer: true } } } });
   if (!shipment) throw new Error("Envío no encontrado");
 
   const allowed = SHIPMENT_TRANSITIONS[shipment.estado] ?? [];
@@ -73,6 +75,10 @@ export async function updateShipmentStatus(
       data: { estado: nuevoEstado, ...data },
     });
 
+    if (nuevoEstado === "Despachado" && shipment.order.estado === "ListoParaEnvio") {
+      await tx.order.update({ where: { id: shipment.orderId }, data: { estado: "Enviado" } });
+    }
+
     if (nuevoEstado === "Entregado") {
       await tx.order.update({
         where: { id: shipment.orderId },
@@ -82,6 +88,25 @@ export async function updateShipmentStatus(
 
     return result;
   });
+
+  if (nuevoEstado === "Despachado") {
+    await sendEmail({
+      to: shipment.order.customer.email,
+      ...pedidoEnviadoTemplate({
+        nombre: shipment.order.customer.nombre,
+        numero: shipment.order.numero,
+        transportista: shipment.transportista,
+        trackingNumber: updated.trackingNumber,
+      }),
+    });
+  }
+
+  if (nuevoEstado === "Entregado") {
+    await sendEmail({
+      to: shipment.order.customer.email,
+      ...pedidoEntregadoTemplate({ nombre: shipment.order.customer.nombre, numero: shipment.order.numero }),
+    });
+  }
 
   revalidatePath("/admin/envios");
   revalidatePath(`/admin/envios/${id}`);

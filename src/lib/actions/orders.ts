@@ -7,6 +7,8 @@ import { revalidatePath } from "next/cache";
 import { createOrderSchema, parseOrThrow } from "@/lib/schemas";
 import { logAudit } from "@/lib/audit";
 import type { EstadoPedido, CanalVenta } from "@prisma/client";
+import { sendEmail } from "@/lib/email/send";
+import { pedidoEnviadoTemplate, pedidoEntregadoTemplate } from "@/lib/email/templates";
 
 export async function getOrders(estado?: EstadoPedido | "Todos") {
   await requireAdmin();
@@ -37,7 +39,7 @@ export async function updateOrderStatus(id: string, nuevoEstado: EstadoPedido) {
   const session = await requireAdmin();
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { items: true, shipment: true },
+    include: { items: true, shipment: true, customer: true },
   });
   if (!order) throw new Error("Pedido no encontrado");
 
@@ -102,6 +104,25 @@ export async function updateOrderStatus(id: string, nuevoEstado: EstadoPedido) {
     entidadId: id,
     accion: `estado:${order.estado}->${nuevoEstado}`,
   });
+
+  if (nuevoEstado === "Enviado") {
+    await sendEmail({
+      to: order.customer.email,
+      ...pedidoEnviadoTemplate({
+        nombre: order.customer.nombre,
+        numero: order.numero,
+        transportista: order.shipment?.transportista ?? null,
+        trackingNumber: order.shipment?.trackingNumber ?? null,
+      }),
+    });
+  }
+
+  if (nuevoEstado === "Entregado") {
+    await sendEmail({
+      to: order.customer.email,
+      ...pedidoEntregadoTemplate({ nombre: order.customer.nombre, numero: order.numero }),
+    });
+  }
 
   revalidatePath("/admin/pedidos");
   revalidatePath(`/admin/pedidos/${id}`);
