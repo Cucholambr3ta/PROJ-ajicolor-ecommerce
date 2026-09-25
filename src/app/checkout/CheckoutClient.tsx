@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const COSTO_ENVIO = 5000;
+const COSTO_ENVIO = 3000; // Correos de Chile a sucursal, tarifa fija
 
 interface Item {
   id: string;
@@ -131,7 +131,7 @@ export default function CheckoutClient({
             <span>${subtotal.toLocaleString("es-CL")}</span>
           </div>
           <div className="flex justify-between text-gray-600 dark:text-neutral-300">
-            <span>Envío</span>
+            <span>Envío (Correos de Chile a sucursal)</span>
             <span>${COSTO_ENVIO.toLocaleString("es-CL")}</span>
           </div>
           <div className="flex justify-between font-black text-lg text-ajicolor-magenta pt-2">

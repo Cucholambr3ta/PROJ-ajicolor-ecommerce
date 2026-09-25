@@ -42,19 +42,27 @@ export default function ContactoPage() {
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">Email</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta">[COMPLETAR]</p>
+            <p className="text-lg font-semibold text-ajicolor-magenta">ajicolorserigrafia28@gmail.com</p>
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">Teléfono / WhatsApp</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta">[COMPLETAR]</p>
+            <p className="text-lg font-semibold text-ajicolor-magenta">+56 9 7828 3064</p>
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">Redes sociales</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta">[COMPLETAR]</p>
+            <p className="text-lg font-semibold text-ajicolor-magenta space-x-3">
+              <span>Instagram: @el_aji_color_estampados</span>
+            </p>
+            <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
+              Facebook: El Ají Color Diseño y Estampados · TikTok: @el.aji.color.esta
+            </p>
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">Horario de atención</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta">[COMPLETAR]</p>
+            <p className="text-lg font-semibold text-ajicolor-magenta">
+              Lunes a viernes: 09:00 – 19:00 hrs<br />
+              Sábado: 09:00 – 14:00 hrs
+            </p>
           </div>
         </div>
 

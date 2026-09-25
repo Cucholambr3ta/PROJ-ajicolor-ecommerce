@@ -60,6 +60,14 @@ export default function DevolucionesPage() {
         </section>
 
         <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
+          <h2 className="text-xl font-black text-ajicolor-purple">Tiempos de producción</h2>
+          <p className="text-sm leading-relaxed">
+            Todas nuestras poleras son 100% serigrafía, hechas por encargo. Una vez confirmado el pago, el
+            plazo de producción es de <strong>5 a 7 días hábiles</strong> antes del despacho.
+          </p>
+        </section>
+
+        <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
           <h2 className="text-xl font-black text-ajicolor-purple">Cómo solicitar un cambio o devolución</h2>
           <p className="text-sm leading-relaxed">
             Escribinos a través de la sección{" "}

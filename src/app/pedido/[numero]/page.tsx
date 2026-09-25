@@ -92,10 +92,21 @@ export default async function PedidoConfirmacionPage({
 
         <div className="bg-ajicolor-yellow thick-border pop-shadow p-6 text-left">
           <h2 className="font-black uppercase text-sm mb-2">Instrucciones de pago</h2>
+          <p className="text-sm text-gray-800 mb-4">
+            Tu pedido está <strong>pendiente de transferencia</strong>. Realiza el depósito o
+            transferencia con los siguientes datos e indica tu número de orden en el comentario.
+          </p>
+          <div className="bg-white/60 rounded-md p-4 text-sm text-gray-800 space-y-1 mb-4">
+            <p><strong>Nombre:</strong> Camilo Alexander Morales Opazo</p>
+            <p><strong>RUT:</strong> 17.070.384-7</p>
+            <p><strong>Banco:</strong> Tenpo</p>
+            <p><strong>Tipo de cuenta:</strong> Cuenta Vista</p>
+            <p><strong>Número de cuenta:</strong> 111117070384</p>
+            <p><strong>Correo:</strong> camilomoralesopazo@gmail.com</p>
+          </div>
           <p className="text-sm text-gray-800">
-            Tu pedido está <strong>pendiente de transferencia</strong>. Nos pondremos en contacto contigo
-            por WhatsApp o email con los datos bancarios para completar el pago. Una vez confirmada la
-            transferencia, tu pedido pasa a producción.
+            Una vez confirmada la transferencia, tu pedido pasa a producción. El plazo de producción
+            es de 5 a 7 días hábiles desde la confirmación del pago.
           </p>
         </div>
       </main>

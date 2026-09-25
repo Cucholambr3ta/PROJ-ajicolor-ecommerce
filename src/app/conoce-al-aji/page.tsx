@@ -37,16 +37,26 @@ export default function ConoceAlAjiPage() {
         <h1 className="text-4xl font-black mb-6">Le ponemos color</h1>
         <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 text-left space-y-4 text-gray-700 dark:text-neutral-300">
           <p className="text-sm leading-relaxed">
-            Ajicolor nació con una idea simple: vestir el ritmo. Cada polera es producto exclusivo, hecho a
-            mano, 100% algodón, pensado para melómanos que quieren llevar su música favorita puesta.
+            Ají Color nace conceptualmente en 2020 de una necesidad simple: romper con la monotonía del
+            merchandising. El fundador, músico y fanático de bandas chilenas y extranjeras, buscaba lienzos
+            textiles de colores variados para vestir, que representaran las notas y las diversas gráficas
+            que las bandas y su música ofrecían.
           </p>
           <p className="text-sm leading-relaxed">
-            Trabajamos con impresión de calidad sobre poleras premium, en colecciones limitadas dedicadas a
-            bandas y artistas que marcaron generaciones. Sin producción masiva, sin diseños genéricos —
-            merch pensado por y para fans reales.
+            Al no encontrar variedad de colores y diseños, se las ingenió para tener su propio taller de
+            estampados en serigrafía y así plasmar diseños exclusivos en prendas de varios colores.
+            Teniendo este concepto como su bandera, lanzó su página por redes sociales, donde comercializó
+            su trabajo y motivó a que más fanáticos se atrevieran a ir más allá del clásico color negro
+            que dominaba el merchandising del mercado.
           </p>
           <p className="text-sm leading-relaxed">
-            Hecho en Chile, con color, con actitud, con ají.
+            La palabra <strong>Ají</strong> se escogió por su potente vínculo con la geografía de Chile,
+            en su forma alargada. La palabra <strong>Color</strong> fue la respuesta directa a la
+            necesidad de diferenciación.
+          </p>
+          <p className="text-sm leading-relaxed">
+            Así, Ají Color se transforma en el condimento que se encarga de darle vida al vestuario,
+            enfocándose en la exclusividad y en hacer de cada prenda un objeto único.
           </p>
         </div>
       </main>
