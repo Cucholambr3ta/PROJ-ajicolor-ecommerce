@@ -322,7 +322,7 @@ async function main() {
       telefonoContacto: '+56978283064',
       whatsapp: '+56978283064',
       instagram: 'el_aji_color_estampados',
-      facebook: 'El Ají Color Diseño y Estampados',
+      facebook: 'https://www.facebook.com/people/El-aji-color-dise%C3%B1o-y-estampados/100070478673256/',
       tiktok: 'el.aji.color.esta',
       horarioAtencion: 'Lunes a viernes 09:00–19:00 hrs, sábado 09:00–14:00 hrs',
       bancoTitular: 'Camilo Alexander Morales Opazo',

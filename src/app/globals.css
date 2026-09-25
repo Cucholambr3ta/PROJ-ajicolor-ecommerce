@@ -79,14 +79,32 @@
 
   .site-nav {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px;
+    flex-direction: column;
     background: var(--card-bg);
     border-bottom: var(--border-width) solid var(--ink);
     position: sticky;
     top: 0;
     z-index: 50;
     transition: background-color 0.2s;
+  }
+
+  .site-nav-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 40px;
+  }
+
+  .site-nav-bottom {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    padding: 10px 40px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .dark .site-nav-bottom {
+    border-top-color: rgba(255, 255, 255, 0.08);
   }
 }
