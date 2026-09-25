@@ -1,11 +1,16 @@
 import { Card } from "@/components/ui/card";
-import { getReporteEnvios, getRotacionStock } from "@/lib/actions/metrics";
+import { getReporteEnvios, getRotacionStock, getReporteMargen } from "@/lib/actions/metrics";
+import { formatCLP } from "@/lib/format";
 import ExportButtons from "./ExportButtons";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReportesPage() {
-  const [envios, rotacion] = await Promise.all([getReporteEnvios(), getRotacionStock()]);
+  const [envios, rotacion, margen] = await Promise.all([
+    getReporteEnvios(),
+    getRotacionStock(),
+    getReporteMargen(),
+  ]);
 
   const topRotacion = rotacion.slice(0, 10);
 
@@ -53,6 +58,38 @@ export default async function ReportesPage() {
                   <td className="py-2 text-right">{r.stockActual}</td>
                   <td className="py-2 text-right">{r.unidadesVendidas30d}</td>
                   <td className="py-2 text-right font-medium">{r.rotacion}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
+
+      <Card className="p-6 mb-6">
+        <h2 className="font-semibold text-gray-700 dark:text-neutral-200 mb-4">Margen por producto (últimos 90 días)</h2>
+        {margen.length === 0 ? (
+          <p className="text-sm text-gray-500 dark:text-neutral-400">Sin ventas pagadas en el período.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left text-gray-500 dark:text-neutral-400 dark:border-neutral-700">
+                <th className="pb-2">Producto</th>
+                <th className="pb-2 text-right">Unidades</th>
+                <th className="pb-2 text-right">Ingresos</th>
+                <th className="pb-2 text-right">Costos</th>
+                <th className="pb-2 text-right">Margen</th>
+                <th className="pb-2 text-right">Margen %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {margen.map((m) => (
+                <tr key={m.nombre} className="border-b last:border-0 dark:border-neutral-700">
+                  <td className="py-2">{m.nombre}</td>
+                  <td className="py-2 text-right">{m.unidades}</td>
+                  <td className="py-2 text-right">{formatCLP(m.ingresos)}</td>
+                  <td className="py-2 text-right">{formatCLP(m.costos)}</td>
+                  <td className="py-2 text-right font-medium">{formatCLP(m.margen)}</td>
+                  <td className="py-2 text-right">{m.margenPorcentaje.toFixed(1)}%</td>
                 </tr>
               ))}
             </tbody>

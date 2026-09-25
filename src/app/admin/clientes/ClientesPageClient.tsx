@@ -1,6 +1,3 @@
-"use client";
-
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,14 +12,36 @@ interface Customer {
   _count: { orders: number };
 }
 
-export default function ClientesPageClient({ clientes }: { clientes: Customer[] }) {
-  const router = useRouter();
-
+export default function ClientesPageClient({
+  clientes,
+  q,
+  page,
+  totalPages,
+}: {
+  clientes: Customer[];
+  q: string;
+  page: number;
+  totalPages: number;
+}) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-black">Clientes</h1>
       </div>
+
+      <form action="/admin/clientes" className="flex gap-2 mb-4">
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="Buscar por nombre o email..."
+          className="flex-1 border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900"
+        />
+        <button type="submit" className="px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800">
+          Buscar
+        </button>
+      </form>
+
       <Card>
         {clientes.length === 0 ? (
           <div className="p-4 text-center text-gray-500 dark:text-neutral-400">No hay clientes para mostrar.</div>
@@ -68,6 +87,28 @@ export default function ClientesPageClient({ clientes }: { clientes: Customer[] 
           </table>
         )}
       </Card>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 py-6">
+          <Link
+            href={`/admin/clientes?${new URLSearchParams({ ...(q ? { q } : {}), page: String(Math.max(1, page - 1)) })}`}
+            aria-disabled={page <= 1}
+            className={`px-4 py-2 text-xs font-bold uppercase border rounded-md ${page <= 1 ? "pointer-events-none opacity-30" : "hover:bg-gray-50 dark:hover:bg-neutral-800"}`}
+          >
+            Anterior
+          </Link>
+          <span className="text-sm px-3">
+            Página {page} de {totalPages}
+          </span>
+          <Link
+            href={`/admin/clientes?${new URLSearchParams({ ...(q ? { q } : {}), page: String(Math.min(totalPages, page + 1)) })}`}
+            aria-disabled={page >= totalPages}
+            className={`px-4 py-2 text-xs font-bold uppercase border rounded-md ${page >= totalPages ? "pointer-events-none opacity-30" : "hover:bg-gray-50 dark:hover:bg-neutral-800"}`}
+          >
+            Siguiente
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

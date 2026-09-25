@@ -35,6 +35,48 @@ export async function getVentasUltimos30Dias() {
   return Array.from(porDia.entries()).map(([fecha, total]) => ({ fecha, total }));
 }
 
+/** Margen por producto: ventas pagadas de los últimos 90 días, precio vs. costo snapshot al momento de la venta. */
+export async function getReporteMargen() {
+  await requireAdmin();
+  const hace90Dias = new Date();
+  hace90Dias.setDate(hace90Dias.getDate() - 90);
+
+  const items = await prisma.orderItem.findMany({
+    where: {
+      order: { estadoPago: "Pagado", pagadoAt: { gte: hace90Dias } },
+    },
+    include: { variant: { include: { product: true } } },
+  });
+
+  const porProducto = new Map<
+    string,
+    { nombre: string; unidades: number; ingresos: number; costos: number }
+  >();
+
+  for (const item of items) {
+    const key = item.variant.productId;
+    const nombre = item.variant.product.nombre;
+    const ingresos = Number(item.precioUnit) * item.cantidad;
+    const costos = Number(item.costoUnit) * item.cantidad;
+    const existing = porProducto.get(key);
+    if (existing) {
+      existing.unidades += item.cantidad;
+      existing.ingresos += ingresos;
+      existing.costos += costos;
+    } else {
+      porProducto.set(key, { nombre, unidades: item.cantidad, ingresos, costos });
+    }
+  }
+
+  return Array.from(porProducto.values())
+    .map((p) => ({
+      ...p,
+      margen: p.ingresos - p.costos,
+      margenPorcentaje: p.ingresos > 0 ? ((p.ingresos - p.costos) / p.ingresos) * 100 : 0,
+    }))
+    .sort((a, b) => b.margen - a.margen);
+}
+
 export async function getReporteEnvios() {
   await requireAdmin();
   const envios = await prisma.shipment.findMany({
