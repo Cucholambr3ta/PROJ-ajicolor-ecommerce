@@ -69,10 +69,13 @@ export default async function TiendaPage({
                 </div>
               </div>
               {dropActivo ? (
-                <div className="bg-ajicolor-green thick-border p-6 flex flex-col items-center justify-center text-center">
+                <Link
+                  href={`/?coleccion=${dropActivo.slug}`}
+                  className="bg-ajicolor-green thick-border p-6 flex flex-col items-center justify-center text-center hover:opacity-90"
+                >
                   <p className="text-white text-[10px] font-bold uppercase tracking-widest mb-1">Drop activo</p>
                   <p className="text-white text-2xl font-black uppercase tracking-wide">{dropActivo.nombre}</p>
-                </div>
+                </Link>
               ) : (
                 <div className="bg-ajicolor-green thick-border p-6 flex items-center justify-center">
                   <p className="text-white text-2xl font-black uppercase tracking-wide text-center">
