@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { AuthDrawer } from "@/components/AuthDrawer";
 
 const LINKS = [
   { href: "/conoce-al-aji", label: "Conoce al Ají" },
@@ -10,16 +11,9 @@ const LINKS = [
   { href: "/contacto", label: "Contacto" },
 ];
 
-export function SiteHeaderMobileMenu({
-  isCliente,
-  authLinkHref,
-  authLinkLabel,
-}: {
-  isCliente: boolean;
-  authLinkHref: string;
-  authLinkLabel: string;
-}) {
+export function SiteHeaderMobileMenu({ isCliente }: { isCliente: boolean }) {
   const [open, setOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   return (
     <div className="lg:hidden">
@@ -45,16 +39,26 @@ export function SiteHeaderMobileMenu({
                 {link.label}
               </Link>
             ))}
-            <Link
-              href={authLinkHref}
-              onClick={() => setOpen(false)}
-              className="px-2 py-3 text-ajicolor-magenta"
-            >
-              {authLinkLabel}
-            </Link>
+            {isCliente ? (
+              <Link href="/cuenta" onClick={() => setOpen(false)} className="px-2 py-3 text-ajicolor-magenta">
+                Mi cuenta
+              </Link>
+            ) : (
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  setAuthOpen(true);
+                }}
+                className="px-2 py-3 text-left text-ajicolor-magenta"
+              >
+                Login
+              </button>
+            )}
           </div>
         </div>
       )}
+
+      <AuthDrawer open={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   );
 }

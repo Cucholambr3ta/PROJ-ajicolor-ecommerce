@@ -4,6 +4,7 @@ import { Logo } from "@/components/Logo";
 import CartIcon from "@/components/CartIcon";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SiteHeaderMobileMenu } from "@/components/SiteHeaderMobileMenu";
+import { LoginButtonWithDrawer } from "@/components/LoginButtonWithDrawer";
 
 const NAV_LINKS = [
   { href: "/conoce-al-aji", label: "Conoce al Ají" },
@@ -59,16 +60,10 @@ export async function SiteHeader({ active }: { active?: string }) {
             </form>
           </>
         ) : (
-          <Link href="/login-cliente" className="hidden sm:inline btn-block bg-ajicolor-yellow">
-            Login
-          </Link>
+          <LoginButtonWithDrawer className="hidden sm:inline btn-block bg-ajicolor-yellow" />
         )}
         <ThemeToggle />
-        <SiteHeaderMobileMenu
-          isCliente={isCliente}
-          authLinkHref={isCliente ? "/cuenta" : "/login-cliente"}
-          authLinkLabel={isCliente ? "Mi cuenta" : "Login"}
-        />
+        <SiteHeaderMobileMenu isCliente={isCliente} />
       </div>
     </nav>
   );
