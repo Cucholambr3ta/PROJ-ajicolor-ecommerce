@@ -16,7 +16,7 @@ export default async function VerificarPage({
   const result = token ? await verifyEmail(token) : { ok: false as const, error: "Falta el enlace de verificación" };
 
   return (
-    <div className="min-h-screen bg-ajicolor-light flex flex-col">
+    <div className="min-h-screen bg-ajicolor-light dark:bg-[var(--bg-light)] flex flex-col">
       <SiteHeader />
 
       <main className="max-w-md mx-auto py-20 p-8 flex-1 text-center">

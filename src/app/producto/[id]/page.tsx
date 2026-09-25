@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { cache } from "react";
 import { getProductById, getProductBySlug, getRelatedProducts } from "@/lib/actions/products";
 import { getApprovedReviews } from "@/lib/actions/reviews";
 import { Footer } from "@/components/Footer";
@@ -12,14 +13,19 @@ export const dynamic = "force-dynamic";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ajicolor.cl";
 
-/** Acepta el slug (canónico) o el id viejo (compatibilidad con links ya compartidos). */
-async function resolveProduct(idOrSlug: string) {
+/**
+ * Acepta el slug (canónico) o el id viejo (compatibilidad con links ya
+ * compartidos). Memoizada por request: generateMetadata() y el componente
+ * de página la llaman ambos por separado — sin cache() se pagaría el viaje
+ * a Supabase dos veces por la misma carga de página.
+ */
+const resolveProduct = cache(async (idOrSlug: string) => {
   const bySlug = await getProductBySlug(idOrSlug);
   if (bySlug) return { product: bySlug, matchedBySlug: true };
 
   const byId = await getProductById(idOrSlug);
   return { product: byId, matchedBySlug: false };
-}
+});
 
 export async function generateMetadata({
   params,
@@ -76,16 +82,41 @@ export default async function ProductoPage({
   };
 
   return (
-    <div className="min-h-screen bg-ajicolor-light">
+    <div className="min-h-screen bg-ajicolor-light dark:bg-[var(--bg-light)]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <SiteHeader active="/" />
 
-      <ProductoDetailClient product={{ ...product, precio: Number(product.precio) }} />
+      <ProductoDetailClient
+        product={{
+          id: product.id,
+          nombre: product.nombre,
+          descripcion: product.descripcion,
+          disenoUrl: product.disenoUrl,
+          artista: product.artista,
+          temporada: product.temporada,
+          precio: Number(product.precio),
+          variants: product.variants.map((v) => ({
+            id: v.id,
+            talle: v.talle,
+            color: v.color,
+            stock: v.stock,
+          })),
+          images: product.images.map((img) => ({ id: img.id, url: img.url, alt: img.alt })),
+        }}
+      />
 
       <ProductReviews reviews={reviews} />
 
       {related.length > 0 && (
-        <RelatedProducts products={related.map((p) => ({ ...p, precio: Number(p.precio) }))} />
+        <RelatedProducts
+          products={related.map((p) => ({
+            id: p.id,
+            slug: p.slug,
+            nombre: p.nombre,
+            disenoUrl: p.disenoUrl,
+            precio: Number(p.precio),
+          }))}
+        />
       )}
 
       <Footer />

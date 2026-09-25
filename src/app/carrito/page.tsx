@@ -12,16 +12,24 @@ export default async function CarritoPage() {
   const cart = await getCart();
   const rawItems = cart?.items ?? [];
   const items = rawItems.map((item) => ({
-    ...item,
+    id: item.id,
+    cantidad: item.cantidad,
     variant: {
-      ...item.variant,
-      product: { ...item.variant.product, precio: Number(item.variant.product.precio) },
+      talle: item.variant.talle,
+      color: item.variant.color,
+      stock: item.variant.stock,
+      product: {
+        id: item.variant.product.id,
+        nombre: item.variant.product.nombre,
+        disenoUrl: item.variant.product.disenoUrl,
+        precio: Number(item.variant.product.precio),
+      },
     },
   }));
   const total = items.reduce((acc, item) => acc + item.variant.product.precio * item.cantidad, 0);
 
   return (
-    <div className="min-h-screen bg-ajicolor-light">
+    <div className="min-h-screen bg-ajicolor-light dark:bg-[var(--bg-light)]">
       <SiteHeader active="/" />
 
       <main className="max-w-3xl mx-auto py-12 p-8">
