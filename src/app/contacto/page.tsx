@@ -14,7 +14,7 @@ export default async function ContactoPage() {
   const settings = await getStoreSettings();
 
   return (
-    <div className="min-h-screen bg-ajicolor-light flex flex-col">
+    <div className="min-h-screen bg-ajicolor-light dark:bg-[var(--bg-light)] flex flex-col">
       <SiteHeader active="/contacto" />
 
       <main className="max-w-3xl mx-auto py-16 p-8 flex-1">

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function ConoceAlAjiPage() {
   return (
-    <div className="min-h-screen bg-ajicolor-light flex flex-col">
+    <div className="min-h-screen bg-ajicolor-light dark:bg-[var(--bg-light)] flex flex-col">
       <SiteHeader active="/conoce-al-aji" />
 
       <main className="max-w-3xl mx-auto py-16 p-8 flex-1 text-center">

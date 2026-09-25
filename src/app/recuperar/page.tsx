@@ -21,7 +21,7 @@ export default function RecuperarPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-ajicolor-light p-6">
+    <div className="min-h-screen flex items-center justify-center bg-ajicolor-light dark:bg-[var(--bg-light)] p-6">
       <div className="w-full max-w-sm bg-white dark:bg-neutral-900 thick-border pop-shadow p-10">
         <Link href="/" className="flex justify-center mb-1">
           <Logo />

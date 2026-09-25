@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
+import { cache } from "react";
 
 const DEFAULTS = {
   id: "default" as const,
@@ -10,8 +11,13 @@ const DEFAULTS = {
   plazoProduccionDias: 7,
 };
 
-/** Configuración de la tienda. Público (contacto/footer/checkout la leen sin sesión). */
-export async function getStoreSettings() {
+/**
+ * Configuración de la tienda. Público (contacto/footer/checkout la leen sin
+ * sesión). Memoizada por request con React cache(): Footer y la página que
+ * lo envuelve suelen pedirla ambos en el mismo render — sin esto se duplica
+ * el viaje de ida y vuelta a la base (Supabase remoto, ~2-4s cada uno).
+ */
+export const getStoreSettings = cache(async () => {
   const settings = await prisma.storeSettings.findUnique({ where: { id: "default" } });
   if (settings) return settings;
   return prisma.storeSettings.upsert({
@@ -19,7 +25,7 @@ export async function getStoreSettings() {
     update: {},
     create: DEFAULTS,
   });
-}
+});
 
 export async function updateStoreSettings(data: {
   razonSocial?: string;

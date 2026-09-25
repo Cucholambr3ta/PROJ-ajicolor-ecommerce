@@ -39,23 +39,24 @@ export default async function PedidoConfirmacionPage({
   const numeroInt = parseInt(numero, 10);
   if (Number.isNaN(numeroInt)) notFound();
 
-  const order = await prisma.order.findUnique({
-    where: { numero: numeroInt },
-    include: {
-      items: { include: { variant: { include: { product: true } } } },
-      payments: { orderBy: { createdAt: "desc" } },
-      shipment: true,
-    },
-  });
+  const [order, settings] = await Promise.all([
+    prisma.order.findUnique({
+      where: { numero: numeroInt },
+      include: {
+        items: { include: { variant: { include: { product: true } } } },
+        payments: { orderBy: { createdAt: "desc" } },
+        shipment: true,
+      },
+    }),
+    getStoreSettings(),
+  ]);
 
   if (!order || order.customerId !== session.user.id) notFound();
-
-  const settings = await getStoreSettings();
   const pagoEnRevision = order.payments.some((p) => p.estado === "EnRevision");
   const yaPago = order.estadoPago === "Pagado";
 
   return (
-    <div className="min-h-screen bg-ajicolor-light">
+    <div className="min-h-screen bg-ajicolor-light dark:bg-[var(--bg-light)]">
       <SiteHeader />
 
       <main className="max-w-2xl mx-auto py-16 p-8 text-center">
