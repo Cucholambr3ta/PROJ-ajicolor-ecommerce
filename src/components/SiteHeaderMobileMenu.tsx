@@ -6,8 +6,11 @@ import { Menu, X } from "lucide-react";
 import { AuthDrawer } from "@/components/AuthDrawer";
 
 const LINKS = [
-  { href: "/conoce-al-aji", label: "Conoce al Ají" },
   { href: "/", label: "Catálogo" },
+  { href: "/categorias", label: "Categorías" },
+  { href: "/drops", label: "Drops" },
+  { href: "/cotizador", label: "Cotizador" },
+  { href: "/conoce-al-aji", label: "Conoce al Ají" },
   { href: "/contacto", label: "Contacto" },
 ];
 
