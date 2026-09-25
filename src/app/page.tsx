@@ -48,20 +48,26 @@ export default async function TiendaPage({
       <section className="max-w-7xl mx-auto p-8 pt-10">
         {!hasFilters && page === 1 && (
           <div className="grid lg:grid-cols-2 gap-6 mb-6">
-            <div className="bg-ajicolor-magenta thick-border p-10 flex flex-col justify-center min-h-[320px]">
+            <Link
+              href="/categorias"
+              className="bg-ajicolor-magenta thick-border p-10 flex flex-col justify-center min-h-[320px] hover:opacity-90 transition-opacity"
+            >
               <h1 className="text-5xl font-black text-white leading-tight mb-2">
                 PRODUCTO
                 <br />
                 AJI COLOR
               </h1>
-            </div>
+            </Link>
             <div className="grid grid-rows-2 gap-6">
               <div className="grid grid-cols-2 gap-6">
-                <div className="bg-ajicolor-purple thick-border p-6 flex items-center justify-center">
+                <Link
+                  href="/cotizador"
+                  className="bg-ajicolor-purple thick-border p-6 flex items-center justify-center hover:opacity-90 transition-opacity"
+                >
                   <p className="text-white text-xl font-black text-center leading-tight">
                     Le ponemos <span className="text-ajicolor-yellow">color</span>
                   </p>
-                </div>
+                </Link>
                 <div className="bg-ajicolor-yellow thick-border p-6 flex items-center justify-center">
                   <p className="text-ajicolor-green text-xl font-black text-center leading-tight">
                     Merch para tu proyecto
@@ -70,18 +76,21 @@ export default async function TiendaPage({
               </div>
               {dropActivo ? (
                 <Link
-                  href={`/?coleccion=${dropActivo.slug}`}
-                  className="bg-ajicolor-green thick-border p-6 flex flex-col items-center justify-center text-center hover:opacity-90"
+                  href="/drops"
+                  className="bg-ajicolor-green thick-border p-6 flex flex-col items-center justify-center text-center hover:opacity-90 transition-opacity"
                 >
                   <p className="text-white text-[10px] font-bold uppercase tracking-widest mb-1">Drop activo</p>
                   <p className="text-white text-2xl font-black uppercase tracking-wide">{dropActivo.nombre}</p>
                 </Link>
               ) : (
-                <div className="bg-ajicolor-green thick-border p-6 flex items-center justify-center">
+                <Link
+                  href="/drops"
+                  className="bg-ajicolor-green thick-border p-6 flex items-center justify-center hover:opacity-90 transition-opacity"
+                >
                   <p className="text-white text-2xl font-black uppercase tracking-wide text-center">
                     Colecciones exclusivas
                   </p>
-                </div>
+                </Link>
               )}
             </div>
           </div>
