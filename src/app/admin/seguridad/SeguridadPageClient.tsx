@@ -10,6 +10,8 @@ export default function SeguridadPageClient({ totpEnabled }: { totpEnabled: bool
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [token, setToken] = useState("");
+  const [disableToken, setDisableToken] = useState("");
+  const [showDisableForm, setShowDisableForm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -46,12 +48,15 @@ export default function SeguridadPageClient({ totpEnabled }: { totpEnabled: bool
     }
   }
 
-  async function handleDisable() {
+  async function handleDisable(e: React.FormEvent) {
+    e.preventDefault();
     setError("");
     setLoading(true);
     try {
       const { disableTotp } = await import("@/lib/actions/auth-2fa");
-      await disableTotp();
+      await disableTotp(disableToken);
+      setShowDisableForm(false);
+      setDisableToken("");
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al desactivar 2FA");
@@ -75,13 +80,47 @@ export default function SeguridadPageClient({ totpEnabled }: { totpEnabled: bool
             <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">
               2FA está activo. Cada inicio de sesión requerirá un código de tu app de autenticación.
             </p>
-            <button
-              onClick={handleDisable}
-              disabled={loading}
-              className="px-4 py-2 rounded-md border border-red-300 text-red-600 text-sm font-medium hover:bg-red-50 disabled:opacity-50"
-            >
-              Desactivar 2FA
-            </button>
+            {showDisableForm ? (
+              <form onSubmit={handleDisable} className="space-y-3">
+                <p className="text-sm text-gray-500 dark:text-neutral-400">
+                  Ingresá tu código actual de 6 dígitos para confirmar la desactivación.
+                </p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="123456"
+                  value={disableToken}
+                  onChange={(e) => setDisableToken(e.target.value)}
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm text-center tracking-widest"
+                  required
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-4 py-2 rounded-md border border-red-300 text-red-600 text-sm font-medium hover:bg-red-50 disabled:opacity-50"
+                  >
+                    Confirmar desactivación
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowDisableForm(false); setDisableToken(""); setError(""); }}
+                    className="px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-700 text-sm font-medium"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <button
+                onClick={() => setShowDisableForm(true)}
+                className="px-4 py-2 rounded-md border border-red-300 text-red-600 text-sm font-medium hover:bg-red-50"
+              >
+                Desactivar 2FA
+              </button>
+            )}
           </div>
         ) : qrCodeDataUrl ? (
           <form onSubmit={handleConfirm}>
