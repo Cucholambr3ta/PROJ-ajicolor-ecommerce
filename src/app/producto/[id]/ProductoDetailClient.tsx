@@ -154,7 +154,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
         </div>
 
         <div>
-          <h1 className="text-5xl font-black text-ajicolor-purple leading-none mb-1">{product.artista}</h1>
+          <h1 className="text-5xl font-black text-ajicolor-purple dark:text-neutral-100 leading-none mb-1">{product.artista}</h1>
           <p className="text-2xl text-ajicolor-magenta italic font-medium mb-2">{product.nombre}</p>
           {product.descripcion && (
             <p className="text-sm text-gray-500 dark:text-neutral-400 mb-6">{product.descripcion}</p>
@@ -169,7 +169,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
               <p className="text-xs font-bold uppercase tracking-widest">Selecciona tu talla</p>
               <button
                 onClick={() => setShowGuia((v) => !v)}
-                className="text-xs font-bold text-ajicolor-purple hover:underline"
+                className="text-xs font-bold text-ajicolor-purple dark:text-neutral-100 hover:underline"
               >
                 Guía de tallas
               </button>

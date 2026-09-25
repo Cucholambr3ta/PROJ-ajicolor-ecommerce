@@ -20,6 +20,14 @@ const collectionSchema = z.object({
   activa: z.boolean().optional(),
 });
 
+/** Todas las colecciones (activas y cerradas) para /drops — solo cuenta productos activos. */
+export async function getPublicCollections() {
+  return prisma.collection.findMany({
+    include: { _count: { select: { products: { where: { activo: true } } } } },
+    orderBy: [{ activa: "desc" }, { fechaLanzamiento: "desc" }],
+  });
+}
+
 export async function getCollectionsAdmin() {
   await requireAdmin();
   return prisma.collection.findMany({
