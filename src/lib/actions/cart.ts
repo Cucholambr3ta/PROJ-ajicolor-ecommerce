@@ -7,6 +7,8 @@ import { getStoreSettings } from "@/lib/actions/settings";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
 import type { MetodoEnvio } from "@prisma/client";
+import { sendEmail } from "@/lib/email/send";
+import { pedidoRecibidoTemplate, avisoNuevoPedidoDuenoTemplate } from "@/lib/email/templates";
 
 const CART_TOKEN_COOKIE = "cart_token";
 
@@ -262,6 +264,41 @@ export async function checkout(direccionInput: {
 
     return newOrder;
   });
+
+  const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+  const settings = await getStoreSettings();
+  if (customer) {
+    await sendEmail({
+      to: customer.email,
+      ...pedidoRecibidoTemplate({
+        nombre: customer.nombre,
+        numero: order.numero,
+        items: cartWithItems.items.map((item) => ({
+          nombre: item.variant.product.nombre,
+          talle: item.variant.talle,
+          color: item.variant.color,
+          cantidad: item.cantidad,
+          precioUnit: Number(item.variant.product.precio),
+        })),
+        total,
+        datosBancarios: {
+          titular: settings.bancoTitular,
+          rut: settings.bancoRut,
+          banco: settings.bancoNombre,
+          tipoCuenta: settings.bancoTipoCuenta,
+          numeroCuenta: settings.bancoNumeroCuenta,
+          email: settings.bancoEmail,
+        },
+      }),
+    });
+
+    if (settings.emailContacto) {
+      await sendEmail({
+        to: settings.emailContacto,
+        ...avisoNuevoPedidoDuenoTemplate({ numero: order.numero, nombreCliente: customer.nombre, total }),
+      });
+    }
+  }
 
   return order;
 }
