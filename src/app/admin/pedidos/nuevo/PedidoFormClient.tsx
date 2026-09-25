@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import type { CanalVenta } from "@prisma/client";
 
 interface ItemInput {
   variantId: string;
@@ -11,7 +12,7 @@ interface ItemInput {
   precioUnit: number;
 }
 
-const CANALES = ["Instagram", "WhatsApp", "Feria", "Tienda"];
+const CANALES: CanalVenta[] = ["Web", "Instagram", "WhatsApp", "Feria", "Otro"];
 
 export default function PedidoFormClient({
   customers,
@@ -112,7 +113,7 @@ export default function PedidoFormClient({
               <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Canal *</label>
               <select
                 value={canal}
-                onChange={(e) => setCanal(e.target.value)}
+                onChange={(e) => setCanal(e.target.value as CanalVenta)}
                 className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-800 dark:text-neutral-100"
               >
                 {CANALES.map((c) => (

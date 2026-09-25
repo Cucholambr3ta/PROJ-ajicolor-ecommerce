@@ -5,8 +5,9 @@ import { requireAdmin } from "@/lib/auth-guard";
 import { SHIPMENT_TRANSITIONS } from "@/lib/state-machines";
 import { revalidatePath } from "next/cache";
 import { createShipmentSchema, parseOrThrow } from "@/lib/schemas";
+import type { EstadoEnvio } from "@prisma/client";
 
-export async function getShipments(estado?: string) {
+export async function getShipments(estado?: EstadoEnvio | "Todos") {
   await requireAdmin();
   return prisma.shipment.findMany({
     where: estado && estado !== "Todos" ? { estado } : undefined,
@@ -52,7 +53,7 @@ export async function updateShipmentDetails(
 
 export async function updateShipmentStatus(
   id: string,
-  nuevoEstado: string,
+  nuevoEstado: EstadoEnvio,
   data?: { trackingNumber?: string; fechaDespacho?: Date; fechaEntrega?: Date }
 ) {
   await requireAdmin();

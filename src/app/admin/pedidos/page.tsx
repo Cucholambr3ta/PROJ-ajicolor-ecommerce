@@ -1,11 +1,17 @@
 import { prisma } from "@/lib/prisma";
+import { EstadoPedido } from "@prisma/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { formatCLP } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-const estados = ["Todos", "Pendiente", "Confirmado", "EnProduccion", "Enviado", "Entregado", "Cancelado"];
+const estados = ["Todos", "Pendiente", "Pagado", "EnProduccion", "ListoParaEnvio", "Enviado", "Entregado", "Cancelado"];
+
+function esEstadoPedido(value: string): value is EstadoPedido {
+  return (Object.values(EstadoPedido) as string[]).includes(value);
+}
 
 export default async function PedidosPage({
   searchParams,
@@ -13,8 +19,9 @@ export default async function PedidosPage({
   searchParams: Promise<{ estado?: string }>;
 }) {
   const { estado } = await searchParams;
+  const estadoValido = estado && esEstadoPedido(estado) ? estado : undefined;
   const pedidos = await prisma.order.findMany({
-    where: estado && estado !== "Todos" ? { estado } : undefined,
+    where: estadoValido ? { estado: estadoValido } : undefined,
     include: {
       customer: true,
       items: { include: { variant: { include: { product: true } } } },
@@ -60,7 +67,7 @@ export default async function PedidosPage({
                 </div>
                 <div className="text-right flex items-center gap-3">
                   <div>
-                    <p className="font-bold dark:text-neutral-100">${p.total.toFixed(2)}</p>
+                    <p className="font-bold dark:text-neutral-100">{formatCLP(Number(p.total))}</p>
                     <Badge variant="outline">{p.estado}</Badge>
                   </div>
                   <Link
