@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { getStoreSettings } from "@/lib/actions/settings";
 
-export function Footer() {
+export async function Footer() {
+  const settings = await getStoreSettings();
+  const redes = [
+    settings.instagram && { label: "Instagram", href: `https://instagram.com/${settings.instagram}` },
+    settings.facebook && { label: "Facebook", href: `https://facebook.com/${settings.facebook}` },
+    settings.tiktok && { label: "TikTok", href: `https://www.tiktok.com/@${settings.tiktok}` },
+  ].filter((r): r is { label: string; href: string } => Boolean(r));
+
   return (
     <footer className="bg-white dark:bg-neutral-900 border-t-2 border-ajicolor-ink">
       <div className="max-w-7xl mx-auto px-8 py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
@@ -73,36 +81,19 @@ export function Footer() {
         <div>
           <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Síguenos</h3>
           <ul className="space-y-2 text-sm text-gray-600 dark:text-neutral-300">
-            <li>
-              <a
-                href="https://instagram.com/el_aji_color_estampados"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-ajicolor-magenta"
-              >
-                Instagram
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://www.facebook.com/search/top?q=el%20aji%20color%20dise%C3%B1o%20y%20estampados"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-ajicolor-magenta"
-              >
-                Facebook
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://www.tiktok.com/@el.aji.color.esta"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-ajicolor-magenta"
-              >
-                TikTok
-              </a>
-            </li>
+            {redes.length === 0 && <li className="text-gray-400 dark:text-neutral-500">—</li>}
+            {redes.map((red) => (
+              <li key={red.label}>
+                <a
+                  href={red.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-ajicolor-magenta"
+                >
+                  {red.label}
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
       </div>

@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { requireCliente } from "@/lib/auth-guard";
 import { addToCartSchema, updateCartItemSchema, checkoutAddressSchema, parseOrThrow } from "@/lib/schemas";
+import { getStoreSettings } from "@/lib/actions/settings";
+import type { MetodoEnvio } from "@prisma/client";
 
 async function getOrCreateCart(customerId: string) {
   const existing = await prisma.cart.findUnique({ where: { customerId } });
@@ -28,16 +30,20 @@ export async function getCart() {
 
 export async function getCartCount() {
   const session = await auth();
-  if (!session?.user?.id || (session.user as { rol?: string }).rol !== "Cliente") {
+  if (!session?.user?.id || session.user.rol !== "Cliente") {
     return 0;
   }
   const cart = await prisma.cart.findUnique({
-    where: { customerId: session.user.id as string },
+    where: { customerId: session.user.id },
     include: { items: true },
   });
   return cart?.items.reduce((acc, i) => acc + i.cantidad, 0) ?? 0;
 }
 
+// El negocio es bajo pedido: cualquier variante se puede agregar al carrito
+// aunque tenga stock 0 (se produce en 5-7 días hábiles tras confirmar el
+// pago). El stock > 0 representa piezas ya impresas (sobrantes de feria),
+// no un límite de venta — no bloquea la compra.
 export async function addToCart(variantIdInput: string, cantidadInput: number = 1) {
   const { variantId, cantidad } = parseOrThrow(addToCartSchema, { variantId: variantIdInput, cantidad: cantidadInput });
   const customerId = await requireCliente();
@@ -45,18 +51,15 @@ export async function addToCart(variantIdInput: string, cantidadInput: number = 
 
   const variant = await prisma.productVariant.findUnique({ where: { id: variantId } });
   if (!variant) throw new Error("Variante no encontrada");
-  if (variant.stock < cantidad) throw new Error("Stock insuficiente");
 
   const existing = await prisma.cartItem.findUnique({
     where: { cartId_variantId: { cartId: cart.id, variantId } },
   });
 
   if (existing) {
-    const nuevaCantidad = existing.cantidad + cantidad;
-    if (nuevaCantidad > variant.stock) throw new Error("Stock insuficiente");
     return prisma.cartItem.update({
       where: { id: existing.id },
-      data: { cantidad: nuevaCantidad },
+      data: { cantidad: existing.cantidad + cantidad },
     });
   }
 
@@ -70,7 +73,7 @@ export async function updateCartItem(itemIdInput: string, cantidadInput: number)
   const customerId = await requireCliente();
   const item = await prisma.cartItem.findUnique({
     where: { id: itemId },
-    include: { cart: true, variant: true },
+    include: { cart: true },
   });
   if (!item || item.cart.customerId !== customerId) throw new Error("Item no encontrado");
 
@@ -78,7 +81,6 @@ export async function updateCartItem(itemIdInput: string, cantidadInput: number)
     await prisma.cartItem.delete({ where: { id: itemId } });
     return;
   }
-  if (cantidad > item.variant.stock) throw new Error("Stock insuficiente");
 
   return prisma.cartItem.update({ where: { id: itemId }, data: { cantidad } });
 }
@@ -90,7 +92,24 @@ export async function removeFromCart(itemId: string) {
   return prisma.cartItem.delete({ where: { id: itemId } });
 }
 
-const COSTO_ENVIO = 3000; // Correos de Chile a sucursal, tarifa fija
+/** Costo de envío según el método elegido. Starken es "por pagar" (no se cobra online). */
+async function costoEnvioPara(metodo: MetodoEnvio): Promise<number> {
+  if (metodo === "StarkenPorPagar") return 0;
+  const settings = await getStoreSettings();
+  return Number(settings.costoEnvioCorreos);
+}
+
+/** Suma N días hábiles (lunes a viernes) a una fecha. */
+function sumarDiasHabiles(desde: Date, dias: number): Date {
+  const resultado = new Date(desde);
+  let restantes = dias;
+  while (restantes > 0) {
+    resultado.setDate(resultado.getDate() + 1);
+    const diaSemana = resultado.getDay();
+    if (diaSemana !== 0 && diaSemana !== 6) restantes--;
+  }
+  return resultado;
+}
 
 export async function checkout(direccionInput: {
   nombre: string;
@@ -99,8 +118,11 @@ export async function checkout(direccionInput: {
   numero: string;
   comuna: string;
   region: string;
+  metodoEnvio?: MetodoEnvio;
 }) {
-  const direccion = parseOrThrow(checkoutAddressSchema, direccionInput);
+  const { metodoEnvio: metodoEnvioInput, ...direccionData } = direccionInput;
+  const direccion = parseOrThrow(checkoutAddressSchema, direccionData);
+  const metodoEnvio: MetodoEnvio = metodoEnvioInput ?? "CorreosSucursal";
   const customerId = await requireCliente();
   const cart = await prisma.cart.findUnique({
     where: { customerId },
@@ -113,31 +135,24 @@ export async function checkout(direccionInput: {
     (acc, item) => acc + Number(item.variant.product.precio) * item.cantidad,
     0
   );
-  const total = subtotal + COSTO_ENVIO;
+  const costoEnvio = await costoEnvioPara(metodoEnvio);
+  const total = subtotal + costoEnvio;
 
+  // Venta bajo pedido: NO se descuenta stock al comprar. El pedido queda
+  // Pendiente/PendienteTransferencia hasta que el admin confirme el pago
+  // (confirmPayment en payments.ts), momento en que recién entra a la cola
+  // de producción. Evita reservar stock que en la práctica no existe.
   const order = await prisma.$transaction(async (tx) => {
-    // Descuenta stock de forma atómica: el `updateMany` solo afecta filas con
-    // stock >= cantidad. Si `count` da 0, alguien más se llevó el stock primero
-    // y abortamos toda la transacción (evita dejarlo negativo bajo concurrencia).
-    for (const item of cart.items) {
-      const result = await tx.productVariant.updateMany({
-        where: { id: item.variantId, stock: { gte: item.cantidad } },
-        data: { stock: { decrement: item.cantidad } },
-      });
-      if (result.count === 0) {
-        throw new Error(`Sin stock suficiente para ${item.variant.product.nombreSlug}`);
-      }
-    }
-
     const newOrder = await tx.order.create({
       data: {
         customerId,
         subtotal,
-        costoEnvio: COSTO_ENVIO,
+        costoEnvio,
         total,
         estado: "Pendiente",
         estadoPago: "PendienteTransferencia",
         canal: "Web",
+        metodoEnvio,
         envioNombre: direccion.nombre,
         envioTelefono: direccion.telefono,
         envioCalle: direccion.calle,
@@ -149,26 +164,10 @@ export async function checkout(direccionInput: {
             variantId: item.variantId,
             cantidad: item.cantidad,
             precioUnit: item.variant.product.precio,
+            costoUnit: item.variant.product.costoUnitario,
           })),
         },
       },
-    });
-
-    for (const item of cart.items) {
-      await tx.stockMovement.create({
-        data: {
-          variantId: item.variantId,
-          cantidad: -item.cantidad,
-          tipo: "Salida",
-          origen: "Venta web",
-          descripcion: `Pedido ${newOrder.id}`,
-        },
-      });
-    }
-
-    await tx.customer.update({
-      where: { id: customerId },
-      data: { totalGastado: { increment: total } },
     });
 
     await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
@@ -178,3 +177,5 @@ export async function checkout(direccionInput: {
 
   return order;
 }
+
+export { sumarDiasHabiles };
