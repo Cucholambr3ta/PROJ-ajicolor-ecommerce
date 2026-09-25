@@ -19,26 +19,34 @@ export default async function CheckoutPage() {
   const customer = await prisma.customer.findUnique({ where: { id: session.user.id as string } });
   if (!customer) redirect("/login-cliente");
 
-  const cart = await getCart();
+  const [cart, settings, addresses] = await Promise.all([
+    getCart(),
+    getStoreSettings(),
+    prisma.address.findMany({
+      where: { customerId: customer.id },
+      orderBy: [{ esPrincipal: "desc" }, { createdAt: "desc" }],
+    }),
+  ]);
+
   const rawItems = cart?.items ?? [];
   if (rawItems.length === 0) redirect("/carrito");
 
   const items = rawItems.map((item) => ({
-    ...item,
+    id: item.id,
+    cantidad: item.cantidad,
     variant: {
-      ...item.variant,
-      product: { ...item.variant.product, precio: Number(item.variant.product.precio) },
+      talle: item.variant.talle,
+      color: item.variant.color,
+      product: {
+        nombre: item.variant.product.nombre,
+        precio: Number(item.variant.product.precio),
+      },
     },
   }));
   const subtotal = items.reduce((acc, item) => acc + item.variant.product.precio * item.cantidad, 0);
-  const settings = await getStoreSettings();
-  const addresses = await prisma.address.findMany({
-    where: { customerId: customer.id },
-    orderBy: [{ esPrincipal: "desc" }, { createdAt: "desc" }],
-  });
 
   return (
-    <div className="min-h-screen bg-ajicolor-light">
+    <div className="min-h-screen bg-ajicolor-light dark:bg-[var(--bg-light)]">
       <SiteHeader />
 
       <main className="max-w-3xl mx-auto py-12 p-8">

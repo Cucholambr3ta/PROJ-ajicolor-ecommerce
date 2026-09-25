@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function TerminosPage() {
   return (
-    <div className="min-h-screen bg-ajicolor-light flex flex-col">
+    <div className="min-h-screen bg-ajicolor-light dark:bg-[var(--bg-light)] flex flex-col">
       <SiteHeader />
 
       <main className="max-w-3xl mx-auto py-16 p-8 flex-1 space-y-8 text-gray-700 dark:text-neutral-300">

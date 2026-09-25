@@ -42,7 +42,7 @@ export default async function TiendaPage({
   const dropActivo = collections.find((c) => !c.fechaCierre || c.fechaCierre > new Date());
 
   return (
-    <div className="min-h-screen bg-ajicolor-light">
+    <div className="min-h-screen bg-ajicolor-light dark:bg-[var(--bg-light)]">
       <SiteHeader active="/" />
 
       <section className="max-w-7xl mx-auto p-8 pt-10">
