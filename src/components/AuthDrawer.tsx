@@ -162,7 +162,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
       <GoogleButton callbackUrl="/cuenta" />
 
       <div className="flex justify-center pt-2">
-        <Image src="/iconos/aji-login.png" alt="" width={120} height={120} className="w-28 h-28 object-contain" />
+        <Image src="/iconos/aji-login.png" alt="" width={200} height={200} className="w-48 h-48 object-contain" />
       </div>
     </div>
   );
@@ -302,7 +302,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
       <GoogleButton callbackUrl="/cuenta" />
 
       <div className="flex justify-center pt-2">
-        <Image src="/iconos/aji-registro.png" alt="" width={120} height={120} className="w-28 h-28 object-contain" />
+        <Image src="/iconos/aji-registro.png" alt="" width={200} height={200} className="w-48 h-48 object-contain" />
       </div>
     </div>
   );
