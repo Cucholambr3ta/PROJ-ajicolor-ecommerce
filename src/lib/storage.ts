@@ -8,6 +8,7 @@ const client = supabaseUrl && serviceRoleKey ? createClient(supabaseUrl, service
 export const STORAGE_CONFIGURED = !!client;
 
 const PRODUCTOS_BUCKET = "productos";
+const COMPROBANTES_BUCKET = "comprobantes";
 
 /**
  * Sube una imagen de producto al bucket público `productos`. Requiere
@@ -42,4 +43,33 @@ export async function deleteProductImage(url: string): Promise<void> {
   if (idx === -1) return;
   const path = url.slice(idx + marker.length);
   await client.storage.from(PRODUCTOS_BUCKET).remove([path]);
+}
+
+/**
+ * Sube un comprobante de pago al bucket privado `comprobantes` y devuelve
+ * una URL firmada (7 días) para que el admin pueda verlo desde el panel.
+ * El bucket es privado porque los comprobantes pueden traer datos
+ * bancarios personales del cliente.
+ */
+export async function uploadComprobante(file: File, orderId: string): Promise<string> {
+  if (!client) {
+    throw new Error("Supabase Storage no está configurado (falta SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY)");
+  }
+
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${orderId}/${crypto.randomUUID()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await client.storage.from(COMPROBANTES_BUCKET).upload(path, buffer, {
+    contentType: file.type,
+    upsert: false,
+  });
+  if (error) throw new Error(`Error al subir comprobante: ${error.message}`);
+
+  const { data, error: signError } = await client.storage
+    .from(COMPROBANTES_BUCKET)
+    .createSignedUrl(path, 60 * 60 * 24 * 7);
+  if (signError || !data) throw new Error("Error al generar el enlace del comprobante");
+
+  return data.signedUrl;
 }
