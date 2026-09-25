@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import type { EstadoEnvio } from "@prisma/client";
 
 const ESTADOS = ["Todos", "Preparando", "Despachado", "EnTransito", "Entregado", "Devuelto"];
 
@@ -16,12 +17,18 @@ const ESTADO_COLORS: Record<string, string> = {
   Devuelto: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 };
 
+const NEXT: Partial<Record<EstadoEnvio, EstadoEnvio>> = {
+  Preparando: "Despachado",
+  Despachado: "EnTransito",
+  EnTransito: "Entregado",
+};
+
 interface Shipment {
   id: string;
   orderId: string;
   trackingNumber: string | null;
   transportista: string | null;
-  estado: string;
+  estado: EstadoEnvio;
   fechaDespacho: any;
   fechaEstimada: any;
   fechaEntrega: any;
@@ -42,13 +49,7 @@ export default function EnviosPageClient({
   const [isPending, startTransition] = useTransition();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const NEXT: Record<string, string> = {
-    Preparando: "Despachado",
-    Despachado: "EnTransito",
-    EnTransito: "Entregado",
-  };
-
-  async function handleAdvanceStatus(id: string, next: string) {
+  async function handleAdvanceStatus(id: string, next: EstadoEnvio) {
     setUpdatingId(id);
     const { updateShipmentStatus } = await import("@/lib/actions/shipments");
     const data: Record<string, Date> = {};

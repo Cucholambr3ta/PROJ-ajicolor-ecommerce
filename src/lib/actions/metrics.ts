@@ -163,7 +163,7 @@ export async function exportClientesCSV() {
     c.id,
     c.nombre,
     c.email,
-    c.telefono,
+    c.telefono ?? "",
     String(c.orders.length),
     c.totalGastado.toString(),
     c.backstagePass ? "Sí" : "No",

@@ -9,7 +9,7 @@ interface Customer {
   id: string;
   nombre: string;
   email: string;
-  telefono: string;
+  telefono: string | null;
   backstagePass: boolean;
   totalGastado: number | any;
   _count: { orders: number };

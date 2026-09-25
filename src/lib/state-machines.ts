@@ -1,13 +1,16 @@
-export const ORDER_TRANSITIONS: Record<string, string[]> = {
-  Pendiente: ["Confirmado", "Cancelado"],
-  Confirmado: ["EnProduccion", "Cancelado"],
-  EnProduccion: ["Enviado", "Cancelado"],
+import { EstadoPedido, EstadoEnvio, EstadoLote } from "@prisma/client";
+
+export const ORDER_TRANSITIONS: Record<EstadoPedido, EstadoPedido[]> = {
+  Pendiente: ["Pagado", "Cancelado"],
+  Pagado: ["EnProduccion", "Cancelado"],
+  EnProduccion: ["ListoParaEnvio", "Cancelado"],
+  ListoParaEnvio: ["Enviado"],
   Enviado: ["Entregado"],
   Entregado: [],
   Cancelado: [],
 };
 
-export const SHIPMENT_TRANSITIONS: Record<string, string[]> = {
+export const SHIPMENT_TRANSITIONS: Record<EstadoEnvio, EstadoEnvio[]> = {
   Preparando: ["Despachado", "Devuelto"],
   Despachado: ["EnTransito", "Devuelto"],
   EnTransito: ["Entregado", "Devuelto"],
@@ -15,9 +18,10 @@ export const SHIPMENT_TRANSITIONS: Record<string, string[]> = {
   Devuelto: [],
 };
 
-export const BATCH_TRANSITIONS: Record<string, string[]> = {
-  Solicitado: ["EnProgreso"],
-  EnProgreso: ["Completado"],
+export const BATCH_TRANSITIONS: Record<EstadoLote, EstadoLote[]> = {
+  Solicitado: ["EnProgreso", "Cancelado"],
+  EnProgreso: ["Completado", "Cancelado"],
   Completado: ["Recibido"],
   Recibido: [],
+  Cancelado: [],
 };

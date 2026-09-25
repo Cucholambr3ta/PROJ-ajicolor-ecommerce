@@ -19,7 +19,8 @@ export default function ProductoFormClient({
 }: {
   initialData?: {
     id: string;
-    nombreSlug: string;
+    nombre: string;
+    slug: string;
     descripcion: string;
     disenoUrl: string;
     artista: string;
@@ -32,7 +33,19 @@ export default function ProductoFormClient({
   const [isPending, startTransition] = useTransition();
   const isEdit = !!initialData;
 
-  const [nombreSlug, setNombreSlug] = useState(initialData?.nombreSlug ?? "");
+  function slugify(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  const [nombre, setNombre] = useState(initialData?.nombre ?? "");
+  const [slug, setSlug] = useState(initialData?.slug ?? "");
+  const [slugEditadoManualmente, setSlugEditadoManualmente] = useState(isEdit);
   const [descripcion, setDescripcion] = useState(initialData?.descripcion ?? "");
   const [disenoUrl, setDisenoUrl] = useState(initialData?.disenoUrl ?? "");
   const [artista, setArtista] = useState(initialData?.artista ?? "");
@@ -69,8 +82,8 @@ export default function ProductoFormClient({
     e.preventDefault();
     setError("");
 
-    if (!nombreSlug.trim()) {
-      setError("El nombre/slug es obligatorio");
+    if (!nombre.trim() || !slug.trim()) {
+      setError("El nombre y el slug son obligatorios");
       return;
     }
 
@@ -84,7 +97,8 @@ export default function ProductoFormClient({
       if (isEdit) {
         const { updateProduct } = await import("@/lib/actions/products");
         await updateProduct(initialData.id, {
-          nombreSlug,
+          nombre,
+          slug,
           descripcion,
           disenoUrl,
           artista,
@@ -95,7 +109,8 @@ export default function ProductoFormClient({
       } else {
         const { createProduct } = await import("@/lib/actions/products");
         await createProduct({
-          nombreSlug,
+          nombre,
+          slug,
           descripcion,
           disenoUrl,
           artista,
@@ -126,12 +141,28 @@ export default function ProductoFormClient({
           <h2 className="font-semibold text-gray-700 mb-4 dark:text-neutral-200">Información del Producto</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Nombre / Slug *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Nombre *</label>
               <input
                 type="text"
-                value={nombreSlug}
-                onChange={(e) => setNombreSlug(e.target.value)}
+                value={nombre}
+                onChange={(e) => {
+                  setNombre(e.target.value);
+                  if (!slugEditadoManualmente) setSlug(slugify(e.target.value));
+                }}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Slug (URL) *</label>
+              <input
+                type="text"
+                value={slug}
+                onChange={(e) => {
+                  setSlug(slugify(e.target.value));
+                  setSlugEditadoManualmente(true);
+                }}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                 required
               />
             </div>
