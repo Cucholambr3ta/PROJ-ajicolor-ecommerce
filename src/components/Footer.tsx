@@ -37,11 +37,16 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Categorías</h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Navegación</h3>
           <ul className="space-y-2 text-sm text-gray-600 dark:text-neutral-300">
             <li>
+              <Link href="/" className="hover:text-ajicolor-magenta">
+                Catálogo
+              </Link>
+            </li>
+            <li>
               <Link href="/categorias" className="hover:text-ajicolor-magenta">
-                Ver categorías
+                Categorías
               </Link>
             </li>
             <li>
@@ -50,8 +55,13 @@ export async function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/" className="hover:text-ajicolor-magenta">
-                Catálogo
+              <Link href="/cotizador" className="hover:text-ajicolor-magenta">
+                Cotizador
+              </Link>
+            </li>
+            <li>
+              <Link href="/conoce-al-aji" className="hover:text-ajicolor-magenta">
+                Conoce al Ají
               </Link>
             </li>
           </ul>
