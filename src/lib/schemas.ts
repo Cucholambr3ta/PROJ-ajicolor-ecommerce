@@ -117,6 +117,7 @@ export const createBatchSchema = z.object({
         variantId: z.string().min(1),
         cantidad: z.number().int().positive(),
         costoUnitario: z.number().nonnegative(),
+        orderItemId: z.string().min(1).optional(),
       })
     )
     .min(1),

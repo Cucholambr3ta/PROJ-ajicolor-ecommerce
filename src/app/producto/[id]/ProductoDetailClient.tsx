@@ -12,7 +12,7 @@ interface Variant {
 
 interface Product {
   id: string;
-  nombreSlug: string;
+  nombre: string;
   descripcion: string;
   disenoUrl: string;
   artista: string;
@@ -48,11 +48,9 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
     () => product.variants.filter((v) => v.color === selectedColor),
     [product.variants, selectedColor]
   );
-  const primeraConStock = tallesDelColor.find((v) => v.stock > 0);
-  const [selectedTalle, setSelectedTalle] = useState(primeraConStock?.talle ?? TALLES_ORDEN[0]);
+  const [selectedTalle, setSelectedTalle] = useState(tallesDelColor[0]?.talle ?? TALLES_ORDEN[0]);
 
   const selectedVariant = tallesDelColor.find((v) => v.talle === selectedTalle);
-  const stockTotal = product.variants.reduce((acc, v) => acc + v.stock, 0);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -61,12 +59,11 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
   function handleSelectColor(color: string) {
     setSelectedColor(color);
     const variantesDelColor = product.variants.filter((v) => v.color === color);
-    const conStock = variantesDelColor.find((v) => v.stock > 0);
-    setSelectedTalle(conStock?.talle ?? TALLES_ORDEN[0]);
+    setSelectedTalle(variantesDelColor[0]?.talle ?? TALLES_ORDEN[0]);
   }
 
   async function handleAddToCart() {
-    if (!selectedVariant || selectedVariant.stock === 0) return;
+    if (!selectedVariant) return;
     setLoading(true);
     setError("");
     setAdded(false);
@@ -77,7 +74,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
       router.refresh();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error al agregar al carrito";
-      if (message.includes("iniciar sesión")) {
+      if (message.toLowerCase().includes("iniciar sesión")) {
         router.push("/login-cliente");
         return;
       }
@@ -95,12 +92,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
             <p className="text-center font-black text-sm py-2 border-b-2 border-ajicolor-ink mb-3">Producto</p>
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={product.disenoUrl} alt={product.nombreSlug} className="w-full aspect-square object-cover" />
-              {stockTotal === 0 && (
-                <span className="absolute top-2 left-2 bg-ajicolor-magenta text-white px-3 py-1 text-[10px] font-bold uppercase">
-                  Sold out
-                </span>
-              )}
+              <img src={product.disenoUrl} alt={product.nombre} className="w-full aspect-square object-cover" />
             </div>
             <div className="flex items-center justify-between mt-3 gap-3">
               <span className="bg-ajicolor-magenta text-white px-4 py-2 text-xs font-black uppercase flex-1 text-center">
@@ -128,7 +120,10 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
 
         <div>
           <h1 className="text-5xl font-black text-ajicolor-purple leading-none mb-1">{product.artista}</h1>
-          <p className="text-2xl text-ajicolor-magenta italic font-medium mb-6">{product.nombreSlug}</p>
+          <p className="text-2xl text-ajicolor-magenta italic font-medium mb-2">{product.nombre}</p>
+          {product.descripcion && (
+            <p className="text-sm text-gray-500 dark:text-neutral-400 mb-6">{product.descripcion}</p>
+          )}
 
           <p className="text-4xl font-black text-ajicolor-magenta mb-8">
             ${Number(product.precio).toLocaleString("es-CL")}
@@ -139,18 +134,15 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
             <div className="flex gap-2 flex-wrap">
               {TALLES_ORDEN.map((talle) => {
                 const variant = tallesDelColor.find((v) => v.talle === talle);
-                const disponible = !!variant && variant.stock > 0;
+                if (!variant) return null;
                 return (
                   <button
                     key={talle}
-                    onClick={() => disponible && setSelectedTalle(talle)}
-                    disabled={!disponible}
+                    onClick={() => setSelectedTalle(talle)}
                     className={`w-12 h-12 flex items-center justify-center thick-border font-black text-sm ${
-                      talle === selectedTalle && disponible
+                      talle === selectedTalle
                         ? "bg-ajicolor-ink text-white"
-                        : disponible
-                          ? "bg-white dark:bg-neutral-900 hover:bg-gray-50 dark:hover:bg-neutral-800"
-                          : "bg-gray-100 dark:bg-neutral-800 text-gray-300 dark:text-neutral-600 cursor-not-allowed"
+                        : "bg-white dark:bg-neutral-900 hover:bg-gray-50 dark:hover:bg-neutral-800"
                     }`}
                   >
                     {talle}
@@ -158,8 +150,12 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                 );
               })}
             </div>
-            {selectedVariant && selectedVariant.stock > 0 && (
-              <p className="text-xs text-gray-400 dark:text-neutral-500 font-medium mt-2">{selectedVariant.stock} disponibles</p>
+            {selectedVariant && (
+              <p className="text-xs text-gray-400 dark:text-neutral-500 font-medium mt-2">
+                {selectedVariant.stock > 0
+                  ? `${selectedVariant.stock} pieza${selectedVariant.stock === 1 ? "" : "s"} lista${selectedVariant.stock === 1 ? "" : "s"} — envío inmediato`
+                  : "Se produce en 5 a 7 días hábiles tras confirmar el pago"}
+              </p>
             )}
           </div>
 
@@ -179,14 +175,10 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
 
           <button
             onClick={handleAddToCart}
-            disabled={!selectedVariant || selectedVariant.stock === 0 || loading}
+            disabled={!selectedVariant || loading}
             className="btn-block w-full justify-center py-4 mt-8 bg-ajicolor-yellow text-base disabled:opacity-40"
           >
-            {!selectedVariant || selectedVariant.stock === 0
-              ? "Sin stock"
-              : loading
-                ? "Agregando..."
-                : "Agregar al carrito"}
+            {loading ? "Agregando..." : "Agregar al carrito"}
           </button>
         </div>
       </div>

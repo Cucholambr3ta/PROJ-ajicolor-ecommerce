@@ -315,14 +315,15 @@ model Order {
 }
 
 model OrderItem {
-  id         String         @id @default(cuid())
+  id         String                @id @default(cuid())
   orderId    String
-  order      Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order      Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
   variantId  String
-  variant    ProductVariant @relation(fields: [variantId], references: [id])
+  variant    ProductVariant        @relation(fields: [variantId], references: [id])
   cantidad   Int
   precioUnit Decimal
-  costoUnit  Decimal        @default(0) // snapshot del costo al momento de la venta, para margen
+  costoUnit  Decimal               @default(0) // snapshot del costo al momento de la venta, para margen
+  batchItems ProductionBatchItem[]
 }
 
 /// Comprobante de transferencia y su confirmación/rechazo.
@@ -408,6 +409,7 @@ model ProductionBatchItem {
   variantId     String
   variant       ProductVariant  @relation(fields: [variantId], references: [id])
   orderItemId   String? // vincula el lote a un ítem de pedido pagado (venta bajo pedido)
+  orderItem     OrderItem?      @relation(fields: [orderItemId], references: [id])
   cantidad      Int
   costoUnitario Decimal
 }
