@@ -16,6 +16,9 @@ import {
   BarChart3,
   ShieldCheck,
   Settings,
+  Sparkles,
+  Ticket,
+  Star,
 } from "lucide-react";
 
 const navItems = [
@@ -27,6 +30,9 @@ const navItems = [
   { href: "/admin/envios", label: "Envíos", icon: Truck },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/catalogo", label: "Catálogo", icon: Layers },
+  { href: "/admin/colecciones", label: "Colecciones", icon: Sparkles },
+  { href: "/admin/cupones", label: "Cupones", icon: Ticket },
+  { href: "/admin/resenas", label: "Reseñas", icon: Star },
   { href: "/admin/reportes", label: "Reportes", icon: BarChart3 },
   { href: "/admin/configuracion", label: "Configuración", icon: Settings },
   { href: "/admin/seguridad", label: "Seguridad", icon: ShieldCheck },

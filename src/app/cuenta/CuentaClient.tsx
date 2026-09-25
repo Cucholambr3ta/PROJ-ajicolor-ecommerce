@@ -18,6 +18,12 @@ interface Customer {
   tienePassword: boolean;
 }
 
+interface OrderReviewItem {
+  productId: string;
+  nombre: string;
+  yaResenado: boolean;
+}
+
 interface Order {
   id: string;
   numero: number;
@@ -27,6 +33,7 @@ interface Order {
   itemsCount: number;
   transportista: string | null;
   trackingNumber: string | null;
+  reviewItems: OrderReviewItem[];
 }
 
 interface Address {
@@ -140,58 +147,147 @@ function PedidosTab({ orders, totalGastado }: { orders: Order[]; totalGastado: n
         orders.map((order) => {
           const isDelivered = order.estado === "Entregado";
           return (
-            <div
-              key={order.id}
-              className="bg-white dark:bg-neutral-900 p-6 thick-border pop-shadow flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
-            >
-              <div>
-                <Link
-                  href={`/pedido/${order.numero}`}
-                  className="inline-block bg-ajicolor-ink text-white px-3 py-1 text-[10px] font-bold uppercase mb-3 hover:opacity-80"
-                >
-                  Orden #{String(order.numero).padStart(4, "0")}
-                </Link>
-                <h3 className="text-lg font-black mb-1">
-                  {order.itemsCount} item{order.itemsCount !== 1 ? "s" : ""}
-                </h3>
-                <p className="text-xs font-medium text-gray-400 dark:text-neutral-500 mb-2">
-                  {formatFechaCorta(order.createdAt)}
-                  {order.transportista && ` · ${order.transportista}`}
-                </p>
-                {!isDelivered && order.trackingNumber && (
-                  order.transportista && TRACKING_URLS[order.transportista] ? (
-                    <a
-                      href={TRACKING_URLS[order.transportista](order.trackingNumber)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-block bg-ajicolor-yellow text-[10px] py-1.5 px-3"
-                    >
-                      Sigue tu envío
-                    </a>
-                  ) : (
-                    <span className="btn-block bg-ajicolor-yellow text-[10px] py-1.5 px-3">
-                      Tracking: {order.trackingNumber}
-                    </span>
-                  )
-                )}
+            <div key={order.id} className="bg-white dark:bg-neutral-900 p-6 thick-border pop-shadow">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div>
+                  <Link
+                    href={`/pedido/${order.numero}`}
+                    className="inline-block bg-ajicolor-ink text-white px-3 py-1 text-[10px] font-bold uppercase mb-3 hover:opacity-80"
+                  >
+                    Orden #{String(order.numero).padStart(4, "0")}
+                  </Link>
+                  <h3 className="text-lg font-black mb-1">
+                    {order.itemsCount} item{order.itemsCount !== 1 ? "s" : ""}
+                  </h3>
+                  <p className="text-xs font-medium text-gray-400 dark:text-neutral-500 mb-2">
+                    {formatFechaCorta(order.createdAt)}
+                    {order.transportista && ` · ${order.transportista}`}
+                  </p>
+                  {!isDelivered && order.trackingNumber && (
+                    order.transportista && TRACKING_URLS[order.transportista] ? (
+                      <a
+                        href={TRACKING_URLS[order.transportista](order.trackingNumber)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-block bg-ajicolor-yellow text-[10px] py-1.5 px-3"
+                      >
+                        Sigue tu envío
+                      </a>
+                    ) : (
+                      <span className="btn-block bg-ajicolor-yellow text-[10px] py-1.5 px-3">
+                        Tracking: {order.trackingNumber}
+                      </span>
+                    )
+                  )}
+                </div>
+                <div className="text-right flex flex-col items-end gap-2">
+                  <p className="text-2xl font-black text-ajicolor-magenta">{formatCLP(order.total)}</p>
+                  <span
+                    className={`px-3 py-1 text-[10px] font-bold uppercase ${
+                      isDelivered
+                        ? "bg-ajicolor-green text-white"
+                        : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300"
+                    }`}
+                  >
+                    {order.estado}
+                  </span>
+                </div>
               </div>
-              <div className="text-right flex flex-col items-end gap-2">
-                <p className="text-2xl font-black text-ajicolor-magenta">{formatCLP(order.total)}</p>
-                <span
-                  className={`px-3 py-1 text-[10px] font-bold uppercase ${
-                    isDelivered
-                      ? "bg-ajicolor-green text-white"
-                      : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300"
-                  }`}
-                >
-                  {order.estado}
-                </span>
-              </div>
+              {isDelivered && order.reviewItems.some((item) => !item.yaResenado) && (
+                <ReviewPrompt orderId={order.id} items={order.reviewItems.filter((item) => !item.yaResenado)} />
+              )}
             </div>
           );
         })
       )}
     </div>
+  );
+}
+
+function ReviewPrompt({
+  orderId,
+  items,
+}: {
+  orderId: string;
+  items: OrderReviewItem[];
+}) {
+  const router = useRouter();
+  const [productId, setProductId] = useState(items[0]?.productId ?? "");
+  const [calificacion, setCalificacion] = useState(5);
+  const [comentario, setComentario] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [enviado, setEnviado] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    const { createReview } = await import("@/lib/actions/reviews");
+    const result = await createReview({ orderId, productId, calificacion, comentario: comentario || undefined });
+    setLoading(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    setEnviado(true);
+    router.refresh();
+  }
+
+  if (enviado) {
+    return (
+      <p className="mt-3 text-xs font-semibold text-ajicolor-green">
+        ¡Gracias por tu reseña! Se publicará una vez que la revisemos.
+      </p>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700 space-y-3">
+      <p className="text-xs font-bold uppercase text-gray-500 dark:text-neutral-400">Deja tu reseña</p>
+      <div className="flex flex-wrap gap-3 items-center">
+        {items.length > 1 && (
+          <select
+            value={productId}
+            onChange={(e) => setProductId(e.target.value)}
+            className="border-2 border-ajicolor-ink px-2 py-1 text-xs bg-white dark:bg-neutral-900"
+          >
+            {items.map((item) => (
+              <option key={item.productId} value={item.productId}>
+                {item.nombre}
+              </option>
+            ))}
+          </select>
+        )}
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setCalificacion(n)}
+              className={`text-lg ${n <= calificacion ? "text-ajicolor-magenta" : "text-gray-300 dark:text-neutral-600"}`}
+            >
+              ★
+            </button>
+          ))}
+        </div>
+      </div>
+      <textarea
+        value={comentario}
+        onChange={(e) => setComentario(e.target.value)}
+        placeholder="Cuéntanos qué te pareció (opcional)"
+        rows={2}
+        className="w-full border-2 border-ajicolor-ink px-3 py-2 text-xs"
+      />
+      {error && <p className="text-xs font-semibold text-ajicolor-magenta">{error}</p>}
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn-block bg-ajicolor-yellow text-xs py-2 px-4 disabled:opacity-50"
+      >
+        {loading ? "Enviando..." : "Enviar reseña"}
+      </button>
+    </form>
   );
 }
 
