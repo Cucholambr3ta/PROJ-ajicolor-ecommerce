@@ -20,24 +20,31 @@ export async function getProductById(id: string) {
 }
 
 export async function createProduct(data: {
-  nombreSlug: string;
+  nombre: string;
+  slug: string;
   descripcion: string;
   disenoUrl: string;
   artista: string;
   temporada: string;
   precio: number;
+  costoUnitario?: number;
+  collectionId?: string;
   variants?: { talle: string; color: string; sku: string; stock?: number; stockMin?: number }[];
 }) {
   await requireAdmin();
   const parsed = parseOrThrow(createProductSchema, data);
   const product = await prisma.product.create({
     data: {
-      nombreSlug: parsed.nombreSlug,
+      nombre: parsed.nombre,
+      slug: parsed.slug,
+      nombreSlug: parsed.slug,
       descripcion: parsed.descripcion,
       disenoUrl: parsed.disenoUrl,
       artista: parsed.artista,
       temporada: parsed.temporada,
       precio: parsed.precio,
+      costoUnitario: parsed.costoUnitario,
+      collectionId: parsed.collectionId,
       variants: parsed.variants ? { create: parsed.variants } : undefined,
     },
     include: { variants: true },
@@ -50,12 +57,16 @@ export async function createProduct(data: {
 export async function updateProduct(
   id: string,
   data: {
-    nombreSlug?: string;
+    nombre?: string;
+    slug?: string;
     descripcion?: string;
     disenoUrl?: string;
     artista?: string;
     temporada?: string;
     precio?: number;
+    costoUnitario?: number;
+    activo?: boolean;
+    collectionId?: string | null;
     variants?: {
       id?: string;
       talle: string;

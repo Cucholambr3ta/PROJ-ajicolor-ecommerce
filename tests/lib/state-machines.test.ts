@@ -27,14 +27,19 @@ describe("ORDER_TRANSITIONS", () => {
     expect(ORDER_TRANSITIONS.Cancelado).toEqual([]);
   });
 
-  it("todo estado no terminal puede cancelarse, salvo el último tramo del envío", () => {
+  it("se puede cancelar hasta EnProduccion, pero no una vez listo para enviar", () => {
     expect(ORDER_TRANSITIONS.Pendiente).toContain("Cancelado");
-    expect(ORDER_TRANSITIONS.Confirmado).toContain("Cancelado");
+    expect(ORDER_TRANSITIONS.Pagado).toContain("Cancelado");
     expect(ORDER_TRANSITIONS.EnProduccion).toContain("Cancelado");
+    expect(ORDER_TRANSITIONS.ListoParaEnvio).not.toContain("Cancelado");
   });
 
   it("no se puede saltar directo de Pendiente a Entregado", () => {
     expect(ORDER_TRANSITIONS.Pendiente).not.toContain("Entregado");
+  });
+
+  it("no se puede pasar a EnProduccion sin haber pasado por Pagado", () => {
+    expect(ORDER_TRANSITIONS.Pendiente).not.toContain("EnProduccion");
   });
 });
 
@@ -56,13 +61,20 @@ describe("SHIPMENT_TRANSITIONS", () => {
 describe("BATCH_TRANSITIONS", () => {
   assertValidStateMachine(BATCH_TRANSITIONS, "BATCH_TRANSITIONS");
 
-  it("Recibido es un estado terminal", () => {
+  it("Recibido y Cancelado son estados terminales", () => {
     expect(BATCH_TRANSITIONS.Recibido).toEqual([]);
+    expect(BATCH_TRANSITIONS.Cancelado).toEqual([]);
   });
 
-  it("la secuencia va en un solo sentido: Solicitado → EnProgreso → Completado → Recibido", () => {
-    expect(BATCH_TRANSITIONS.Solicitado).toEqual(["EnProgreso"]);
-    expect(BATCH_TRANSITIONS.EnProgreso).toEqual(["Completado"]);
+  it("la secuencia principal va en un solo sentido: Solicitado → EnProgreso → Completado → Recibido", () => {
+    expect(BATCH_TRANSITIONS.Solicitado).toContain("EnProgreso");
+    expect(BATCH_TRANSITIONS.EnProgreso).toContain("Completado");
     expect(BATCH_TRANSITIONS.Completado).toEqual(["Recibido"]);
+  });
+
+  it("se puede cancelar un lote antes de que esté completado", () => {
+    expect(BATCH_TRANSITIONS.Solicitado).toContain("Cancelado");
+    expect(BATCH_TRANSITIONS.EnProgreso).toContain("Cancelado");
+    expect(BATCH_TRANSITIONS.Completado).not.toContain("Cancelado");
   });
 });

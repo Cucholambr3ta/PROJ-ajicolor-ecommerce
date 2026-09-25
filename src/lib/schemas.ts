@@ -48,12 +48,20 @@ export const updateCustomerSchema = z.object({
 });
 
 export const createProductSchema = z.object({
-  nombreSlug: z.string().trim().min(1).max(200),
+  nombre: z.string().trim().min(1).max(200),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "El slug solo puede tener minúsculas, números y guiones"),
   descripcion: z.string().trim().max(2000),
   disenoUrl: z.string().trim().max(500),
   artista: z.string().trim().max(200),
   temporada: z.string().trim().max(100),
   precio: z.number().nonnegative(),
+  costoUnitario: z.number().nonnegative().optional(),
+  collectionId: z.string().trim().min(1).optional(),
   variants: z
     .array(
       z.object({
@@ -83,9 +91,11 @@ export const adjustStockSchema = z.object({
   descripcion: z.string().trim().max(500).optional(),
 });
 
+export const canalVentaSchema = z.enum(["Web", "Instagram", "WhatsApp", "Feria", "Otro"]);
+
 export const createOrderSchema = z.object({
   customerId: z.string().min(1),
-  canal: z.string().trim().min(1).max(50),
+  canal: canalVentaSchema,
   notas: z.string().trim().max(1000).optional(),
   items: z
     .array(

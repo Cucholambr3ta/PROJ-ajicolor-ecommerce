@@ -5,8 +5,9 @@ import { requireAdmin } from "@/lib/auth-guard";
 import { ORDER_TRANSITIONS } from "@/lib/state-machines";
 import { revalidatePath } from "next/cache";
 import { createOrderSchema, parseOrThrow } from "@/lib/schemas";
+import type { EstadoPedido, CanalVenta } from "@prisma/client";
 
-export async function getOrders(estado?: string) {
+export async function getOrders(estado?: EstadoPedido | "Todos") {
   await requireAdmin();
   return prisma.order.findMany({
     where: estado && estado !== "Todos" ? { estado } : undefined,
@@ -31,7 +32,7 @@ export async function getOrderById(id: string) {
   });
 }
 
-export async function updateOrderStatus(id: string, nuevoEstado: string) {
+export async function updateOrderStatus(id: string, nuevoEstado: EstadoPedido) {
   const session = await requireAdmin();
   const order = await prisma.order.findUnique({
     where: { id },
@@ -46,45 +47,27 @@ export async function updateOrderStatus(id: string, nuevoEstado: string) {
     );
   }
 
-  return prisma.$transaction(async (tx) => {
-    if (nuevoEstado === "Cancelado") {
-      const userId = (session.user as { id?: string } | undefined)?.id;
-      for (const item of order.items) {
-        await tx.productVariant.update({
-          where: { id: item.variantId },
-          data: { stock: { increment: item.cantidad } },
-        });
-        await tx.stockMovement.create({
-          data: {
-            variantId: item.variantId,
-            userId,
-            cantidad: item.cantidad,
-            tipo: "Entrada",
-            origen: "Cancelación",
-            descripcion: `Pedido ${order.id} cancelado`,
-          },
-        });
-      }
-    }
-
+  // TODO(Fase 3): venta bajo pedido — al cancelar ya no hay stock reservado
+  // que devolver (el checkout no descuenta stock). Esta rama queda para
+  // cuando se conecte con la cola de producción y el stock de sobrantes.
+  const updated = await prisma.$transaction(async (tx) => {
     if (nuevoEstado === "Enviado" && !order.shipment) {
       await tx.shipment.create({ data: { orderId: order.id } });
     }
 
-    const updated = await tx.order.update({ where: { id }, data: { estado: nuevoEstado } });
-    return updated;
-  }).then((updated) => {
-    revalidatePath("/admin/pedidos");
-    revalidatePath(`/admin/pedidos/${id}`);
-    revalidatePath("/admin/envios");
-    revalidatePath("/admin");
-    return updated;
+    return tx.order.update({ where: { id }, data: { estado: nuevoEstado } });
   });
+
+  revalidatePath("/admin/pedidos");
+  revalidatePath(`/admin/pedidos/${id}`);
+  revalidatePath("/admin/envios");
+  revalidatePath("/admin");
+  return updated;
 }
 
 export async function createOrder(data: {
   customerId: string;
-  canal: string;
+  canal: CanalVenta;
   notas?: string;
   items: { variantId: string; cantidad: number; precioUnit: number }[];
 }) {
@@ -94,47 +77,48 @@ export async function createOrder(data: {
     (sum, item) => sum + item.cantidad * item.precioUnit,
     0
   );
-  const userId = (session.user as { id?: string } | undefined)?.id;
+  const userId = session.user.id;
 
-  return prisma.$transaction(async (tx) => {
+  // TODO(Fase 3): venta bajo pedido — esta venta manual ya no debería
+  // descontar stock salvo que se esté asignando una pieza ya impresa
+  // (sobrante). Se ajusta junto con el checkout público.
+  const order = await prisma.$transaction(async (tx) => {
     for (const item of parsed.items) {
-      const result = await tx.productVariant.updateMany({
-        where: { id: item.variantId, stock: { gte: item.cantidad } },
-        data: { stock: { decrement: item.cantidad } },
-      });
-      if (result.count === 0) {
-        throw new Error("Sin stock suficiente para una de las variantes seleccionadas");
+      const variant = await tx.productVariant.findUnique({ where: { id: item.variantId } });
+      if (variant && variant.stock > 0) {
+        const result = await tx.productVariant.updateMany({
+          where: { id: item.variantId, stock: { gte: item.cantidad } },
+          data: { stock: { decrement: item.cantidad } },
+        });
+        if (result.count > 0) {
+          await tx.stockMovement.create({
+            data: {
+              variantId: item.variantId,
+              userId,
+              cantidad: -item.cantidad,
+              tipo: "Salida",
+              origen: `Venta ${parsed.canal}`,
+              descripcion: "Venta manual (sobrante)",
+            },
+          });
+        }
       }
     }
 
-    const order = await tx.order.create({
+    return tx.order.create({
       data: {
         customerId: parsed.customerId,
         canal: parsed.canal,
         notas: parsed.notas,
+        subtotal: total,
         total,
         items: { create: parsed.items },
       },
       include: { items: true },
     });
-
-    for (const item of parsed.items) {
-      await tx.stockMovement.create({
-        data: {
-          variantId: item.variantId,
-          userId,
-          cantidad: -item.cantidad,
-          tipo: "Salida",
-          origen: `Venta ${parsed.canal}`,
-          descripcion: `Pedido ${order.id}`,
-        },
-      });
-    }
-
-    return order;
-  }).then((order) => {
-    revalidatePath("/admin/pedidos");
-    revalidatePath("/admin");
-    return order;
   });
+
+  revalidatePath("/admin/pedidos");
+  revalidatePath("/admin");
+  return order;
 }

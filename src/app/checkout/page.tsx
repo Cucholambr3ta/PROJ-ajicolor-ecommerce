@@ -49,7 +49,7 @@ export default async function CheckoutPage() {
       <main className="max-w-3xl mx-auto py-12 p-8">
         <h1 className="text-3xl font-black mb-8 border-b-2 border-ajicolor-ink pb-4">Confirmar compra</h1>
         <CheckoutClient
-          customer={{ nombre: customer.nombre, telefono: customer.telefono, direccion: customer.direccion }}
+          customer={{ nombre: customer.nombre, telefono: customer.telefono ?? "", direccion: customer.direccion ?? "" }}
           items={items}
           subtotal={subtotal}
         />

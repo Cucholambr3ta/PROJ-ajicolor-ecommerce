@@ -5,8 +5,9 @@ import { requireAdmin } from "@/lib/auth-guard";
 import { BATCH_TRANSITIONS } from "@/lib/state-machines";
 import { revalidatePath } from "next/cache";
 import { createBatchSchema, parseOrThrow } from "@/lib/schemas";
+import type { EstadoLote } from "@prisma/client";
 
-export async function getBatches(estado?: string) {
+export async function getBatches(estado?: EstadoLote | "Todos") {
   await requireAdmin();
   return prisma.productionBatch.findMany({
     where: estado && estado !== "Todos" ? { estado } : undefined,
@@ -30,6 +31,9 @@ export async function createBatch(data: {
 }) {
   await requireAdmin();
   const parsed = parseOrThrow(createBatchSchema, data);
+  // TODO(Fase 3): venta bajo pedido — evaluar si sigue teniendo sentido un
+  // mínimo fijo de unidades, o si se reemplaza por agrupar ítems de pedidos
+  // pagados sin piso arbitrario.
   const totalUnidades = parsed.items.reduce((acc, item) => acc + item.cantidad, 0);
   if (totalUnidades < 10) {
     throw new Error("El lote debe tener un mínimo de 10 unidades");
@@ -50,7 +54,7 @@ export async function createBatch(data: {
   return batch;
 }
 
-export async function updateBatchStatus(id: string, nuevoEstado: string, fechaRecepcion?: Date) {
+export async function updateBatchStatus(id: string, nuevoEstado: EstadoLote, fechaRecepcion?: Date) {
   const session = await requireAdmin();
   const batch = await prisma.productionBatch.findUnique({ where: { id }, include: { items: true } });
   if (!batch) throw new Error("Lote no encontrado");
@@ -73,7 +77,7 @@ export async function updateBatchStatus(id: string, nuevoEstado: string, fechaRe
         await tx.stockMovement.create({
           data: {
             variantId: item.variantId,
-            userId: (session.user as { id?: string } | undefined)?.id,
+            userId: session.user.id,
             cantidad: item.cantidad,
             tipo: "Entrada",
             origen: "Producción",
