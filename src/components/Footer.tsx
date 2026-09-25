@@ -8,7 +8,7 @@ export async function Footer() {
   const settings = await getStoreSettings();
   const redes = [
     settings.instagram && { label: "Instagram", href: `https://instagram.com/${settings.instagram}` },
-    settings.facebook && { label: "Facebook", href: `https://facebook.com/${settings.facebook}` },
+    settings.facebook && { label: "Facebook", href: settings.facebook },
     settings.tiktok && { label: "TikTok", href: `https://www.tiktok.com/@${settings.tiktok}` },
   ].filter((r): r is { label: string; href: string } => Boolean(r));
 
@@ -40,8 +40,18 @@ export async function Footer() {
           <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Categorías</h3>
           <ul className="space-y-2 text-sm text-gray-600 dark:text-neutral-300">
             <li>
+              <Link href="/categorias" className="hover:text-ajicolor-magenta">
+                Ver categorías
+              </Link>
+            </li>
+            <li>
+              <Link href="/drops" className="hover:text-ajicolor-magenta">
+                Drops
+              </Link>
+            </li>
+            <li>
               <Link href="/" className="hover:text-ajicolor-magenta">
-                Bandas
+                Catálogo
               </Link>
             </li>
           </ul>
