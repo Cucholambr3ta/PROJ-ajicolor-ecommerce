@@ -6,6 +6,7 @@ import CartIcon from "@/components/CartIcon";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { formatCLP, formatFechaCorta } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Mi perfil", robots: { index: false, follow: false } };
@@ -85,7 +86,7 @@ export default async function PerfilPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>Total gastado</span>
-                  <span className="text-ajicolor-magenta">${Number(customer.totalGastado).toFixed(0)}</span>
+                  <span className="text-ajicolor-magenta">{formatCLP(Number(customer.totalGastado))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Nivel de fan</span>
@@ -118,7 +119,7 @@ export default async function PerfilPage() {
                         {order.items.length} item{order.items.length !== 1 ? "s" : ""}
                       </h3>
                       <p className="text-xs font-medium text-gray-400 dark:text-neutral-500 mb-2">
-                        {order.createdAt.toLocaleDateString()}
+                        {formatFechaCorta(order.createdAt)}
                         {order.shipment?.transportista && ` · ${order.shipment.transportista}`}
                       </p>
                       {!isDelivered && order.shipment?.trackingNumber && (
@@ -139,7 +140,7 @@ export default async function PerfilPage() {
                       )}
                     </div>
                     <div className="text-right flex flex-col items-end gap-2">
-                      <p className="text-2xl font-black text-ajicolor-magenta">${Number(order.total).toFixed(0)}</p>
+                      <p className="text-2xl font-black text-ajicolor-magenta">{formatCLP(Number(order.total))}</p>
                       <span className={`px-3 py-1 text-[10px] font-bold uppercase ${isDelivered ? "bg-ajicolor-green text-white" : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300"}`}>
                         {order.estado}
                       </span>

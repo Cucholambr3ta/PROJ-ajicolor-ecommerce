@@ -23,7 +23,11 @@ export default function RegistroPage() {
 
     try {
       const { registerCustomer } = await import("@/lib/actions/customers");
-      await registerCustomer({ nombre, email, password, telefono, direccion });
+      const result = await registerCustomer({ nombre, email, password, telefono, direccion });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
 
       const res = await signIn("cliente-login", { email, password, redirect: false });
       if (res?.error) {
@@ -31,8 +35,8 @@ export default function RegistroPage() {
         return;
       }
       router.push("/perfil");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al crear la cuenta");
+    } catch {
+      setError("Error al crear la cuenta");
     } finally {
       setLoading(false);
     }
@@ -83,11 +87,12 @@ export default function RegistroPage() {
               id="password"
               type="password"
               required
-              minLength={6}
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
             />
+            <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">Mínimo 8 caracteres.</p>
           </div>
 
           <div>
