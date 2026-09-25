@@ -28,7 +28,7 @@ export async function requireAdmin(): Promise<Session> {
 export async function requireCliente(): Promise<string> {
   const session = await auth();
   if (!session?.user?.id || session.user.rol !== "Cliente") {
-    throw new Error("Debés iniciar sesión como cliente");
+    throw new Error("Debes iniciar sesión como cliente");
   }
   return session.user.id;
 }

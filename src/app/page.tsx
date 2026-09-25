@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { getProducts } from "@/lib/actions/products";
-import CartIcon from "@/components/CartIcon";
-import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -14,28 +12,7 @@ export default async function TiendaPage() {
 
   return (
     <div className="min-h-screen bg-ajicolor-light">
-      <nav className="site-nav">
-        <Link href="/">
-          <Logo />
-        </Link>
-        <div className="hidden lg:flex gap-10 font-bold text-sm text-ajicolor-purple">
-          <Link href="/conoce-al-aji">Conoce al Ají</Link>
-          <Link href="/" className="underline decoration-2 underline-offset-4">
-            Catálogo
-          </Link>
-          <Link href="/contacto">Contacto</Link>
-        </div>
-        <div className="flex items-center gap-5">
-          <Link href="/login" className="text-[10px] font-bold text-gray-300 dark:text-neutral-600 hover:text-gray-500 dark:hover:text-neutral-400 uppercase">
-            Admin
-          </Link>
-          <CartIcon />
-          <Link href="/login-cliente" className="btn-block bg-ajicolor-yellow">
-            Login
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <SiteHeader active="/" />
 
       <section className="max-w-7xl mx-auto p-8 pt-10">
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
