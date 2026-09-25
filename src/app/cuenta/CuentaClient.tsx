@@ -44,6 +44,7 @@ interface Address {
 interface Favorite {
   id: string;
   productId: string;
+  slug: string;
   nombre: string;
   disenoUrl: string;
   precio: number;
@@ -459,7 +460,7 @@ function FavoritosTab({ favorites }: { favorites: Favorite[] }) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={fav.disenoUrl} alt={fav.nombre} className="w-16 h-16 object-cover thick-border" />
           <div className="flex-1">
-            <Link href={`/producto/${fav.productId}`} className="font-black hover:underline">
+            <Link href={`/producto/${fav.slug}`} className="font-black hover:underline">
               {fav.nombre}
             </Link>
             <p className="text-ajicolor-magenta font-black text-sm">{formatCLP(fav.precio)}</p>

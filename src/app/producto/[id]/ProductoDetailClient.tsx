@@ -10,6 +10,12 @@ interface Variant {
   stock: number;
 }
 
+interface ProductImage {
+  id: string;
+  url: string;
+  alt: string | null;
+}
+
 interface Product {
   id: string;
   nombre: string;
@@ -19,9 +25,19 @@ interface Product {
   temporada: string;
   precio: number | any;
   variants: Variant[];
+  images?: ProductImage[];
 }
 
 const TALLES_ORDEN = ["S", "M", "L", "XL", "2XL"];
+const CANTIDAD_MAXIMA = 10;
+
+const MEDIDAS_POR_TALLE: Record<string, { ancho: number; largo: number }> = {
+  S: { ancho: 48, largo: 68 },
+  M: { ancho: 51, largo: 70 },
+  L: { ancho: 54, largo: 72 },
+  XL: { ancho: 57, largo: 74 },
+  "2XL": { ancho: 60, largo: 76 },
+};
 
 const COLOR_HEX: Record<string, string> = {
   Negro: "#1a1a1a",
@@ -38,6 +54,9 @@ const COLOR_HEX: Record<string, string> = {
 export default function ProductoDetailClient({ product }: { product: Product }) {
   const router = useRouter();
 
+  const gallery = product.images && product.images.length > 0 ? product.images : [{ id: "main", url: product.disenoUrl, alt: product.nombre }];
+  const [activeImage, setActiveImage] = useState(0);
+
   const coloresDisponibles = useMemo(
     () => Array.from(new Set(product.variants.map((v) => v.color))),
     [product.variants]
@@ -52,6 +71,8 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
 
   const selectedVariant = tallesDelColor.find((v) => v.talle === selectedTalle);
 
+  const [cantidad, setCantidad] = useState(1);
+  const [showGuia, setShowGuia] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [added, setAdded] = useState(false);
@@ -69,15 +90,11 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
     setAdded(false);
     try {
       const { addToCart } = await import("@/lib/actions/cart");
-      await addToCart(selectedVariant.id, 1);
+      await addToCart(selectedVariant.id, cantidad);
       setAdded(true);
       router.refresh();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error al agregar al carrito";
-      if (message.toLowerCase().includes("iniciar sesión")) {
-        router.push("/login-cliente");
-        return;
-      }
       setError(message);
     } finally {
       setLoading(false);
@@ -92,8 +109,26 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
             <p className="text-center font-black text-sm py-2 border-b-2 border-ajicolor-ink mb-3">Producto</p>
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={product.disenoUrl} alt={product.nombre} className="w-full aspect-square object-cover" />
+              <img
+                src={gallery[activeImage]?.url ?? product.disenoUrl}
+                alt={gallery[activeImage]?.alt ?? product.nombre}
+                className="w-full aspect-square object-cover"
+              />
             </div>
+            {gallery.length > 1 && (
+              <div className="flex gap-2 mt-3 overflow-x-auto">
+                {gallery.map((img, i) => (
+                  <button
+                    key={img.id}
+                    onClick={() => setActiveImage(i)}
+                    className={`w-16 h-16 shrink-0 thick-border overflow-hidden ${i === activeImage ? "ring-2 ring-ajicolor-magenta" : ""}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img.url} alt={img.alt ?? ""} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="flex items-center justify-between mt-3 gap-3">
               <span className="bg-ajicolor-magenta text-white px-4 py-2 text-xs font-black uppercase flex-1 text-center">
                 Dale color!
@@ -129,8 +164,16 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
             ${Number(product.precio).toLocaleString("es-CL")}
           </p>
 
-          <div className="mb-8">
-            <p className="text-xs font-bold uppercase tracking-widest mb-3">Selecciona tu talla</p>
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-bold uppercase tracking-widest">Selecciona tu talla</p>
+              <button
+                onClick={() => setShowGuia((v) => !v)}
+                className="text-xs font-bold text-ajicolor-purple hover:underline"
+              >
+                Guía de tallas
+              </button>
+            </div>
             <div className="flex gap-2 flex-wrap">
               {TALLES_ORDEN.map((talle) => {
                 const variant = tallesDelColor.find((v) => v.talle === talle);
@@ -150,6 +193,28 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                 );
               })}
             </div>
+
+            {showGuia && (
+              <table className="w-full text-xs mt-4 border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-ajicolor-ink text-left">
+                    <th className="py-1">Talla</th>
+                    <th className="py-1">Ancho (cm)</th>
+                    <th className="py-1">Largo (cm)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TALLES_ORDEN.map((talle) => (
+                    <tr key={talle} className="border-b border-gray-200 dark:border-neutral-700">
+                      <td className="py-1 font-bold">{talle}</td>
+                      <td className="py-1">{MEDIDAS_POR_TALLE[talle].ancho}</td>
+                      <td className="py-1">{MEDIDAS_POR_TALLE[talle].largo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
             {selectedVariant && (
               <p className="text-xs text-gray-400 dark:text-neutral-500 font-medium mt-2">
                 {selectedVariant.stock > 0
@@ -157,6 +222,25 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                   : "Se produce en 5 a 7 días hábiles tras confirmar el pago"}
               </p>
             )}
+          </div>
+
+          <div className="mb-8">
+            <p className="text-xs font-bold uppercase tracking-widest mb-3">Cantidad</p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+                className="w-10 h-10 thick-border bg-white dark:bg-neutral-900 font-black"
+              >
+                −
+              </button>
+              <span className="w-10 text-center font-bold text-lg">{cantidad}</span>
+              <button
+                onClick={() => setCantidad((c) => Math.min(CANTIDAD_MAXIMA, c + 1))}
+                className="w-10 h-10 thick-border bg-white dark:bg-neutral-900 font-black"
+              >
+                +
+              </button>
+            </div>
           </div>
 
           <div>

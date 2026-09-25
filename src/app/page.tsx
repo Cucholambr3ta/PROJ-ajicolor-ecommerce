@@ -1,70 +1,117 @@
 import Link from "next/link";
-import { getProducts } from "@/lib/actions/products";
+import Image from "next/image";
+import { getProducts, getFilterOptions, getActiveCollections } from "@/lib/actions/products";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
+import { CatalogFilters } from "@/components/CatalogFilters";
+import { Pagination } from "@/components/Pagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function TiendaPage() {
-  const products = await getProducts();
-  const featured = products[0];
-  const rest = products.slice(1);
+interface SearchParams {
+  q?: string;
+  color?: string;
+  talle?: string;
+  coleccion?: string;
+  orden?: "recientes" | "precio-asc" | "precio-desc";
+  page?: string;
+}
+
+export default async function TiendaPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const sp = await searchParams;
+  const page = sp.page ? parseInt(sp.page, 10) || 1 : 1;
+
+  const [{ items: products, total, totalPages }, { colores, talles }, collections] = await Promise.all([
+    getProducts({
+      q: sp.q,
+      color: sp.color,
+      talle: sp.talle,
+      collectionSlug: sp.coleccion,
+      orden: sp.orden,
+      page,
+    }),
+    getFilterOptions(),
+    getActiveCollections(),
+  ]);
+
+  const hasFilters = !!(sp.q || sp.color || sp.talle || sp.coleccion);
+  const dropActivo = collections.find((c) => !c.fechaCierre || c.fechaCierre > new Date());
 
   return (
     <div className="min-h-screen bg-ajicolor-light">
       <SiteHeader active="/" />
 
       <section className="max-w-7xl mx-auto p-8 pt-10">
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-ajicolor-magenta thick-border p-10 flex flex-col justify-center min-h-[320px]">
-            <h1 className="text-5xl font-black text-white leading-tight mb-2">
-              PRODUCTO
-              <br />
-              AJI COLOR
-            </h1>
-          </div>
-          <div className="grid grid-rows-2 gap-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-ajicolor-purple thick-border p-6 flex items-center justify-center">
-                <p className="text-white text-xl font-black text-center leading-tight">
-                  Le ponemos <span className="text-ajicolor-yellow">color</span>
-                </p>
-              </div>
-              <div className="bg-ajicolor-yellow thick-border p-6 flex items-center justify-center">
-                <p className="text-ajicolor-green text-xl font-black text-center leading-tight">
-                  Merch para tu proyecto
-                </p>
-              </div>
+        {!hasFilters && page === 1 && (
+          <div className="grid lg:grid-cols-2 gap-6 mb-6">
+            <div className="bg-ajicolor-magenta thick-border p-10 flex flex-col justify-center min-h-[320px]">
+              <h1 className="text-5xl font-black text-white leading-tight mb-2">
+                PRODUCTO
+                <br />
+                AJI COLOR
+              </h1>
             </div>
-            <div className="bg-ajicolor-green thick-border p-6 flex items-center justify-center">
-              <p className="text-white text-2xl font-black uppercase tracking-wide text-center">Colecciones exclusivas</p>
+            <div className="grid grid-rows-2 gap-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="bg-ajicolor-purple thick-border p-6 flex items-center justify-center">
+                  <p className="text-white text-xl font-black text-center leading-tight">
+                    Le ponemos <span className="text-ajicolor-yellow">color</span>
+                  </p>
+                </div>
+                <div className="bg-ajicolor-yellow thick-border p-6 flex items-center justify-center">
+                  <p className="text-ajicolor-green text-xl font-black text-center leading-tight">
+                    Merch para tu proyecto
+                  </p>
+                </div>
+              </div>
+              {dropActivo ? (
+                <div className="bg-ajicolor-green thick-border p-6 flex flex-col items-center justify-center text-center">
+                  <p className="text-white text-[10px] font-bold uppercase tracking-widest mb-1">Drop activo</p>
+                  <p className="text-white text-2xl font-black uppercase tracking-wide">{dropActivo.nombre}</p>
+                </div>
+              ) : (
+                <div className="bg-ajicolor-green thick-border p-6 flex items-center justify-center">
+                  <p className="text-white text-2xl font-black uppercase tracking-wide text-center">
+                    Colecciones exclusivas
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-
-        {featured && (
-          <Link href={`/producto/${featured.id}`} className="block card overflow-hidden mb-16">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={featured.disenoUrl} alt={featured.nombre} className="w-full max-h-72 object-cover" />
-          </Link>
         )}
 
-        <div className="flex justify-between items-end mb-8 border-b-2 border-ajicolor-ink pb-4">
-          <h2 className="text-3xl font-black">Novedades</h2>
+        <div className="flex justify-between items-end mb-6 border-b-2 border-ajicolor-ink pb-4">
+          <h2 className="text-3xl font-black">{hasFilters ? "Resultados" : "Novedades"}</h2>
+          <span className="text-xs font-bold text-gray-400 dark:text-neutral-500 uppercase">
+            {total} producto{total !== 1 ? "s" : ""}
+          </span>
         </div>
 
+        <CatalogFilters
+          colores={colores}
+          talles={talles}
+          collections={collections.map((c) => ({ slug: c.slug, nombre: c.nombre }))}
+        />
+
         {products.length === 0 ? (
-          <p className="text-center text-gray-400 dark:text-neutral-500 font-medium py-20">No hay productos disponibles todavía.</p>
+          <p className="text-center text-gray-400 dark:text-neutral-500 font-medium py-20">
+            No encontramos productos con esos filtros.
+          </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-20">
-            {rest.map((product) => (
-              <Link key={product.id} href={`/producto/${product.id}`} className="card overflow-hidden flex flex-col">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-6">
+            {products.map((product) => (
+              <Link key={product.id} href={`/producto/${product.slug}`} className="card overflow-hidden flex flex-col">
                 <div className="bg-gray-100 dark:bg-neutral-800 relative overflow-hidden aspect-square">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={product.disenoUrl}
                     alt={product.nombre}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover"
                   />
                 </div>
                 <div className="p-4">
@@ -78,6 +125,13 @@ export default async function TiendaPage() {
             ))}
           </div>
         )}
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          basePath="/"
+          searchParams={{ q: sp.q, color: sp.color, talle: sp.talle, coleccion: sp.coleccion, orden: sp.orden }}
+        />
       </section>
 
       <Footer />

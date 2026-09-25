@@ -14,6 +14,12 @@ interface VariantInput {
   stockMin: number;
 }
 
+interface ProductImageData {
+  id: string;
+  url: string;
+  alt: string | null;
+}
+
 export default function ProductoFormClient({
   initialData,
 }: {
@@ -27,6 +33,7 @@ export default function ProductoFormClient({
     temporada: string;
     precio: number | any;
     variants: { id: string; talle: string; color: string; sku: string; stock: number; stockMin: number }[];
+    images?: ProductImageData[];
   };
 }) {
   const router = useRouter();
@@ -62,6 +69,35 @@ export default function ProductoFormClient({
     })) ?? [{ talle: "", color: "", sku: "", stock: 0, stockMin: 5 }]
   );
   const [error, setError] = useState("");
+  const [images, setImages] = useState<ProductImageData[]>(initialData?.images ?? []);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleUploadImages(files: FileList | null) {
+    if (!files || files.length === 0 || !initialData) return;
+    setUploading(true);
+    setError("");
+    try {
+      const { addProductImages } = await import("@/lib/actions/products");
+      const formData = new FormData();
+      for (const file of Array.from(files)) formData.append("files", file);
+      const created = await addProductImages(initialData.id, formData);
+      setImages((prev) => [...prev, ...created]);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al subir imágenes");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleRemoveImage(imageId: string) {
+    try {
+      const { removeProductImage } = await import("@/lib/actions/products");
+      await removeProductImage(imageId);
+      setImages((prev) => prev.filter((img) => img.id !== imageId));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al eliminar imagen");
+    }
+  }
 
   function addVariant() {
     setVariants([...variants, { talle: "", color: "", sku: "", stock: 0, stockMin: 5 }]);
@@ -214,6 +250,38 @@ export default function ProductoFormClient({
             </div>
           </div>
         </Card>
+
+        {isEdit && (
+          <Card className="p-6 mb-6">
+            <h2 className="font-semibold text-gray-700 mb-4 dark:text-neutral-200">Galería de imágenes</h2>
+            <div className="flex flex-wrap gap-3 mb-4">
+              {images.map((img) => (
+                <div key={img.id} className="relative w-24 h-24 thick-border overflow-hidden group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={img.url} alt={img.alt ?? ""} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(img.id)}
+                    className="absolute top-0 right-0 bg-red-500 text-white w-6 h-6 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            <label className="inline-block px-4 py-2 rounded-md btn-block bg-white dark:bg-neutral-900 cursor-pointer">
+              {uploading ? "Subiendo..." : "+ Subir imágenes"}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={uploading}
+                onChange={(e) => handleUploadImages(e.target.files)}
+                className="hidden"
+              />
+            </label>
+          </Card>
+        )}
 
         <Card className="p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
