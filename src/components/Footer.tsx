@@ -4,7 +4,7 @@ import { Logo } from "@/components/Logo";
 export function Footer() {
   return (
     <footer className="bg-white dark:bg-neutral-900 border-t-2 border-ajicolor-ink">
-      <div className="max-w-7xl mx-auto px-8 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-8 py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
         <div>
           <Logo className="h-8 w-auto mb-4" />
           <p className="text-xs text-gray-500 dark:text-neutral-400 leading-relaxed">
@@ -66,6 +66,42 @@ export function Footer() {
               <Link href="/privacidad" className="hover:text-ajicolor-magenta">
                 Política de privacidad
               </Link>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Síguenos</h3>
+          <ul className="space-y-2 text-sm text-gray-600 dark:text-neutral-300">
+            <li>
+              <a
+                href="https://instagram.com/el_aji_color_estampados"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-ajicolor-magenta"
+              >
+                Instagram
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://www.facebook.com/search/top?q=el%20aji%20color%20dise%C3%B1o%20y%20estampados"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-ajicolor-magenta"
+              >
+                Facebook
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://www.tiktok.com/@el.aji.color.esta"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-ajicolor-magenta"
+              >
+                TikTok
+              </a>
             </li>
           </ul>
         </div>

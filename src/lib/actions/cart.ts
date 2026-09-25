@@ -90,7 +90,7 @@ export async function removeFromCart(itemId: string) {
   return prisma.cartItem.delete({ where: { id: itemId } });
 }
 
-const COSTO_ENVIO = 5000;
+const COSTO_ENVIO = 3000; // Correos de Chile a sucursal, tarifa fija
 
 export async function checkout(direccionInput: {
   nombre: string;
