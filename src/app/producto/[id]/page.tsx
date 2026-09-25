@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { getProductById } from "@/lib/actions/products";
-import CartIcon from "@/components/CartIcon";
-import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteHeader } from "@/components/SiteHeader";
 import ProductoDetailClient from "./ProductoDetailClient";
 
 export const dynamic = "force-dynamic";
@@ -42,23 +39,7 @@ export default async function ProductoPage({
 
   return (
     <div className="min-h-screen bg-ajicolor-light">
-      <nav className="site-nav">
-        <Link href="/">
-          <Logo />
-        </Link>
-        <div className="hidden lg:flex gap-10 font-bold text-sm text-ajicolor-purple">
-          <Link href="/conoce-al-aji">Conoce al Ají</Link>
-          <Link href="/">Catálogo</Link>
-          <Link href="/contacto">Contacto</Link>
-        </div>
-        <div className="flex items-center gap-4">
-          <CartIcon />
-          <Link href="/" className="font-bold text-xs uppercase hover:underline">
-            ← Volver al catálogo
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <SiteHeader active="/" />
 
       <ProductoDetailClient product={{ ...product, precio: Number(product.precio) }} />
 

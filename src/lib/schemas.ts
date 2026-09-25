@@ -75,6 +75,30 @@ export const createProductSchema = z.object({
     .optional(),
 });
 
+export const updateOwnProfileSchema = z.object({
+  nombre: z.string().trim().min(1, "El nombre es obligatorio").max(200),
+  telefono: z.string().trim().max(30).optional(),
+  direccion: z.string().trim().max(300).optional(),
+});
+
+export const changePasswordSchema = z
+  .object({
+    passwordActual: z.string().min(1, "Ingresa tu contraseña actual"),
+    passwordNueva: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(200),
+  })
+  .strict();
+
+export const addressSchema = z.object({
+  etiqueta: z.string().trim().max(50).optional(),
+  nombre: z.string().trim().min(1, "El nombre es obligatorio").max(200),
+  telefono: z.string().trim().min(1, "El teléfono es obligatorio").max(30),
+  calle: z.string().trim().min(1, "La calle es obligatoria").max(200),
+  numero: z.string().trim().min(1, "El número es obligatorio").max(20),
+  comuna: z.string().trim().min(1, "La comuna es obligatoria").max(100),
+  region: z.string().trim().min(1, "La región es obligatoria").max(100),
+  esPrincipal: z.boolean().optional(),
+});
+
 export const createSupplierSchema = z.object({
   nombre: z.string().trim().min(1).max(200),
   contacto: z.string().trim().min(1).max(200),

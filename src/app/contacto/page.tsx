@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteHeader } from "@/components/SiteHeader";
 import { getStoreSettings } from "@/lib/actions/settings";
 
 export const dynamic = "force-dynamic";
@@ -17,17 +15,7 @@ export default async function ContactoPage() {
 
   return (
     <div className="min-h-screen bg-ajicolor-light flex flex-col">
-      <nav className="site-nav">
-        <Link href="/">
-          <Logo />
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/" className="font-bold text-xs uppercase hover:underline">
-            ← Volver a la tienda
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <SiteHeader active="/contacto" />
 
       <main className="max-w-3xl mx-auto py-16 p-8 flex-1">
         <h1 className="text-4xl font-black mb-8 border-b-2 border-ajicolor-ink pb-4">Contacto</h1>

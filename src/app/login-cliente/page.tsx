@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { Logo } from "@/components/Logo";
+import { GoogleButton } from "@/components/GoogleButton";
 
 export default function LoginClientePage() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function LoginClientePage() {
       return;
     }
 
-    router.push("/perfil");
+    router.push("/cuenta");
   }
 
   return (
@@ -81,6 +82,14 @@ export default function LoginClientePage() {
             {loading ? "Ingresando..." : "Login"}
           </button>
         </form>
+
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-700" />
+          <span className="text-xs font-bold uppercase text-gray-400 dark:text-neutral-500">o</span>
+          <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-700" />
+        </div>
+
+        <GoogleButton callbackUrl="/cuenta" />
 
         <div className="flex justify-between mt-6">
           <Link href="/" className="text-xs font-bold uppercase hover:underline">

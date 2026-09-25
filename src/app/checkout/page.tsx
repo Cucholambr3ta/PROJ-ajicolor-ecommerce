@@ -5,9 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { getCart } from "@/lib/actions/cart";
 import { getStoreSettings } from "@/lib/actions/settings";
 import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteHeader } from "@/components/SiteHeader";
 import CheckoutClient from "./CheckoutClient";
 
 export const dynamic = "force-dynamic";
@@ -36,19 +35,12 @@ export default async function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-ajicolor-light">
-      <nav className="site-nav">
-        <Link href="/">
-          <Logo />
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/carrito" className="font-bold text-xs uppercase hover:underline">
-            ← Volver al carrito
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <SiteHeader />
 
       <main className="max-w-3xl mx-auto py-12 p-8">
+        <Link href="/carrito" className="inline-block font-bold text-xs uppercase hover:underline mb-4">
+          ← Volver al carrito
+        </Link>
         <h1 className="text-3xl font-black mb-8 border-b-2 border-ajicolor-ink pb-4">Confirmar compra</h1>
         <CheckoutClient
           customer={{ nombre: customer.nombre, telefono: customer.telefono ?? "", direccion: customer.direccion ?? "" }}
