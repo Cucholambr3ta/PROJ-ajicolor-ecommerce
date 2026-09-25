@@ -16,12 +16,20 @@ const roboto = localFont({
   variable: "--font-roboto",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ajicolor.cl";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Ajicolor — Poleras de bandas",
     template: "%s | Ajicolor",
   },
   description: "Poleras exclusivas de bandas y artistas, hechas en Chile. Colecciones limitadas para melómanos.",
+  openGraph: {
+    type: "website",
+    siteName: "Ajicolor",
+    locale: "es_CL",
+  },
 };
 
 export default function RootLayout({
