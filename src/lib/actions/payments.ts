@@ -24,6 +24,19 @@ const reportPaymentSchema = z.object({
   comprobanteUrl: z.string().trim().max(500).optional(),
 });
 
+/** Sube el comprobante de pago (bucket privado) y devuelve la URL firmada para guardar en el Payment. */
+export async function uploadPaymentReceipt(orderId: string, formData: FormData) {
+  const customerId = await requireCliente();
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order || order.customerId !== customerId) throw new Error("Pedido no encontrado");
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Selecciona un archivo");
+
+  const { uploadComprobante } = await import("@/lib/storage");
+  return uploadComprobante(file, orderId);
+}
+
 /** El cliente informa que hizo la transferencia (con o sin comprobante todavía). */
 export async function reportPayment(data: {
   orderId: string;
