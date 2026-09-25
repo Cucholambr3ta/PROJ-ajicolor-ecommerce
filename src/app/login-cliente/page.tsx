@@ -70,6 +70,9 @@ export default function LoginClientePage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
             />
+            <Link href="/recuperar" className="block text-right text-xs font-bold text-ajicolor-magenta hover:underline mt-2">
+              ¿Olvidaste tu contraseña?
+            </Link>
           </div>
 
           {error && <p className="text-sm font-semibold text-ajicolor-magenta">{error}</p>}

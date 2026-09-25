@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
 import { updateCustomerSchema, registerCustomerSchema, parseOrThrow } from "@/lib/schemas";
 import { type ActionResult, toActionResult } from "@/lib/action-result";
+import { sendVerificationEmail } from "@/lib/actions/auth-recovery";
 
 export async function getCustomers() {
   await requireAdmin();
@@ -115,6 +116,8 @@ export async function registerCustomer(data: {
         direccion: parsed.direccion,
       },
     });
+
+    await sendVerificationEmail(customer.id);
 
     return { id: customer.id, email: customer.email };
   });
