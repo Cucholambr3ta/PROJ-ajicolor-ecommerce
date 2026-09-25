@@ -19,6 +19,7 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [q, setQ] = useState("");
 
   async function handleDelete(id: string) {
     if (!confirm("¿Eliminar este producto y todas sus variantes?")) return;
@@ -28,6 +29,14 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
     setDeleting(null);
     startTransition(() => router.refresh());
   }
+
+  const filtrados = q.trim()
+    ? productos.filter(
+        (p) =>
+          p.nombre.toLowerCase().includes(q.toLowerCase()) ||
+          p.artista.toLowerCase().includes(q.toLowerCase())
+      )
+    : productos;
 
   return (
     <div>
@@ -40,8 +49,17 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
           + Nuevo producto
         </Link>
       </div>
+
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Buscar por nombre o artista..."
+        className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 mb-4"
+      />
+
       <Card>
-        {productos.length === 0 ? (
+        {filtrados.length === 0 ? (
           <div className="p-4 text-center text-gray-500 dark:text-neutral-400">No hay productos para mostrar.</div>
         ) : (
           <table className="w-full text-sm">
@@ -56,7 +74,7 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
               </tr>
             </thead>
             <tbody>
-              {productos.map((p) => (
+              {filtrados.map((p) => (
                 <tr key={p.id} className="border-b last:border-0 dark:border-neutral-700">
                   <td className="p-4">
                     <Link href={`/admin/catalogo/${p.id}`} className="font-medium hover:underline">
@@ -75,7 +93,7 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
                   <td className="p-4 text-right">
                     <div className="flex gap-2 justify-end">
                       <Link
-                        href={`/admin/catalogo/${p.id}`}
+                        href={`/admin/catalogo/nuevo?edit=${p.id}`}
                         className="px-3 py-1.5 rounded-md btn-block bg-white dark:bg-neutral-900"
                       >
                         Editar

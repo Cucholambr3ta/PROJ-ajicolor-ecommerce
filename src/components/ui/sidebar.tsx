@@ -19,6 +19,8 @@ import {
   Sparkles,
   Ticket,
   Star,
+  Boxes,
+  History,
 } from "lucide-react";
 
 const navItems = [
@@ -26,6 +28,7 @@ const navItems = [
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
   { href: "/admin/produccion", label: "Producción", icon: Package },
   { href: "/admin/proveedores", label: "Proveedores", icon: Factory },
+  { href: "/admin/insumos", label: "Insumos", icon: Boxes },
   { href: "/admin/stock", label: "Stock", icon: Warehouse },
   { href: "/admin/envios", label: "Envíos", icon: Truck },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
@@ -34,6 +37,7 @@ const navItems = [
   { href: "/admin/cupones", label: "Cupones", icon: Ticket },
   { href: "/admin/resenas", label: "Reseñas", icon: Star },
   { href: "/admin/reportes", label: "Reportes", icon: BarChart3 },
+  { href: "/admin/auditoria", label: "Auditoría", icon: History },
   { href: "/admin/configuracion", label: "Configuración", icon: Settings },
   { href: "/admin/seguridad", label: "Seguridad", icon: ShieldCheck },
 ];

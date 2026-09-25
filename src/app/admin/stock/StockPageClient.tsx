@@ -15,6 +15,16 @@ interface Variant {
   stockMin: number;
 }
 
+interface Movement {
+  id: string;
+  cantidad: number;
+  tipo: string;
+  origen: string;
+  descripcion: string | null;
+  createdAt: Date;
+  user: { email: string } | null;
+}
+
 export default function StockPageClient({ variants }: { variants: Variant[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -24,6 +34,22 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
   const [origen, setOrigen] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [error, setError] = useState("");
+  const [historyFor, setHistoryFor] = useState<string | null>(null);
+  const [movements, setMovements] = useState<Movement[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  async function handleShowHistory(variantId: string) {
+    if (historyFor === variantId) {
+      setHistoryFor(null);
+      return;
+    }
+    setHistoryFor(variantId);
+    setLoadingHistory(true);
+    const { getStockMovements } = await import("@/lib/actions/stock");
+    const data = await getStockMovements(variantId);
+    setMovements(data);
+    setLoadingHistory(false);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,27 +81,67 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
         ) : (
           <div className="divide-y">
             {variants.map((v) => (
-              <div key={v.id} className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{v.product.nombre}</p>
-                  <p className="text-sm text-gray-500 dark:text-neutral-400">
-                    {v.talle} / {v.color} — SKU: {v.sku}
-                  </p>
-                </div>
-                <div className="text-right flex items-center gap-3">
+              <div key={v.id}>
+                <div className="p-4 flex items-center justify-between">
                   <div>
-                    <span className="font-bold">{v.stock} u.</span>
-                    {v.stock <= v.stockMin && (
-                      <Badge variant="destructive" className="ml-2">Bajo</Badge>
+                    <p className="font-medium">{v.product.nombre}</p>
+                    <p className="text-sm text-gray-500 dark:text-neutral-400">
+                      {v.talle} / {v.color} — SKU: {v.sku}
+                    </p>
+                  </div>
+                  <div className="text-right flex items-center gap-3">
+                    <div>
+                      <span className="font-bold">{v.stock} u.</span>
+                      {v.stock <= v.stockMin && (
+                        <Badge variant="destructive" className="ml-2">Bajo</Badge>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleShowHistory(v.id)}
+                      className="px-3 py-1.5 rounded-md border border-gray-300 dark:border-neutral-700 text-xs font-medium hover:bg-gray-50 dark:hover:bg-neutral-800"
+                    >
+                      {historyFor === v.id ? "Ocultar historial" : "Ver historial"}
+                    </button>
+                    <button
+                      onClick={() => setModal({ open: true, variant: v })}
+                      className="px-3 py-1.5 rounded-md bg-ajicolor-magenta text-white text-xs font-medium hover:opacity-90 transition-opacity"
+                    >
+                      Ajustar stock
+                    </button>
+                  </div>
+                </div>
+                {historyFor === v.id && (
+                  <div className="px-4 pb-4">
+                    {loadingHistory ? (
+                      <p className="text-xs text-gray-400 dark:text-neutral-500">Cargando...</p>
+                    ) : movements.length === 0 ? (
+                      <p className="text-xs text-gray-400 dark:text-neutral-500">Sin movimientos registrados.</p>
+                    ) : (
+                      <table className="w-full text-xs bg-gray-50 dark:bg-neutral-800 rounded-md">
+                        <thead>
+                          <tr className="text-left text-gray-500 dark:text-neutral-400">
+                            <th className="p-2">Fecha</th>
+                            <th className="p-2">Tipo</th>
+                            <th className="p-2 text-right">Cantidad</th>
+                            <th className="p-2">Origen</th>
+                            <th className="p-2">Usuario</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {movements.map((m) => (
+                            <tr key={m.id} className="border-t border-gray-200 dark:border-neutral-700">
+                              <td className="p-2">{new Date(m.createdAt).toLocaleDateString("es-CL")}</td>
+                              <td className="p-2">{m.tipo}</td>
+                              <td className="p-2 text-right font-mono">{m.cantidad > 0 ? `+${m.cantidad}` : m.cantidad}</td>
+                              <td className="p-2">{m.origen}</td>
+                              <td className="p-2 text-gray-500 dark:text-neutral-400">{m.user?.email ?? "—"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     )}
                   </div>
-                  <button
-                    onClick={() => setModal({ open: true, variant: v })}
-                    className="px-3 py-1.5 rounded-md bg-ajicolor-magenta text-white text-xs font-medium hover:opacity-90 transition-opacity"
-                  >
-                    Ajustar stock
-                  </button>
-                </div>
+                )}
               </div>
             ))}
           </div>

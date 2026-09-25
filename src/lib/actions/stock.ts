@@ -5,6 +5,15 @@ import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
 import { adjustStockSchema, parseOrThrow } from "@/lib/schemas";
 
+export async function getStockMovements(variantId: string) {
+  await requireAdmin();
+  return prisma.stockMovement.findMany({
+    where: { variantId },
+    include: { user: { select: { email: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 export async function getLowStock() {
   await requireAdmin();
   const variants = await prisma.productVariant.findMany({
@@ -20,7 +29,7 @@ export async function adjustStock(
   origenInput: string,
   descripcionInput?: string
 ) {
-  await requireAdmin();
+  const session = await requireAdmin();
   const { variantId, cantidad, tipo, origen, descripcion } = parseOrThrow(adjustStockSchema, {
     variantId: variantIdInput,
     cantidad: cantidadInput,
@@ -45,6 +54,7 @@ export async function adjustStock(
     prisma.stockMovement.create({
       data: {
         variantId,
+        userId: session.user.id,
         cantidad,
         tipo,
         origen,
