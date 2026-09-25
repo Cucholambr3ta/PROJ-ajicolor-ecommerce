@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { GoogleButton } from "@/components/GoogleButton";
@@ -159,6 +160,10 @@ function LoginForm({ onClose }: { onClose: () => void }) {
       </div>
 
       <GoogleButton callbackUrl="/cuenta" />
+
+      <div className="flex justify-center pt-2">
+        <Image src="/iconos/aji-login.png" alt="" width={120} height={120} className="w-28 h-28 object-contain" />
+      </div>
     </div>
   );
 }
@@ -295,6 +300,10 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
       </div>
 
       <GoogleButton callbackUrl="/cuenta" />
+
+      <div className="flex justify-center pt-2">
+        <Image src="/iconos/aji-registro.png" alt="" width={120} height={120} className="w-28 h-28 object-contain" />
+      </div>
     </div>
   );
 }
