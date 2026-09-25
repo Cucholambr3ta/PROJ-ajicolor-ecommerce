@@ -31,7 +31,7 @@ export function SiteHeaderMobileMenu({ isCliente }: { isCliente: boolean }) {
 
       {open && (
         <div className="absolute left-0 right-0 top-full bg-white dark:bg-neutral-900 border-t-2 border-ajicolor-ink shadow-lg z-50">
-          <div className="flex flex-col p-4 gap-1 font-bold text-sm text-ajicolor-purple">
+          <div className="flex flex-col p-4 gap-1 font-bold text-sm text-ajicolor-purple dark:text-neutral-100">
             {LINKS.map((link) => (
               <Link
                 key={link.href}

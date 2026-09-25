@@ -64,7 +64,7 @@ export async function SiteHeader({ active }: { active?: string }) {
         </div>
       </div>
 
-      <div className="site-nav-bottom hidden lg:flex font-bold text-sm text-ajicolor-purple">
+      <div className="site-nav-bottom hidden lg:flex font-bold text-sm text-ajicolor-purple dark:text-neutral-100">
         {NAV_LINKS.map((link) => (
           <Link
             key={link.href}

@@ -19,7 +19,7 @@ export default function DevolucionesPage() {
         <h1 className="text-4xl font-black border-b-2 border-ajicolor-ink pb-4">Cambios y devoluciones</h1>
 
         <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
-          <h2 className="text-xl font-black text-ajicolor-purple">Derecho a retracto</h2>
+          <h2 className="text-xl font-black text-ajicolor-purple dark:text-neutral-100">Derecho a retracto</h2>
           <p className="text-sm leading-relaxed">
             De acuerdo al Artículo 3 bis de la Ley N° 19.496 sobre Protección de los Derechos de los
             Consumidores, en toda compra realizada a distancia (como esta tienda online) el cliente tiene
@@ -34,7 +34,7 @@ export default function DevolucionesPage() {
         </section>
 
         <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
-          <h2 className="text-xl font-black text-ajicolor-purple">Cambios de talla</h2>
+          <h2 className="text-xl font-black text-ajicolor-purple dark:text-neutral-100">Cambios de talla</h2>
           <p className="text-sm leading-relaxed">
             Si el talle no corresponde, puedes solicitar un cambio dentro de los 10 días corridos posteriores
             a la recepción, sujeto a disponibilidad de stock. El producto debe estar sin uso y con etiquetas.
@@ -42,7 +42,7 @@ export default function DevolucionesPage() {
         </section>
 
         <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
-          <h2 className="text-xl font-black text-ajicolor-purple">Garantía legal</h2>
+          <h2 className="text-xl font-black text-ajicolor-purple dark:text-neutral-100">Garantía legal</h2>
           <p className="text-sm leading-relaxed">
             Todo producto cuenta con la garantía legal establecida en el Artículo 20 de la Ley N° 19.496.
             Si el producto presenta fallas de fabricación, podés solicitar reparación, cambio o devolución
@@ -51,7 +51,7 @@ export default function DevolucionesPage() {
         </section>
 
         <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
-          <h2 className="text-xl font-black text-ajicolor-purple">Tiempos de producción</h2>
+          <h2 className="text-xl font-black text-ajicolor-purple dark:text-neutral-100">Tiempos de producción</h2>
           <p className="text-sm leading-relaxed">
             Todas nuestras poleras son 100% serigrafía, hechas por encargo. Una vez confirmado el pago, el
             plazo de producción es de <strong>5 a 7 días hábiles</strong> antes del despacho.
@@ -59,7 +59,7 @@ export default function DevolucionesPage() {
         </section>
 
         <section className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-4">
-          <h2 className="text-xl font-black text-ajicolor-purple">Cómo solicitar un cambio o devolución</h2>
+          <h2 className="text-xl font-black text-ajicolor-purple dark:text-neutral-100">Cómo solicitar un cambio o devolución</h2>
           <p className="text-sm leading-relaxed">
             Escríbenos a través de la sección{" "}
             <Link href="/contacto" className="text-ajicolor-magenta underline">
