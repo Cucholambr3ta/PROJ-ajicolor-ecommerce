@@ -9,15 +9,20 @@
     --yellow: #ffd141;
     --green: #1ea96a;
     --ink: #1a1a1a;
+    --border-ink: #1a1a1a;
     --bg-light: #fafafa;
     --card-bg: #ffffff;
     --border-width: 2px;
   }
 
+  /* Modo oscuro: grafito, no negro puro. El texto se aclara para
+     contraste, pero --border-ink se mantiene oscuro a propósito —
+     bordes y sombras "pop" nunca se invierten a blanco. */
   .dark {
     --ink: #f2f2f2;
-    --bg-light: #121212;
-    --card-bg: #1e1e1e;
+    --border-ink: #0a0a0a;
+    --bg-light: #22252a;
+    --card-bg: #2c2f36;
   }
 
   body {
@@ -29,27 +34,34 @@
 
 @layer components {
   .thick-border {
-    border: var(--border-width) solid var(--ink);
+    border: var(--border-width) solid var(--border-ink);
   }
 
   .pop-shadow {
-    box-shadow: 6px 6px 0px var(--ink);
+    box-shadow: 6px 6px 0px var(--border-ink);
   }
 
   .pop-shadow-sm {
-    box-shadow: 3px 3px 0px var(--ink);
+    box-shadow: 3px 3px 0px var(--border-ink);
   }
 
+  /* Tarjetas de producto: en modo oscuro se mantienen en un tono
+     pastel/beige (nunca oscuras) para destacar sobre el fondo grafito. */
   .card {
     background: var(--card-bg);
-    border: var(--border-width) solid var(--ink);
-    box-shadow: 6px 6px 0px var(--ink);
+    border: var(--border-width) solid var(--border-ink);
+    box-shadow: 6px 6px 0px var(--border-ink);
     transition: transform 0.15s, box-shadow 0.15s, background-color 0.2s;
+  }
+
+  .dark .card {
+    background: #f5ead9;
+    color: #1a1a1a;
   }
 
   .card:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0px var(--ink);
+    box-shadow: 8px 8px 0px var(--border-ink);
   }
 
   .btn-block {
@@ -62,26 +74,26 @@
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.02em;
-    border: var(--border-width) solid var(--ink);
-    box-shadow: 4px 4px 0px var(--ink);
+    border: var(--border-width) solid var(--border-ink);
+    box-shadow: 4px 4px 0px var(--border-ink);
     transition: transform 0.15s, box-shadow 0.15s;
   }
 
   .btn-block:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px var(--ink);
+    box-shadow: 6px 6px 0px var(--border-ink);
   }
 
   .btn-block:active {
     transform: translate(1px, 1px);
-    box-shadow: 2px 2px 0px var(--ink);
+    box-shadow: 2px 2px 0px var(--border-ink);
   }
 
   .site-nav {
     display: flex;
     flex-direction: column;
     background: var(--card-bg);
-    border-bottom: var(--border-width) solid var(--ink);
+    border-bottom: var(--border-width) solid var(--border-ink);
     position: sticky;
     top: 0;
     z-index: 50;

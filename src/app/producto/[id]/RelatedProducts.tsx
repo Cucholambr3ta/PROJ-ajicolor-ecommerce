@@ -16,7 +16,7 @@ export default function RelatedProducts({ products }: { products: RelatedProduct
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
         {products.map((product) => (
           <Link key={product.id} href={`/producto/${product.slug}`} className="card overflow-hidden flex flex-col">
-            <div className="bg-gray-100 dark:bg-neutral-800 relative overflow-hidden aspect-square">
+            <div className="bg-gray-100 relative overflow-hidden aspect-square">
               <Image
                 src={product.disenoUrl}
                 alt={product.nombre}

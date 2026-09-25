@@ -117,7 +117,7 @@ export default async function TiendaPage({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-6">
             {products.map((product) => (
               <Link key={product.id} href={`/producto/${product.slug}`} className="card overflow-hidden flex flex-col">
-                <div className="bg-gray-100 dark:bg-neutral-800 relative overflow-hidden aspect-square">
+                <div className="bg-gray-100 relative overflow-hidden aspect-square">
                   <Image
                     src={product.disenoUrl}
                     alt={product.nombre}
@@ -128,7 +128,7 @@ export default async function TiendaPage({
                 </div>
                 <div className="p-4">
                   <h3 className="font-black">{product.nombre}</h3>
-                  <p className="text-xs font-medium text-gray-400 dark:text-neutral-500 italic mb-2">{product.temporada}</p>
+                  <p className="text-xs font-medium text-gray-500 italic mb-2">{product.temporada}</p>
                   <p className="text-ajicolor-magenta font-black">
                     ${Number(product.precio).toLocaleString("es-CL")}
                   </p>
