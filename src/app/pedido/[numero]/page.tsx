@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteHeader } from "@/components/SiteHeader";
 import { getStoreSettings } from "@/lib/actions/settings";
 import { formatCLP } from "@/lib/format";
 import ReportarPagoForm from "./ReportarPagoForm";
@@ -51,17 +49,7 @@ export default async function PedidoConfirmacionPage({
 
   return (
     <div className="min-h-screen bg-ajicolor-light">
-      <nav className="site-nav">
-        <Link href="/">
-          <Logo />
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/perfil" className="font-bold text-xs uppercase hover:underline">
-            Ir a mi perfil
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <SiteHeader />
 
       <main className="max-w-2xl mx-auto py-16 p-8 text-center">
         <div className="w-20 h-20 rounded-full bg-ajicolor-green mx-auto mb-6 flex items-center justify-center text-white text-4xl font-black">

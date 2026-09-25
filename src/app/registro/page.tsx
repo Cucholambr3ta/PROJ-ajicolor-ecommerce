@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { Logo } from "@/components/Logo";
+import { GoogleButton } from "@/components/GoogleButton";
 
 export default function RegistroPage() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function RegistroPage() {
         router.push("/login-cliente");
         return;
       }
-      router.push("/perfil");
+      router.push("/cuenta");
     } catch {
       setError("Error al crear la cuenta");
     } finally {
@@ -133,6 +134,14 @@ export default function RegistroPage() {
             {loading ? "Creando cuenta..." : "Crear cuenta"}
           </button>
         </form>
+
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-700" />
+          <span className="text-xs font-bold uppercase text-gray-400 dark:text-neutral-500">o</span>
+          <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-700" />
+        </div>
+
+        <GoogleButton callbackUrl="/cuenta" />
 
         <Link href="/login-cliente" className="block text-center text-xs font-bold uppercase mt-6 hover:underline">
           Ya tengo cuenta

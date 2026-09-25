@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { getCart } from "@/lib/actions/cart";
 import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteHeader } from "@/components/SiteHeader";
 import CarritoClient from "./CarritoClient";
 
 export const dynamic = "force-dynamic";
@@ -23,19 +22,12 @@ export default async function CarritoPage() {
 
   return (
     <div className="min-h-screen bg-ajicolor-light">
-      <nav className="site-nav">
-        <Link href="/">
-          <Logo />
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/" className="font-bold text-xs uppercase hover:underline">
-            ← Seguir comprando
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <SiteHeader active="/" />
 
       <main className="max-w-3xl mx-auto py-12 p-8">
+        <Link href="/" className="inline-block font-bold text-xs uppercase hover:underline mb-4">
+          ← Seguir comprando
+        </Link>
         <h1 className="text-3xl font-black mb-8 border-b-2 border-ajicolor-ink pb-4">Mi carrito</h1>
         <CarritoClient items={items} total={total} />
       </main>
