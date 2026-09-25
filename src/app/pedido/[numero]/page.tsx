@@ -21,6 +21,12 @@ const ESTADO_LABELS: Record<string, string> = {
   Cancelado: "Cancelado",
 };
 
+const TRACKING_URLS: Record<string, (t: string) => string> = {
+  Chilexpress: (t) => `https://www.chilexpress.cl/seguimiento/${t}`,
+  Starken: (t) => `https://www.starken.cl/seguimiento?codigo=${t}`,
+  "Correos de Chile": (t) => `https://www.correos.cl/seguimiento/${t}`,
+};
+
 export default async function PedidoConfirmacionPage({
   params,
 }: {
@@ -38,6 +44,7 @@ export default async function PedidoConfirmacionPage({
     include: {
       items: { include: { variant: { include: { product: true } } } },
       payments: { orderBy: { createdAt: "desc" } },
+      shipment: true,
     },
   });
 
@@ -143,6 +150,30 @@ export default async function PedidoConfirmacionPage({
 
             <ReportarPagoForm orderId={order.id} monto={Number(order.total)} />
           </>
+        )}
+
+        {order.shipment?.trackingNumber && order.shipment.transportista && TRACKING_URLS[order.shipment.transportista] && (
+          <a
+            href={TRACKING_URLS[order.shipment.transportista](order.shipment.trackingNumber)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-block bg-ajicolor-yellow inline-flex mt-6"
+          >
+            Sigue tu envío
+          </a>
+        )}
+
+        {settings.whatsapp && (
+          <a
+            href={`https://wa.me/${settings.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
+              `Hola, tengo una consulta sobre mi pedido #${String(order.numero).padStart(4, "0")}`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block mt-6 text-sm font-bold text-ajicolor-green hover:underline"
+          >
+            ¿Dudas sobre tu pedido? Escríbenos por WhatsApp
+          </a>
         )}
       </main>
 

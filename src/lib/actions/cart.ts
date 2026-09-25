@@ -202,8 +202,10 @@ export async function checkout(direccionInput: {
   comuna: string;
   region: string;
   metodoEnvio?: MetodoEnvio;
+  couponCode?: string;
+  notas?: string;
 }) {
-  const { metodoEnvio: metodoEnvioInput, ...direccionData } = direccionInput;
+  const { metodoEnvio: metodoEnvioInput, couponCode, notas, ...direccionData } = direccionInput;
   const direccion = parseOrThrow(checkoutAddressSchema, direccionData);
   const metodoEnvio: MetodoEnvio = metodoEnvioInput ?? "CorreosSucursal";
 
@@ -225,8 +227,20 @@ export async function checkout(direccionInput: {
     (acc, item) => acc + Number(item.variant.product.precio) * item.cantidad,
     0
   );
-  const costoEnvio = await costoEnvioPara(metodoEnvio);
-  const total = subtotal + costoEnvio;
+  let costoEnvio = await costoEnvioPara(metodoEnvio);
+
+  let couponId: string | undefined;
+  let descuento = 0;
+  if (couponCode) {
+    const { validateCoupon } = await import("@/lib/actions/coupons");
+    const result = await validateCoupon(couponCode, subtotal);
+    if (!result.ok) throw new Error(result.error);
+    couponId = result.data.id;
+    descuento = result.data.descuento;
+    if (result.data.tipo === "envio_gratis") costoEnvio = 0;
+  }
+
+  const total = Math.max(0, subtotal - descuento + costoEnvio);
 
   // Venta bajo pedido: NO se descuenta stock al comprar. El pedido queda
   // Pendiente/PendienteTransferencia hasta que el admin confirme el pago
@@ -238,7 +252,10 @@ export async function checkout(direccionInput: {
         customerId,
         subtotal,
         costoEnvio,
+        descuento,
         total,
+        couponId,
+        notas,
         estado: "Pendiente",
         estadoPago: "PendienteTransferencia",
         canal: "Web",
@@ -261,6 +278,10 @@ export async function checkout(direccionInput: {
     });
 
     await tx.cartItem.deleteMany({ where: { cartId: cartWithItems.id } });
+
+    if (couponId) {
+      await tx.coupon.update({ where: { id: couponId }, data: { usosActuales: { increment: 1 } } });
+    }
 
     return newOrder;
   });

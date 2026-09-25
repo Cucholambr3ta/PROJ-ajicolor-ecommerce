@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { getStoreSettings } from "@/lib/actions/settings";
+import { WhatsAppFloatButton } from "@/components/WhatsAppFloatButton";
 
 export async function Footer() {
   const settings = await getStoreSettings();
@@ -11,6 +12,8 @@ export async function Footer() {
   ].filter((r): r is { label: string; href: string } => Boolean(r));
 
   return (
+    <>
+      <WhatsAppFloatButton />
     <footer className="bg-white dark:bg-neutral-900 border-t-2 border-ajicolor-ink">
       <div className="max-w-7xl mx-auto px-8 py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
         <div>
@@ -105,5 +108,6 @@ export async function Footer() {
         </div>
       </div>
     </footer>
+    </>
   );
 }
