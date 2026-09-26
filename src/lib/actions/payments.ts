@@ -8,6 +8,12 @@ import { getStoreSettings } from "@/lib/actions/settings";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { parseOrThrow } from "@/lib/schemas";
+import { sendEmail } from "@/lib/email/send";
+import {
+  comprobanteRecibidoTemplate,
+  avisoComprobanteSubidoDuenoTemplate,
+  pagoConfirmadoTemplate,
+} from "@/lib/email/templates";
 
 const reportPaymentSchema = z.object({
   orderId: z.string().min(1),
@@ -30,7 +36,7 @@ export async function reportPayment(data: {
   const customerId = await requireCliente();
   const parsed = parseOrThrow(reportPaymentSchema, data);
 
-  const order = await prisma.order.findUnique({ where: { id: parsed.orderId } });
+  const order = await prisma.order.findUnique({ where: { id: parsed.orderId }, include: { customer: true } });
   if (!order || order.customerId !== customerId) throw new Error("Pedido no encontrado");
   if (order.estadoPago === "Pagado") throw new Error("Este pedido ya fue pagado");
 
@@ -50,6 +56,18 @@ export async function reportPayment(data: {
     return created;
   });
 
+  const settings = await getStoreSettings();
+  await sendEmail({
+    to: order.customer.email,
+    ...comprobanteRecibidoTemplate({ nombre: order.customer.nombre, numero: order.numero }),
+  });
+  if (settings.emailContacto) {
+    await sendEmail({
+      to: settings.emailContacto,
+      ...avisoComprobanteSubidoDuenoTemplate({ numero: order.numero, nombreCliente: order.customer.nombre }),
+    });
+  }
+
   revalidatePath(`/pedido/${order.numero}`);
   revalidatePath("/admin/pedidos");
   revalidatePath("/admin");
@@ -63,7 +81,7 @@ export async function confirmPayment(paymentId: string) {
 
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },
-    include: { order: true },
+    include: { order: { include: { customer: true } } },
   });
   if (!payment) throw new Error("Comprobante no encontrado");
   if (payment.order.estadoPago === "Pagado") throw new Error("Este pedido ya fue confirmado");
@@ -102,6 +120,15 @@ export async function confirmPayment(paymentId: string) {
     entidadId: updated.id,
     accion: "confirmar_pago",
     payload: { paymentId, monto: Number(payment.monto) },
+  });
+
+  await sendEmail({
+    to: payment.order.customer.email,
+    ...pagoConfirmadoTemplate({
+      nombre: payment.order.customer.nombre,
+      numero: updated.numero,
+      fechaCompromiso: updated.fechaCompromiso,
+    }),
   });
 
   revalidatePath("/admin/pedidos");
