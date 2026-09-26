@@ -67,7 +67,7 @@ export default async function PedidoConfirmacionPage({
         <p className="text-gray-500 dark:text-neutral-400 mb-2">
           Orden <span className="font-black text-ajicolor-magenta">#{String(order.numero).padStart(4, "0")}</span>
         </p>
-        <p className="text-sm font-bold uppercase tracking-wide text-ajicolor-purple mb-8">
+        <p className="text-sm font-bold uppercase tracking-wide text-ajicolor-purple dark:text-neutral-100 mb-8">
           {ESTADO_LABELS[order.estado] ?? order.estado}
         </p>
 

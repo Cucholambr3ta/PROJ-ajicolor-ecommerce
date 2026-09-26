@@ -434,7 +434,7 @@ function DireccionesTab({ addresses }: { addresses: Address[] }) {
           </div>
           <div className="flex flex-col gap-2 text-xs font-bold uppercase">
             {!addr.esPrincipal && (
-              <button onClick={() => handleSetPrincipal(addr.id)} className="text-ajicolor-purple hover:underline">
+              <button onClick={() => handleSetPrincipal(addr.id)} className="text-ajicolor-purple dark:text-neutral-100 hover:underline">
                 Hacer principal
               </button>
             )}

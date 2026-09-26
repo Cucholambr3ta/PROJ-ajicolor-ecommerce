@@ -19,7 +19,7 @@ export default function TerminosPage() {
         <h1 className="text-4xl font-black border-b-2 border-ajicolor-ink pb-4">Términos y condiciones</h1>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-black text-ajicolor-purple">1. Identificación del proveedor</h2>
+          <h2 className="text-lg font-black text-ajicolor-purple dark:text-neutral-100">1. Identificación del proveedor</h2>
           <p className="text-sm leading-relaxed">
             <strong>[COMPLETAR]</strong>, RUT <strong>[COMPLETAR]</strong>, con domicilio en{" "}
             <strong>[COMPLETAR]</strong>, opera este sitio bajo el nombre comercial Ajicolor.
@@ -27,7 +27,7 @@ export default function TerminosPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-black text-ajicolor-purple">2. Aceptación de los términos</h2>
+          <h2 className="text-lg font-black text-ajicolor-purple dark:text-neutral-100">2. Aceptación de los términos</h2>
           <p className="text-sm leading-relaxed">
             Al utilizar este sitio y realizar una compra, el usuario acepta estos términos y condiciones,
             así como la Política de Privacidad y la Política de Cambios y Devoluciones.
@@ -35,7 +35,7 @@ export default function TerminosPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-black text-ajicolor-purple">3. Productos y precios</h2>
+          <h2 className="text-lg font-black text-ajicolor-purple dark:text-neutral-100">3. Productos y precios</h2>
           <p className="text-sm leading-relaxed">
             Los precios publicados están expresados en pesos chilenos (CLP) e incluyen IVA cuando corresponda.
             Ajicolor se reserva el derecho de modificar precios y disponibilidad de stock sin previo aviso,
@@ -44,7 +44,7 @@ export default function TerminosPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-black text-ajicolor-purple">4. Proceso de compra</h2>
+          <h2 className="text-lg font-black text-ajicolor-purple dark:text-neutral-100">4. Proceso de compra</h2>
           <p className="text-sm leading-relaxed">
             El usuario debe registrarse con datos verídicos. Al confirmar un pedido, se genera una orden de
             compra sujeta a disponibilidad de stock. El contrato de compraventa se perfecciona al confirmar
@@ -53,7 +53,7 @@ export default function TerminosPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-black text-ajicolor-purple">5. Derecho a retracto y garantía legal</h2>
+          <h2 className="text-lg font-black text-ajicolor-purple dark:text-neutral-100">5. Derecho a retracto y garantía legal</h2>
           <p className="text-sm leading-relaxed">
             Consulta el detalle completo en nuestra página de{" "}
             <Link href="/devoluciones" className="text-ajicolor-magenta underline">
@@ -64,7 +64,7 @@ export default function TerminosPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-black text-ajicolor-purple">6. Envíos</h2>
+          <h2 className="text-lg font-black text-ajicolor-purple dark:text-neutral-100">6. Envíos</h2>
           <p className="text-sm leading-relaxed">
             Los plazos y costos de envío se informan al momento de la compra. Ajicolor no se responsabiliza
             por retrasos atribuibles a la empresa de transporte una vez despachado el pedido.
@@ -72,7 +72,7 @@ export default function TerminosPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-black text-ajicolor-purple">7. Propiedad intelectual</h2>
+          <h2 className="text-lg font-black text-ajicolor-purple dark:text-neutral-100">7. Propiedad intelectual</h2>
           <p className="text-sm leading-relaxed">
             Todo el contenido de este sitio (logo, diseños, imágenes) es propiedad de Ajicolor o de sus
             respectivos licenciantes y no puede reproducirse sin autorización.
@@ -80,7 +80,7 @@ export default function TerminosPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-black text-ajicolor-purple">8. Ley aplicable</h2>
+          <h2 className="text-lg font-black text-ajicolor-purple dark:text-neutral-100">8. Ley aplicable</h2>
           <p className="text-sm leading-relaxed">
             Estos términos se rigen por las leyes de la República de Chile, en particular la Ley N° 19.496
             sobre Protección de los Derechos de los Consumidores.
