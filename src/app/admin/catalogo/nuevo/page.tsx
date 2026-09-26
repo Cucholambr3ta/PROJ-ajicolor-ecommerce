@@ -14,7 +14,7 @@ export default async function NuevoProductoPage({
   if (edit) {
     const product = await prisma.product.findUnique({
       where: { id: edit },
-      include: { variants: true },
+      include: { variants: true, images: { orderBy: { orden: "asc" } } },
     });
     if (!product) notFound();
     return <ProductoFormClient initialData={product} />;

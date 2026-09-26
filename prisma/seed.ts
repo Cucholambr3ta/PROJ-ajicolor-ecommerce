@@ -1,7 +1,22 @@
 import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcryptjs';
+import { readdirSync } from 'fs';
+import { join } from 'path';
 
 const prisma = new PrismaClient();
+
+function tituloDesdeSlug(slug: string): string {
+  return slug
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+// Set de prueba: cada diseño es UN producto con 3 variantes de color (negro,
+// blanco, gris) × 5 talles. El gris reutiliza el arte claro hasta que llegue
+// el arte real (confirmado con el dueño: este catálogo es solo de prueba).
+const TALLES = ['S', 'M', 'L', 'XL', '2XL'];
+const COLORES = ['Negro', 'Blanco', 'Gris'] as const;
 
 async function main() {
   console.log('Seeding database...');
@@ -20,13 +35,16 @@ async function main() {
   console.log(`Admin: ${admin.email}`);
 
   // Customers
+  const customerPasswordHash = await hash('cliente123', 12);
   const customers = await Promise.all([
     prisma.customer.create({
       data: {
         nombre: 'Camila Reyes',
         email: 'camila@test.cl',
+        passwordHash: customerPasswordHash,
         telefono: '+56912345678',
         direccion: 'Santiago, Chile',
+        backstagePass: true,
       },
     }),
     prisma.customer.create({
@@ -48,136 +66,276 @@ async function main() {
   ]);
   console.log(`Customers: ${customers.length}`);
 
-  // Products
-  const products = await Promise.all([
-    prisma.product.create({
-      data: {
-        nombreSlug: 'bass-line-anthem',
-        descripcion: 'Polera Bass Line Anthem - Colección The Music Drop',
-        disenoUrl: 'https://via.placeholder.com/600x800?text=BASS+LINE+TEE',
-        artista: 'Ajicolor Studio',
-        temporada: 'The Music Drop 2026',
-      },
-    }),
-    prisma.product.create({
-      data: {
-        nombreSlug: 'funk-master-hoodie',
-        descripcion: 'Polera Funk Master Hoodie - Colección The Music Drop',
-        disenoUrl: 'https://via.placeholder.com/600x800?text=FUNK+MASTER',
-        artista: 'Ajicolor Studio',
-        temporada: 'The Music Drop 2026',
-      },
-    }),
-    prisma.product.create({
-      data: {
-        nombreSlug: 'jazz-cat-pop-art',
-        descripcion: 'Polera Jazz Cat Pop Art - Colección The Music Drop',
-        disenoUrl: 'https://via.placeholder.com/600x800?text=JAZZ+CAT+POP',
-        artista: 'Ajicolor Studio',
-        temporada: 'The Music Drop 2026',
-      },
-    }),
-  ]);
-  console.log(`Products: ${products.length}`);
+  // Colección activa del mes
+  const collection = await prisma.collection.create({
+    data: {
+      nombre: 'Drop Clásicos del Rock',
+      slug: 'drop-clasicos-del-rock',
+      descripcion: 'Colección de lanzamiento — poleras 100% serigrafía, tiraje limitado.',
+      fechaLanzamiento: new Date(),
+      fechaCierre: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      activa: true,
+    },
+  });
+  console.log(`Collection: ${collection.nombre}`);
 
-  // Variants
-  const sizes = ['S', 'M', 'L', 'XL'];
-  const colors = ['Negro', 'Blanco'];
-  const allVariants = [];
+  // Un producto por diseño (arte de negras/, reusado como imagen principal;
+  // claras/ se agrega como segunda imagen de galería)
+  const publicDir = join(__dirname, '..', 'public', 'productos');
+  const disenos = readdirSync(join(publicDir, 'negras'));
 
-  for (const product of products) {
-    for (const color of colors) {
-      for (const size of sizes) {
+  const products = [];
+  const allVariants: { id: string; color: string; talle: string }[] = [];
+
+  for (let i = 0; i < disenos.length; i++) {
+    const file = disenos[i];
+    const slugBase = file.replace(/\.png$/, '');
+    const slug = slugBase;
+    const nombre = tituloDesdeSlug(slugBase);
+    const disenoUrl = `/productos/negras/${file}`;
+    const disenoClaro = `/productos/claras/${file}`;
+
+    const product = await prisma.product.create({
+      data: {
+        nombre,
+        slug,
+        nombreSlug: `${slugBase}-negro`, // compat con datos legados
+        descripcion: `Polera ${nombre} — 100% serigrafía, tiraje limitado.`,
+        disenoUrl,
+        artista: nombre,
+        temporada: 'Bandas 2026',
+        precio: 16990,
+        costoUnitario: 5500,
+        collectionId: collection.id,
+        images: {
+          create: [
+            { url: disenoUrl, alt: `${nombre} negro`, orden: 0 },
+            { url: disenoClaro, alt: `${nombre} claro`, orden: 1 },
+          ],
+        },
+      },
+    });
+    products.push(product);
+
+    const skuBase = `AJI${(i + 1).toString().padStart(3, '0')}`;
+    for (const color of COLORES) {
+      for (const talle of TALLES) {
         const variant = await prisma.productVariant.create({
           data: {
             productId: product.id,
-            talle: size,
+            talle,
             color,
-            sku: `${product.nombreSlug.toUpperCase().slice(0, 3)}-${size}-${color.slice(0, 3).toUpperCase()}`,
-            stock: Math.floor(Math.random() * 20) + 5,
+            sku: `${skuBase}-${talle}-${color.slice(0, 3).toUpperCase()}`,
+            // Bajo pedido: stock 0 por defecto, salvo un puñado de piezas
+            // ya impresas (sobrantes) que se marcan aparte más abajo.
+            stock: 0,
           },
         });
-        allVariants.push(variant);
+        allVariants.push({ id: variant.id, color: variant.color, talle: variant.talle });
       }
     }
   }
+  console.log(`Products: ${products.length}`);
   console.log(`Variants: ${allVariants.length}`);
 
-  // Orders
-  const orderData = [
-    { customerId: customers[0].id, total: 32000, estado: 'Pendiente', canal: 'Instagram' },
-    { customerId: customers[1].id, total: 45000, estado: 'En Producción', canal: 'WhatsApp' },
-    { customerId: customers[2].id, total: 32000, estado: 'Enviado', canal: 'Feria' },
-    { customerId: customers[0].id, total: 64000, estado: 'Entregado', canal: 'Instagram' },
-    { customerId: customers[1].id, total: 32000, estado: 'Pendiente', canal: 'WhatsApp' },
-    { customerId: customers[2].id, total: 45000, estado: 'En Producción', canal: 'Feria' },
+  // Suppliers
+  const supplierTextil = await prisma.supplier.create({
+    data: {
+      nombre: 'Textil SpA',
+      contacto: 'contacto@textilspa.cl',
+      email: 'contacto@textilspa.cl',
+      telefono: '+56221234567',
+      tipo: 'insumos',
+      leadTimeDias: 14,
+      costoBase: 25000,
+      calificacion: 4,
+    },
+  });
+  await prisma.supplier.create({
+    data: {
+      nombre: 'Estampados del Sur',
+      contacto: 'ventas@estampadosdelsur.cl',
+      email: 'ventas@estampadosdelsur.cl',
+      telefono: '+56229876543',
+      tipo: 'taller',
+      leadTimeDias: 10,
+      costoBase: 18000,
+      calificacion: 5,
+    },
+  });
+  console.log('Suppliers: 2');
+
+  // Insumos (materiales)
+  await prisma.material.createMany({
+    data: [
+      { nombre: 'Polera lisa algodón', unidad: 'unidad', stock: 120, costo: 3200 },
+      { nombre: 'Tinta plastisol negra', unidad: 'litro', stock: 8, costo: 15000 },
+      { nombre: 'Tinta plastisol blanca', unidad: 'litro', stock: 5, costo: 16000 },
+    ],
+  });
+  console.log('Materials: 3');
+
+  // Pedidos de ejemplo cubriendo el flujo real: pendiente de pago, pagado,
+  // en producción, listo, enviado, entregado, cancelado.
+  const pick = () => allVariants[Math.floor(Math.random() * allVariants.length)];
+
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+
+  const orderSeeds = [
+    { customerId: customers[0].id, canal: 'Web' as const, estado: 'Pendiente' as const, estadoPago: 'PendienteTransferencia' as const },
+    { customerId: customers[1].id, canal: 'Instagram' as const, estado: 'Pagado' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 1 * day) },
+    { customerId: customers[2].id, canal: 'WhatsApp' as const, estado: 'EnProduccion' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 3 * day) },
+    { customerId: customers[0].id, canal: 'Web' as const, estado: 'ListoParaEnvio' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 6 * day) },
+    { customerId: customers[1].id, canal: 'Feria' as const, estado: 'Enviado' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 9 * day) },
+    { customerId: customers[2].id, canal: 'Web' as const, estado: 'Entregado' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 15 * day) },
+    { customerId: customers[0].id, canal: 'Instagram' as const, estado: 'Cancelado' as const, estadoPago: 'PendienteTransferencia' as const },
   ];
 
   const orders = [];
-  for (const o of orderData) {
+  for (const seed of orderSeeds) {
+    const variant = pick();
+    const precioUnit = 16990;
+    const cantidad = 1;
+    const subtotal = precioUnit * cantidad;
+    const costoEnvio = 3000;
+
     const order = await prisma.order.create({
       data: {
-        customerId: o.customerId,
-        total: o.total,
-        estado: o.estado,
-        canal: o.canal,
-        notas: `Pedido ${o.estado}`,
+        customerId: seed.customerId,
+        canal: seed.canal,
+        estado: seed.estado,
+        estadoPago: seed.estadoPago,
+        subtotal,
+        costoEnvio,
+        total: subtotal + costoEnvio,
+        metodoEnvio: 'CorreosSucursal',
+        pagadoAt: 'pagadoAt' in seed ? seed.pagadoAt : null,
+        fechaCompromiso: 'pagadoAt' in seed && seed.pagadoAt ? new Date(seed.pagadoAt.getTime() + 7 * day) : null,
+        envioNombre: 'Cliente de Prueba',
+        envioTelefono: '+56912345678',
+        envioCalle: 'Av. Siempre Viva',
+        envioNumero: '123',
+        envioComuna: 'Providencia',
+        envioRegion: 'Región Metropolitana',
+        notas: `Pedido de ejemplo — ${seed.estado}`,
         items: {
           create: {
-            variantId: allVariants[Math.floor(Math.random() * allVariants.length)].id,
-            cantidad: 1,
-            precioUnit: o.total,
+            variantId: variant.id,
+            cantidad,
+            precioUnit,
+            costoUnit: 5500,
           },
         },
       },
     });
-    orders.push(order);
+    orders.push({ ...order, estado: seed.estado });
+
+    if (seed.estado !== 'Pendiente' && seed.estado !== 'Cancelado') {
+      await prisma.payment.create({
+        data: {
+          orderId: order.id,
+          monto: order.total,
+          banco: 'Tenpo',
+          referencia: `REF-${order.numero}`,
+          estado: 'Pagado',
+          confirmadoPorId: admin.id,
+          confirmadoAt: 'pagadoAt' in seed ? seed.pagadoAt : new Date(),
+        },
+      });
+    }
   }
   console.log(`Orders: ${orders.length}`);
 
-  // Shipments for shipped/delivered orders
-  const shippedOrders = orders.filter(o => ['Enviado', 'Entregado'].includes(o.estado));
-  for (const order of shippedOrders) {
+  // Envíos para pedidos que ya avanzaron
+  const conEnvio = orders.filter((o) => ['ListoParaEnvio', 'Enviado', 'Entregado'].includes(o.estado));
+  for (const order of conEnvio) {
+    const estadoEnvio =
+      order.estado === 'Entregado' ? 'Entregado' : order.estado === 'Enviado' ? 'EnTransito' : 'Preparando';
     await prisma.shipment.create({
       data: {
         orderId: order.id,
-        trackingNumber: `SK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
-        transportista: 'Chilexpress',
-        costo: 5000,
-        fechaDespacho: new Date(),
-        fechaEstimada: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        estado: order.estado === 'Entregado' ? 'Entregado' : 'En Tránsito',
+        metodo: 'CorreosSucursal',
+        trackingNumber: estadoEnvio === 'Preparando' ? null : `SK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
+        transportista: 'Correos de Chile',
+        sucursal: 'Providencia',
+        costo: 3000,
+        fechaDespacho: estadoEnvio === 'Preparando' ? null : new Date(now - 2 * day),
+        fechaEstimada: new Date(now + 2 * day),
+        fechaEntrega: order.estado === 'Entregado' ? new Date(now - 1 * day) : null,
+        estado: estadoEnvio,
       },
     });
   }
-  console.log(`Shipments: ${shippedOrders.length}`);
+  console.log(`Shipments: ${conEnvio.length}`);
 
-  // Production batch
-  await prisma.productionBatch.create({
-    data: {
-      proveedor: 'Textil SpA',
-      variantes: allVariants.slice(0, 8).map(v => v.sku).join(', '),
-      unidadesPorVar: '10',
-      costoTotal: 280000,
-      fechaEstimada: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-      estado: 'En Progreso',
-    },
-  });
-  console.log('Production batch created');
+  // Lote de producción vinculado a ítems de pedidos pagados (bajo pedido real)
+  const enProduccion = orders.find((o) => o.estado === 'EnProduccion');
+  if (enProduccion) {
+    const orderItem = await prisma.orderItem.findFirst({ where: { orderId: enProduccion.id } });
+    if (orderItem) {
+      await prisma.productionBatch.create({
+        data: {
+          supplierId: supplierTextil.id,
+          costoTotal: 5500,
+          fechaEstimada: new Date(now + 4 * day),
+          estado: 'EnProgreso',
+          items: {
+            create: {
+              variantId: orderItem.variantId,
+              orderItemId: orderItem.id,
+              cantidad: orderItem.cantidad,
+              costoUnitario: 5500,
+            },
+          },
+        },
+      });
+      console.log('Production batch created (linked to order item)');
+    }
+  }
 
-  // Stock movements
-  for (const v of allVariants.slice(0, 8)) {
+  // Stock de piezas ya impresas (sobrantes de feria) — el resto del catálogo
+  // queda en 0 porque el negocio es bajo pedido.
+  const sobrantes = allVariants.slice(0, 6);
+  for (const v of sobrantes) {
+    await prisma.productVariant.update({ where: { id: v.id }, data: { stock: 3 } });
     await prisma.stockMovement.create({
       data: {
         variantId: v.id,
-        cantidad: 20,
+        userId: admin.id,
+        cantidad: 3,
         tipo: 'Entrada',
-        origen: 'Producción',
-        descripcion: 'Producción inicial The Music Drop',
+        origen: 'Sobrante de feria',
+        descripcion: 'Piezas ya impresas disponibles para despacho inmediato',
       },
     });
   }
-  console.log('Stock movements created');
+  console.log(`Stock movements: ${sobrantes.length} (sobrantes de feria)`);
+
+  // Configuración de la tienda con los datos reales ya recibidos del dueño
+  await prisma.storeSettings.upsert({
+    where: { id: 'default' },
+    update: {},
+    create: {
+      id: 'default',
+      emailContacto: 'ajicolorserigrafia28@gmail.com',
+      telefonoContacto: '+56978283064',
+      whatsapp: '+56978283064',
+      instagram: 'el_aji_color_estampados',
+      facebook: 'https://www.facebook.com/people/El-aji-color-dise%C3%B1o-y-estampados/100070478673256/',
+      tiktok: 'el.aji.color.esta',
+      horarioAtencion: 'Lunes a viernes 09:00–19:00 hrs, sábado 09:00–14:00 hrs',
+      bancoTitular: 'Camilo Alexander Morales Opazo',
+      bancoRut: '17.070.384-7',
+      bancoNombre: 'Tenpo',
+      bancoTipoCuenta: 'Cuenta Vista',
+      bancoNumeroCuenta: '111117070384',
+      bancoEmail: 'camilomoralesopazo@gmail.com',
+      costoEnvioCorreos: 3000,
+      plazoProduccionDias: 7,
+    },
+  });
+  console.log('Store settings created');
 
   console.log('Seed complete!');
 }

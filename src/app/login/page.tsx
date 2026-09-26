@@ -3,11 +3,14 @@
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { Logo } from "@/components/Logo";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [totpToken, setTotpToken] = useState("");
+  const [needsTotp, setNeedsTotp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,16 +19,35 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const res = await signIn("credentials", {
+    if (!needsTotp) {
+      try {
+        const check = await fetch("/api/auth/check-2fa", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }).then((r) => r.json());
+
+        if (check.totpEnabled) {
+          setNeedsTotp(true);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // Si falla la verificación, seguimos al login normal — authorize() valida igual.
+      }
+    }
+
+    const res = await signIn("admin-login", {
       email,
       password,
+      totpToken,
       redirect: false,
     });
 
     setLoading(false);
 
     if (res?.error) {
-      setError("Credenciales inválidas");
+      setError(needsTotp ? "Código 2FA inválido" : "Credenciales inválidas");
       return;
     }
 
@@ -33,15 +55,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-2xl font-bold text-center text-ajicolor-magenta mb-6">
-          Ajicolor Admin
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-ajicolor-light dark:bg-[var(--bg-light)] p-6">
+      <div className="w-full max-w-sm bg-white dark:bg-neutral-900 thick-border pop-shadow p-10">
+        <div className="flex justify-center mb-1">
+          <Logo />
+        </div>
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-8">Admin</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wide mb-2">
               Email
             </label>
             <input
@@ -50,34 +73,52 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta/50 focus:border-ajicolor-magenta"
+              className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wide mb-2">
               Contraseña
             </label>
             <input
               id="password"
               type="password"
               required
+              disabled={needsTotp}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta/50 focus:border-ajicolor-magenta"
+              className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta disabled:bg-gray-100 dark:disabled:bg-neutral-800"
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-red-600">{error}</p>
+          {needsTotp && (
+            <div>
+              <label htmlFor="totpToken" className="block text-xs font-bold uppercase tracking-wide mb-2">
+                Código de autenticación (2FA)
+              </label>
+              <input
+                id="totpToken"
+                type="text"
+                inputMode="numeric"
+                autoFocus
+                required
+                maxLength={6}
+                value={totpToken}
+                onChange={(e) => setTotpToken(e.target.value)}
+                className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+              />
+            </div>
           )}
+
+          {error && <p className="text-sm font-semibold text-ajicolor-magenta">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-ajicolor-magenta text-white py-2 rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+            className="btn-block w-full bg-ajicolor-yellow justify-center py-3 disabled:opacity-50"
           >
-            {loading ? "Ingresando..." : "Ingresar"}
+            {loading ? (needsTotp ? "Verificando..." : "Ingresando...") : "Login"}
           </button>
         </form>
       </div>

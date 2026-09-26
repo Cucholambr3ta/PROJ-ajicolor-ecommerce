@@ -5,15 +5,22 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import type { EstadoEnvio } from "@prisma/client";
 
 const ESTADOS = ["Todos", "Preparando", "Despachado", "EnTransito", "Entregado", "Devuelto"];
 
 const ESTADO_COLORS: Record<string, string> = {
-  Preparando: "bg-yellow-100 text-yellow-800",
-  Despachado: "bg-blue-100 text-blue-800",
-  EnTransito: "bg-purple-100 text-purple-800",
-  Entregado: "bg-green-100 text-green-800",
-  Devuelto: "bg-red-100 text-red-800",
+  Preparando: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  Despachado: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  EnTransito: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  Entregado: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  Devuelto: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+};
+
+const NEXT: Partial<Record<EstadoEnvio, EstadoEnvio>> = {
+  Preparando: "Despachado",
+  Despachado: "EnTransito",
+  EnTransito: "Entregado",
 };
 
 interface Shipment {
@@ -21,7 +28,7 @@ interface Shipment {
   orderId: string;
   trackingNumber: string | null;
   transportista: string | null;
-  estado: string;
+  estado: EstadoEnvio;
   fechaDespacho: any;
   fechaEstimada: any;
   fechaEntrega: any;
@@ -42,13 +49,7 @@ export default function EnviosPageClient({
   const [isPending, startTransition] = useTransition();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const NEXT: Record<string, string> = {
-    Preparando: "Despachado",
-    Despachado: "EnTransito",
-    EnTransito: "Entregado",
-  };
-
-  async function handleAdvanceStatus(id: string, next: string) {
+  async function handleAdvanceStatus(id: string, next: EstadoEnvio) {
     setUpdatingId(id);
     const { updateShipmentStatus } = await import("@/lib/actions/shipments");
     const data: Record<string, Date> = {};
@@ -62,7 +63,7 @@ export default function EnviosPageClient({
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Envíos</h1>
+        <h1 className="text-2xl font-black">Envíos</h1>
       </div>
       <div className="flex gap-2 mb-4 flex-wrap">
         {ESTADOS.map((e) => (
@@ -72,7 +73,7 @@ export default function EnviosPageClient({
             className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
               filtro === e || (!filtro && e === "Todos")
                 ? "bg-ajicolor-magenta text-white border-transparent"
-                : "border-gray-200 text-gray-700 hover:bg-gray-50"
+                : "border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
             }`}
           >
             {e}
@@ -81,11 +82,11 @@ export default function EnviosPageClient({
       </div>
       <Card>
         {envios.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">No hay envíos para mostrar.</div>
+          <div className="p-4 text-center text-gray-500 dark:text-neutral-400">No hay envíos para mostrar.</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left text-gray-500">
+              <tr className="border-b text-left text-gray-500 dark:border-neutral-700 dark:text-neutral-400">
                 <th className="p-4 pb-2">Cliente</th>
                 <th className="p-4 pb-2">Transportista</th>
                 <th className="p-4 pb-2">Tracking</th>
@@ -98,18 +99,18 @@ export default function EnviosPageClient({
               {envios.map((env) => {
                 const next = NEXT[env.estado];
                 return (
-                  <tr key={env.id} className="border-b last:border-0">
+                  <tr key={env.id} className="border-b last:border-0 dark:border-neutral-700">
                     <td className="p-4">
                       <Link href={`/admin/envios/${env.id}`} className="font-medium hover:underline">
                         {env.order.customer.nombre}
                       </Link>
                     </td>
-                    <td className="p-4 text-gray-600">{env.transportista ?? "—"}</td>
-                    <td className="p-4 font-mono text-xs text-gray-600">{env.trackingNumber ?? "—"}</td>
+                    <td className="p-4 text-gray-600 dark:text-neutral-300">{env.transportista ?? "—"}</td>
+                    <td className="p-4 font-mono text-xs text-gray-600 dark:text-neutral-300">{env.trackingNumber ?? "—"}</td>
                     <td className="p-4 text-center">
                       <Badge className={ESTADO_COLORS[env.estado] ?? ""}>{env.estado}</Badge>
                     </td>
-                    <td className="p-4 text-right text-gray-600">
+                    <td className="p-4 text-right text-gray-600 dark:text-neutral-300">
                       {env.fechaDespacho
                         ? new Date(env.fechaDespacho).toLocaleDateString()
                         : "—"}
@@ -127,7 +128,7 @@ export default function EnviosPageClient({
                         )}
                         <Link
                           href={`/admin/envios/${env.id}`}
-                          className="px-3 py-1.5 rounded-md border border-gray-300 text-xs font-medium hover:bg-gray-50"
+                          className="px-3 py-1.5 rounded-md btn-block bg-white dark:bg-neutral-900"
                         >
                           Detalle
                         </Link>

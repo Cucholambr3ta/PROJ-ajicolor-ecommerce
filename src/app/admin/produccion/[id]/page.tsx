@@ -3,15 +3,10 @@ import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { BATCH_TRANSITIONS } from "@/lib/state-machines";
+import { formatCLP, formatFechaCorta } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-const BATCH_TRANSITIONS: Record<string, string[]> = {
-  Solicitado: ["EnProgreso"],
-  EnProgreso: ["Completado"],
-  Completado: ["Recibido"],
-  Recibido: [],
-};
 
 export default async function LoteDetailPage({
   params,
@@ -19,65 +14,95 @@ export default async function LoteDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const batch = await prisma.productionBatch.findUnique({ where: { id } });
+  const batch = await prisma.productionBatch.findUnique({
+    where: { id },
+    include: {
+      supplier: true,
+      items: {
+        include: {
+          variant: { include: { product: true } },
+          orderItem: { include: { order: true } },
+        },
+      },
+    },
+  });
 
   if (!batch) notFound();
 
   const allowed = BATCH_TRANSITIONS[batch.estado] ?? [];
-  const variantesList = batch.variantes.split(",").map((v) => v.trim());
-  const unidadesList = batch.unidadesPorVar.split(",").map((u) => u.trim());
 
   return (
     <div>
       <div className="mb-6">
-        <Link href="/admin/produccion" className="text-sm text-gray-500 hover:underline">
+        <Link href="/admin/produccion" className="text-sm text-gray-500 dark:text-neutral-400 hover:underline">
           ← Volver a Producción
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Detalle del Lote</h1>
+        <h1 className="text-2xl font-black mt-2 dark:text-neutral-100">Detalle del Lote</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="p-6">
-          <h2 className="font-semibold text-gray-700 mb-3">Información del Lote</h2>
+          <h2 className="font-semibold text-gray-700 dark:text-neutral-300 mb-3">Información del Lote</h2>
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium">ID:</span> {batch.id}</p>
-            <p><span className="font-medium">Proveedor:</span> {batch.proveedor}</p>
+            <p>
+              <span className="font-medium">Proveedor:</span>{" "}
+              <Link href={`/admin/proveedores/${batch.supplier.id}`} className="text-ajicolor-magenta hover:underline">
+                {batch.supplier.nombre}
+              </Link>
+            </p>
             <p className="flex items-center gap-2">
               <span className="font-medium">Estado:</span>
               <Badge variant="outline">{batch.estado}</Badge>
             </p>
-            <p><span className="font-medium">Costo Total:</span> ${batch.costoTotal.toFixed(2)}</p>
+            <p><span className="font-medium">Costo Total:</span> {formatCLP(Number(batch.costoTotal))}</p>
           </div>
         </Card>
 
         <Card className="p-6">
-          <h2 className="font-semibold text-gray-700 mb-3">Fechas</h2>
+          <h2 className="font-semibold text-gray-700 dark:text-neutral-300 mb-3">Fechas</h2>
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium">Fecha de Pedido:</span> {batch.fechaPedido.toLocaleDateString()}</p>
-            <p><span className="font-medium">Fecha Estimada:</span> {batch.fechaEstimada.toLocaleDateString()}</p>
+            <p><span className="font-medium">Fecha de Pedido:</span> {formatFechaCorta(batch.fechaPedido)}</p>
+            <p><span className="font-medium">Fecha Estimada:</span> {formatFechaCorta(batch.fechaEstimada)}</p>
             <p>
               <span className="font-medium">Fecha de Recepción:</span>{" "}
-              {batch.fechaRecepcion?.toLocaleDateString() ?? "—"}
+              {batch.fechaRecepcion ? formatFechaCorta(batch.fechaRecepcion) : "—"}
             </p>
-            <p><span className="font-medium">Creado:</span> {batch.createdAt.toLocaleDateString()}</p>
+            <p><span className="font-medium">Creado:</span> {formatFechaCorta(batch.createdAt)}</p>
           </div>
         </Card>
       </div>
 
       <Card className="p-6 mb-6">
-        <h2 className="font-semibold text-gray-700 mb-3">Variantes</h2>
+        <h2 className="font-semibold text-gray-700 dark:text-neutral-300 mb-3">Variantes</h2>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b text-left text-gray-500">
+            <tr className="border-b dark:border-neutral-700 text-left text-gray-500 dark:text-neutral-400">
               <th className="pb-2">Variante</th>
+              <th className="pb-2">Pedido</th>
               <th className="pb-2 text-right">Unidades</th>
+              <th className="pb-2 text-right">Costo unit.</th>
             </tr>
           </thead>
           <tbody>
-            {variantesList.map((v, i) => (
-              <tr key={i} className="border-b last:border-0">
-                <td className="py-2">{v}</td>
-                <td className="py-2 text-right">{unidadesList[i] ?? "—"}</td>
+            {batch.items.map((item) => (
+              <tr key={item.id} className="border-b dark:border-neutral-700 last:border-0">
+                <td className="py-2">
+                  {item.variant.product.nombre} — {item.variant.color} / {item.variant.talle}
+                </td>
+                <td className="py-2">
+                  {item.orderItem ? (
+                    <Link
+                      href={`/admin/pedidos/${item.orderItem.orderId}`}
+                      className="text-ajicolor-magenta hover:underline text-xs"
+                    >
+                      #{String(item.orderItem.order.numero).padStart(4, "0")}
+                    </Link>
+                  ) : (
+                    <span className="text-gray-400 dark:text-neutral-500 text-xs">Sin pedido (sobrante)</span>
+                  )}
+                </td>
+                <td className="py-2 text-right">{item.cantidad}</td>
+                <td className="py-2 text-right">{formatCLP(Number(item.costoUnitario))}</td>
               </tr>
             ))}
           </tbody>
@@ -86,7 +111,7 @@ export default async function LoteDetailPage({
 
       {allowed.length > 0 && (
         <Card className="p-6">
-          <h2 className="font-semibold text-gray-700 mb-3">Cambiar Estado</h2>
+          <h2 className="font-semibold text-gray-700 dark:text-neutral-300 mb-3">Cambiar Estado</h2>
           <div className="flex gap-3 flex-wrap">
             {allowed.map((estado) => (
               <form key={estado} action={async (formData: FormData) => {
@@ -96,7 +121,7 @@ export default async function LoteDetailPage({
               }}>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-md bg-ajicolor-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                  className="btn-block bg-ajicolor-magenta text-white"
                 >
                   → {estado}
                 </button>
