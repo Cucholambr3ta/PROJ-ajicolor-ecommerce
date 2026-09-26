@@ -11,7 +11,7 @@ import ProductReviews from "./ProductReviews";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ajicolor.cl";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ajicolor.cl";
 
 /**
  * Acepta el slug (canónico) o el id viejo (compatibilidad con links ya

@@ -16,7 +16,7 @@ const roboto = localFont({
   variable: "--font-roboto",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ajicolor.cl";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ajicolor.cl";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
