@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getProducts } from "@/lib/actions/products";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ajicolor.cl";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ajicolor.cl";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { items: products } = await getProducts({ perPage: 1000 });

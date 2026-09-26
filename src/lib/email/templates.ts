@@ -1,6 +1,6 @@
 import { formatCLP, formatFecha } from "@/lib/format";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 function layout(title: string, bodyHtml: string): string {
   return `<!DOCTYPE html>
