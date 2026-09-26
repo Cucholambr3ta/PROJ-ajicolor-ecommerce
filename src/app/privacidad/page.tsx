@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteHeader } from "@/components/SiteHeader";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Política de Privacidad",
@@ -12,17 +13,7 @@ export const metadata: Metadata = {
 export default function PrivacidadPage() {
   return (
     <div className="min-h-screen bg-ajicolor-light flex flex-col">
-      <nav className="site-nav">
-        <Link href="/">
-          <Logo />
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/" className="font-bold text-xs uppercase hover:underline">
-            ← Volver a la tienda
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <SiteHeader />
 
       <main className="max-w-3xl mx-auto py-16 p-8 flex-1 space-y-8 text-gray-700 dark:text-neutral-300">
         <h1 className="text-4xl font-black border-b-2 border-ajicolor-ink pb-4">Política de privacidad</h1>
@@ -55,7 +46,7 @@ export default function PrivacidadPage() {
         <section className="space-y-3">
           <h2 className="text-lg font-black text-ajicolor-purple">4. Derechos del titular</h2>
           <p className="text-sm leading-relaxed">
-            Podés solicitar en cualquier momento el acceso, rectificación, cancelación u oposición
+            Puedes solicitar en cualquier momento el acceso, rectificación, cancelación u oposición
             (derechos ARCO) sobre tus datos personales, escribiendo a través de la sección{" "}
             <Link href="/contacto" className="text-ajicolor-magenta underline">
               Contacto

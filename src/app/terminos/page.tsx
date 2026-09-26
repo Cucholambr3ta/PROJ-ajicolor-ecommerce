@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteHeader } from "@/components/SiteHeader";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Términos y Condiciones",
@@ -12,17 +13,7 @@ export const metadata: Metadata = {
 export default function TerminosPage() {
   return (
     <div className="min-h-screen bg-ajicolor-light flex flex-col">
-      <nav className="site-nav">
-        <Link href="/">
-          <Logo />
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/" className="font-bold text-xs uppercase hover:underline">
-            ← Volver a la tienda
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <SiteHeader />
 
       <main className="max-w-3xl mx-auto py-16 p-8 flex-1 space-y-8 text-gray-700 dark:text-neutral-300">
         <h1 className="text-4xl font-black border-b-2 border-ajicolor-ink pb-4">Términos y condiciones</h1>
@@ -64,7 +55,7 @@ export default function TerminosPage() {
         <section className="space-y-3">
           <h2 className="text-lg font-black text-ajicolor-purple">5. Derecho a retracto y garantía legal</h2>
           <p className="text-sm leading-relaxed">
-            Consultá el detalle completo en nuestra página de{" "}
+            Consulta el detalle completo en nuestra página de{" "}
             <Link href="/devoluciones" className="text-ajicolor-magenta underline">
               Cambios y devoluciones
             </Link>

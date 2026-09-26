@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteHeader } from "@/components/SiteHeader";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Conoce al Ají",
@@ -12,24 +12,7 @@ export const metadata: Metadata = {
 export default function ConoceAlAjiPage() {
   return (
     <div className="min-h-screen bg-ajicolor-light flex flex-col">
-      <nav className="site-nav">
-        <Link href="/">
-          <Logo />
-        </Link>
-        <div className="hidden lg:flex gap-10 font-bold text-sm text-ajicolor-purple">
-          <Link href="/conoce-al-aji" className="underline decoration-2 underline-offset-4">
-            Conoce al Ají
-          </Link>
-          <Link href="/">Catálogo</Link>
-          <Link href="/contacto">Contacto</Link>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/" className="font-bold text-xs uppercase hover:underline">
-            ← Volver a la tienda
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <SiteHeader active="/conoce-al-aji" />
 
       <main className="max-w-3xl mx-auto py-16 p-8 flex-1 text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
