@@ -16,6 +16,7 @@ const exports = [
   { key: "pedidos", label: "Pedidos", filename: "pedidos.csv" },
   { key: "stock", label: "Stock", filename: "stock.csv" },
   { key: "clientes", label: "Clientes", filename: "clientes.csv" },
+  { key: "newsletter", label: "Newsletter", filename: "newsletter.csv" },
 ] as const;
 
 export default function ExportButtons() {
@@ -32,7 +33,9 @@ export default function ExportButtons() {
           ? await exportPedidosCSV()
           : key === "stock"
             ? await exportStockCSV()
-            : await exportClientesCSV();
+            : key === "clientes"
+              ? await exportClientesCSV()
+              : await (await import("@/lib/actions/newsletter")).exportSubscribersCSV();
       downloadCSV(csv, filename);
     } finally {
       setLoading(null);

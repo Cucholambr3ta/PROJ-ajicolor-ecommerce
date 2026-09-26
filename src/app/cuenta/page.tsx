@@ -15,12 +15,12 @@ export default async function CuentaPage() {
 
   const customerId = session.user.id;
 
-  const [customer, addresses, favorites] = await Promise.all([
+  const [customer, addresses, favorites, myReviews] = await Promise.all([
     prisma.customer.findUnique({
       where: { id: customerId },
       include: {
         orders: {
-          include: { items: true, shipment: true },
+          include: { items: { include: { variant: { include: { product: true } } } }, shipment: true },
           orderBy: { createdAt: "desc" },
         },
       },
@@ -34,9 +34,12 @@ export default async function CuentaPage() {
       include: { product: true },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.review.findMany({ where: { customerId }, select: { orderId: true, productId: true } }),
   ]);
 
   if (!customer) redirect("/login-cliente");
+
+  const reviewedKeys = new Set(myReviews.map((r) => `${r.orderId}:${r.productId}`));
 
   return (
     <div className="min-h-screen bg-ajicolor-light">
@@ -57,16 +60,27 @@ export default async function CuentaPage() {
             backstagePass: customer.backstagePass,
             tienePassword: !!customer.passwordHash,
           }}
-          orders={customer.orders.map((order) => ({
-            id: order.id,
-            numero: order.numero,
-            estado: order.estado,
-            total: Number(order.total),
-            createdAt: order.createdAt.toISOString(),
-            itemsCount: order.items.length,
-            transportista: order.shipment?.transportista ?? null,
-            trackingNumber: order.shipment?.trackingNumber ?? null,
-          }))}
+          orders={customer.orders.map((order) => {
+            const productosUnicos = new Map<string, string>();
+            for (const item of order.items) {
+              productosUnicos.set(item.variant.productId, item.variant.product.nombre);
+            }
+            return {
+              id: order.id,
+              numero: order.numero,
+              estado: order.estado,
+              total: Number(order.total),
+              createdAt: order.createdAt.toISOString(),
+              itemsCount: order.items.length,
+              transportista: order.shipment?.transportista ?? null,
+              trackingNumber: order.shipment?.trackingNumber ?? null,
+              reviewItems: Array.from(productosUnicos.entries()).map(([productId, nombre]) => ({
+                productId,
+                nombre,
+                yaResenado: reviewedKeys.has(`${order.id}:${productId}`),
+              })),
+            };
+          })}
           addresses={addresses}
           favorites={favorites.map((f) => ({
             id: f.id,

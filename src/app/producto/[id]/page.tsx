@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getProductById, getProductBySlug, getRelatedProducts } from "@/lib/actions/products";
+import { getApprovedReviews } from "@/lib/actions/reviews";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import ProductoDetailClient from "./ProductoDetailClient";
 import RelatedProducts from "./RelatedProducts";
+import ProductReviews from "./ProductReviews";
 
 export const dynamic = "force-dynamic";
 
@@ -53,11 +55,10 @@ export default async function ProductoPage({
   if (!product) notFound();
   if (!matchedBySlug) redirect(`/producto/${product.slug}`);
 
-  const related = await getRelatedProducts({
-    id: product.id,
-    artista: product.artista,
-    collectionId: product.collectionId,
-  });
+  const [related, reviews] = await Promise.all([
+    getRelatedProducts({ id: product.id, artista: product.artista, collectionId: product.collectionId }),
+    getApprovedReviews(product.id),
+  ]);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -80,6 +81,8 @@ export default async function ProductoPage({
       <SiteHeader active="/" />
 
       <ProductoDetailClient product={{ ...product, precio: Number(product.precio) }} />
+
+      <ProductReviews reviews={reviews} />
 
       {related.length > 0 && (
         <RelatedProducts products={related.map((p) => ({ ...p, precio: Number(p.precio) }))} />
