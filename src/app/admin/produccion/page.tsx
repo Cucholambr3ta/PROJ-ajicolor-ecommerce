@@ -1,11 +1,17 @@
 import { prisma } from "@/lib/prisma";
+import { EstadoLote } from "@prisma/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { formatCLP, formatFechaCorta } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-const estados = ["Todos", "Solicitado", "EnProgreso", "Completado", "Recibido"];
+const estados = ["Todos", "Solicitado", "EnProgreso", "Completado", "Recibido", "Cancelado"];
+
+function esEstadoLote(value: string): value is EstadoLote {
+  return (Object.values(EstadoLote) as string[]).includes(value);
+}
 
 export default async function ProduccionPage({
   searchParams,
@@ -13,8 +19,9 @@ export default async function ProduccionPage({
   searchParams: Promise<{ estado?: string }>;
 }) {
   const { estado } = await searchParams;
+  const estadoValido = estado && esEstadoLote(estado) ? estado : undefined;
   const lotes = await prisma.productionBatch.findMany({
-    where: estado && estado !== "Todos" ? { estado } : undefined,
+    where: estadoValido ? { estado: estadoValido } : undefined,
     include: { supplier: true, items: { include: { variant: { include: { product: true } } } } },
     orderBy: { createdAt: "desc" },
   });
@@ -56,12 +63,12 @@ export default async function ProduccionPage({
                     {l.items.reduce((acc, i) => acc + i.cantidad, 0)} u totales
                   </p>
                   <p className="text-sm text-gray-400 dark:text-neutral-500">
-                    Estimado: {l.fechaEstimada.toLocaleDateString()}
+                    Estimado: {formatFechaCorta(l.fechaEstimada)}
                   </p>
                 </div>
                 <div className="text-right flex items-center gap-3">
                   <div>
-                    <p className="font-bold dark:text-neutral-100">${l.costoTotal.toFixed(2)}</p>
+                    <p className="font-bold dark:text-neutral-100">{formatCLP(Number(l.costoTotal))}</p>
                     <Badge variant="outline">{l.estado}</Badge>
                   </div>
                   <Link
