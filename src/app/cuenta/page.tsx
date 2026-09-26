@@ -71,6 +71,7 @@ export default async function CuentaPage() {
           favorites={favorites.map((f) => ({
             id: f.id,
             productId: f.productId,
+            slug: f.product.slug,
             nombre: f.product.nombre,
             disenoUrl: f.product.disenoUrl,
             precio: Number(f.product.precio),
