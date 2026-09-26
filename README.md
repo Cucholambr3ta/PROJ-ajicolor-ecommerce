@@ -124,6 +124,42 @@ El proyecto usa el pipeline X-DD con 6 fases gated:
 
 ---
 
+## Deploy en Vercel
+
+1. **Importar el proyecto**: en Vercel, "Add New Project" → conectar este repo de GitHub.
+   Vercel detecta Next.js automáticamente (ver `vercel.json`).
+
+2. **Base de datos**: crear (o usar) un proyecto de [Supabase](https://supabase.com) y
+   obtener las dos connection strings desde Settings → Database:
+   - **Connection pooling** (puerto 6543, con `?pgbouncer=true`) → `DATABASE_URL`
+   - **Direct connection** (puerto 5432) → `DIRECT_URL`
+
+3. **Variables de entorno**: en Settings → Environment Variables del proyecto en Vercel,
+   cargar todas las de [`.env.example`](./.env.example). Ese archivo indica junto a cada
+   una si el tipo en Vercel debe ser **Secret** o **Plain/Config**.
+
+   ⚠️ **Toda variable `NEXT_PUBLIC_*` debe ser Plain/Config, nunca Secret** — Vercel la
+   rechaza como Secret porque su valor se embebe en el JavaScript que llega al navegador.
+
+   Mínimas para que el build no falle: `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`,
+   `AUTH_TRUST_HOST`, `AUTH_URL`, `NEXT_PUBLIC_SITE_URL` (esta última y `AUTH_URL` deben
+   apuntar a la URL real del deploy, no a `localhost`). El resto (Google OAuth, Resend,
+   Supabase Storage) puede quedar vacío — el código las trata como opcionales y no
+   rompen el build; simplemente esas funciones quedan inactivas hasta configurarlas.
+
+4. **Migrar y sembrar la base de datos** (una sola vez, apuntando a la base de Supabase
+   real vía `DATABASE_URL`/`DIRECT_URL` en el entorno local):
+   ```bash
+   npx prisma migrate deploy
+   npx tsx prisma/seed.ts   # opcional — carga catálogo de ejemplo
+   ```
+
+5. **Deploy**: cada push a la rama conectada dispara un deploy automático. Para
+   redeployar manualmente tras cambiar variables de entorno: Deployments → menú "···"
+   del último deploy → **Redeploy**.
+
+---
+
 ## Roadmap
 
 ### v1.0.0 (Actual)
