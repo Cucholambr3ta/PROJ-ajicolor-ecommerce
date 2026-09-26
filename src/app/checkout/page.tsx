@@ -32,6 +32,10 @@ export default async function CheckoutPage() {
   }));
   const subtotal = items.reduce((acc, item) => acc + item.variant.product.precio * item.cantidad, 0);
   const settings = await getStoreSettings();
+  const addresses = await prisma.address.findMany({
+    where: { customerId: customer.id },
+    orderBy: [{ esPrincipal: "desc" }, { createdAt: "desc" }],
+  });
 
   return (
     <div className="min-h-screen bg-ajicolor-light">
@@ -44,9 +48,11 @@ export default async function CheckoutPage() {
         <h1 className="text-3xl font-black mb-8 border-b-2 border-ajicolor-ink pb-4">Confirmar compra</h1>
         <CheckoutClient
           customer={{ nombre: customer.nombre, telefono: customer.telefono ?? "", direccion: customer.direccion ?? "" }}
+          addresses={addresses}
           items={items}
           subtotal={subtotal}
           costoEnvioCorreos={Number(settings.costoEnvioCorreos)}
+          whatsapp={settings.whatsapp}
         />
       </main>
 
