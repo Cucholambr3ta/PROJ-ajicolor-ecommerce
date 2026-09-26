@@ -337,6 +337,83 @@ async function main() {
   });
   console.log('Store settings created');
 
+  // Cotizador — prendas personalizables. mockupFrenteUrl queda null hasta
+  // que el dueño entregue los mockups reales; mientras tanto el cotizador
+  // muestra un placeholder de color sólido con el hex de cada color.
+  const prendas = [
+    {
+      nombre: 'Poleras',
+      slug: 'poleras',
+      descripcion: '100% algodón, serigrafía de alta calidad.',
+      precioBase: 12990,
+      zonaAnchoCm: 35,
+      zonaAltoCm: 45,
+      tallasDisponibles: ['S', 'M', 'L', 'XL', '2XL'],
+      orden: 1,
+      colores: [
+        { nombre: 'Negro', hex: '#1a1a1a' },
+        { nombre: 'Blanco', hex: '#fafafa' },
+        { nombre: 'Gris', hex: '#9ca3af' },
+      ],
+    },
+    {
+      nombre: 'Polerones',
+      slug: 'polerones',
+      descripcion: 'Polerón canguro con capucha, algodón grueso.',
+      precioBase: 22990,
+      zonaAnchoCm: 30,
+      zonaAltoCm: 35,
+      tallasDisponibles: ['S', 'M', 'L', 'XL', '2XL'],
+      orden: 2,
+      colores: [
+        { nombre: 'Negro', hex: '#1a1a1a' },
+        { nombre: 'Gris', hex: '#9ca3af' },
+      ],
+    },
+    {
+      nombre: 'Totebag',
+      slug: 'totebag',
+      descripcion: 'Bolsa de género reforzada, estampado en un lado.',
+      precioBase: 7990,
+      zonaAnchoCm: 25,
+      zonaAltoCm: 25,
+      tallasDisponibles: [],
+      orden: 3,
+      colores: [
+        { nombre: 'Natural', hex: '#e8dcc8' },
+        { nombre: 'Negro', hex: '#1a1a1a' },
+      ],
+    },
+    {
+      nombre: 'Relojes',
+      slug: 'relojes',
+      descripcion: 'Reloj de pulsera personalizado en la esfera.',
+      precioBase: 14990,
+      zonaAnchoCm: 3,
+      zonaAltoCm: 3,
+      tallasDisponibles: [],
+      orden: 4,
+      colores: [{ nombre: 'Negro', hex: '#1a1a1a' }],
+    },
+  ];
+
+  for (const p of prendas) {
+    const { colores, ...prendaData } = p;
+    const prenda = await prisma.prendaBase.upsert({
+      where: { slug: p.slug },
+      update: {},
+      create: prendaData,
+    });
+    for (const c of colores) {
+      await prisma.prendaColor.upsert({
+        where: { prendaBaseId_nombre: { prendaBaseId: prenda.id, nombre: c.nombre } },
+        update: {},
+        create: { ...c, prendaBaseId: prenda.id },
+      });
+    }
+  }
+  console.log('Prendas personalizables (cotizador) created');
+
   console.log('Seed complete!');
 }
 
