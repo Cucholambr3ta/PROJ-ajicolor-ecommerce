@@ -9,6 +9,7 @@ export const STORAGE_CONFIGURED = !!client;
 
 const PRODUCTOS_BUCKET = "productos";
 const COMPROBANTES_BUCKET = "comprobantes";
+const DISENOS_BUCKET = "disenos-personalizados";
 
 /**
  * Sube una imagen de producto al bucket público `productos`. Requiere
@@ -72,4 +73,28 @@ export async function uploadComprobante(file: File, orderId: string): Promise<st
   if (signError || !data) throw new Error("Error al generar el enlace del comprobante");
 
   return data.signedUrl;
+}
+
+/**
+ * Sube el diseño que un cliente adjunta en el cotizador al bucket público
+ * `disenos-personalizados`. Público porque el admin necesita verlo directo
+ * desde el panel sin URLs firmadas que expiren.
+ */
+export async function uploadDisenoPersonalizado(file: File): Promise<string> {
+  if (!client) {
+    throw new Error("Supabase Storage no está configurado (falta SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY)");
+  }
+
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await client.storage.from(DISENOS_BUCKET).upload(path, buffer, {
+    contentType: file.type,
+    upsert: false,
+  });
+  if (error) throw new Error(`Error al subir el diseño: ${error.message}`);
+
+  const { data } = client.storage.from(DISENOS_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
 }
