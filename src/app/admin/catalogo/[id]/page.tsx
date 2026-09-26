@@ -43,7 +43,8 @@ export default async function ProductoDetailPage({
           <h2 className="font-semibold text-gray-700 mb-3 dark:text-neutral-200">Información del Producto</h2>
           <div className="space-y-2 text-sm">
             <p><span className="font-medium">ID:</span> {product.id}</p>
-            <p><span className="font-medium">Nombre/Slug:</span> {product.nombreSlug}</p>
+            <p><span className="font-medium">Nombre:</span> {product.nombre}</p>
+            <p><span className="font-medium">Slug:</span> {product.slug}</p>
             <p><span className="font-medium">Artista:</span> {product.artista}</p>
             <p><span className="font-medium">Temporada:</span> {product.temporada}</p>
             <p><span className="font-medium">Descripción:</span> {product.descripcion}</p>

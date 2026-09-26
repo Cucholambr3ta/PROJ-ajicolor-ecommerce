@@ -68,7 +68,7 @@ export default async function TiendaPage() {
         {featured && (
           <Link href={`/producto/${featured.id}`} className="block card overflow-hidden mb-16">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={featured.disenoUrl} alt={featured.nombreSlug} className="w-full max-h-72 object-cover" />
+            <img src={featured.disenoUrl} alt={featured.nombre} className="w-full max-h-72 object-cover" />
           </Link>
         )}
 
@@ -80,30 +80,25 @@ export default async function TiendaPage() {
           <p className="text-center text-gray-400 dark:text-neutral-500 font-medium py-20">No hay productos disponibles todavía.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-20">
-            {rest.map((product) => {
-              const stockTotal = product.variants.reduce((acc, v) => acc + v.stock, 0);
-              const soldOut = stockTotal === 0;
-
-              return (
-                <Link key={product.id} href={`/producto/${product.id}`} className="card overflow-hidden flex flex-col">
-                  <div className="bg-gray-100 dark:bg-neutral-800 relative overflow-hidden aspect-square">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={product.disenoUrl}
-                      alt={product.nombreSlug}
-                      className={`w-full h-full object-cover ${soldOut ? "grayscale opacity-70" : ""}`}
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-black">{product.nombreSlug}</h3>
-                    <p className="text-xs font-medium text-gray-400 dark:text-neutral-500 italic mb-2">{product.temporada}</p>
-                    <p className="text-ajicolor-magenta font-black">
-                      {soldOut ? "Sin stock" : `$${Number(product.precio).toLocaleString("es-CL")}`}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
+            {rest.map((product) => (
+              <Link key={product.id} href={`/producto/${product.id}`} className="card overflow-hidden flex flex-col">
+                <div className="bg-gray-100 dark:bg-neutral-800 relative overflow-hidden aspect-square">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={product.disenoUrl}
+                    alt={product.nombre}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-black">{product.nombre}</h3>
+                  <p className="text-xs font-medium text-gray-400 dark:text-neutral-500 italic mb-2">{product.temporada}</p>
+                  <p className="text-ajicolor-magenta font-black">
+                    ${Number(product.precio).toLocaleString("es-CL")}
+                  </p>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </section>

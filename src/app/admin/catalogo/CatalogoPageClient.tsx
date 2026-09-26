@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface Product {
   id: string;
-  nombreSlug: string;
+  nombre: string;
   descripcion: string;
   artista: string;
   temporada: string;
@@ -60,7 +60,7 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
                 <tr key={p.id} className="border-b last:border-0 dark:border-neutral-700">
                   <td className="p-4">
                     <Link href={`/admin/catalogo/${p.id}`} className="font-medium hover:underline">
-                      {p.nombreSlug}
+                      {p.nombre}
                     </Link>
                     <p className="text-xs text-gray-400 line-clamp-1 dark:text-neutral-500">{p.descripcion}</p>
                   </td>

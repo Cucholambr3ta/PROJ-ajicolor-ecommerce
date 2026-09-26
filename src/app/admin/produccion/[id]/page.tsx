@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { BATCH_TRANSITIONS } from "@/lib/state-machines";
+import { formatCLP, formatFechaCorta } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,15 @@ export default async function LoteDetailPage({
   const { id } = await params;
   const batch = await prisma.productionBatch.findUnique({
     where: { id },
-    include: { supplier: true, items: { include: { variant: { include: { product: true } } } } },
+    include: {
+      supplier: true,
+      items: {
+        include: {
+          variant: { include: { product: true } },
+          orderItem: { include: { order: true } },
+        },
+      },
+    },
   });
 
   if (!batch) notFound();
@@ -35,7 +44,6 @@ export default async function LoteDetailPage({
         <Card className="p-6">
           <h2 className="font-semibold text-gray-700 dark:text-neutral-300 mb-3">Información del Lote</h2>
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium">ID:</span> {batch.id}</p>
             <p>
               <span className="font-medium">Proveedor:</span>{" "}
               <Link href={`/admin/proveedores/${batch.supplier.id}`} className="text-ajicolor-magenta hover:underline">
@@ -46,20 +54,20 @@ export default async function LoteDetailPage({
               <span className="font-medium">Estado:</span>
               <Badge variant="outline">{batch.estado}</Badge>
             </p>
-            <p><span className="font-medium">Costo Total:</span> ${batch.costoTotal.toFixed(2)}</p>
+            <p><span className="font-medium">Costo Total:</span> {formatCLP(Number(batch.costoTotal))}</p>
           </div>
         </Card>
 
         <Card className="p-6">
           <h2 className="font-semibold text-gray-700 dark:text-neutral-300 mb-3">Fechas</h2>
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium">Fecha de Pedido:</span> {batch.fechaPedido.toLocaleDateString()}</p>
-            <p><span className="font-medium">Fecha Estimada:</span> {batch.fechaEstimada.toLocaleDateString()}</p>
+            <p><span className="font-medium">Fecha de Pedido:</span> {formatFechaCorta(batch.fechaPedido)}</p>
+            <p><span className="font-medium">Fecha Estimada:</span> {formatFechaCorta(batch.fechaEstimada)}</p>
             <p>
               <span className="font-medium">Fecha de Recepción:</span>{" "}
-              {batch.fechaRecepcion?.toLocaleDateString() ?? "—"}
+              {batch.fechaRecepcion ? formatFechaCorta(batch.fechaRecepcion) : "—"}
             </p>
-            <p><span className="font-medium">Creado:</span> {batch.createdAt.toLocaleDateString()}</p>
+            <p><span className="font-medium">Creado:</span> {formatFechaCorta(batch.createdAt)}</p>
           </div>
         </Card>
       </div>
@@ -70,6 +78,7 @@ export default async function LoteDetailPage({
           <thead>
             <tr className="border-b dark:border-neutral-700 text-left text-gray-500 dark:text-neutral-400">
               <th className="pb-2">Variante</th>
+              <th className="pb-2">Pedido</th>
               <th className="pb-2 text-right">Unidades</th>
               <th className="pb-2 text-right">Costo unit.</th>
             </tr>
@@ -78,10 +87,22 @@ export default async function LoteDetailPage({
             {batch.items.map((item) => (
               <tr key={item.id} className="border-b dark:border-neutral-700 last:border-0">
                 <td className="py-2">
-                  {item.variant.product.nombreSlug} — {item.variant.color} / {item.variant.talle}
+                  {item.variant.product.nombre} — {item.variant.color} / {item.variant.talle}
+                </td>
+                <td className="py-2">
+                  {item.orderItem ? (
+                    <Link
+                      href={`/admin/pedidos/${item.orderItem.orderId}`}
+                      className="text-ajicolor-magenta hover:underline text-xs"
+                    >
+                      #{String(item.orderItem.order.numero).padStart(4, "0")}
+                    </Link>
+                  ) : (
+                    <span className="text-gray-400 dark:text-neutral-500 text-xs">Sin pedido (sobrante)</span>
+                  )}
                 </td>
                 <td className="py-2 text-right">{item.cantidad}</td>
-                <td className="py-2 text-right">${item.costoUnitario.toFixed(2)}</td>
+                <td className="py-2 text-right">{formatCLP(Number(item.costoUnitario))}</td>
               </tr>
             ))}
           </tbody>

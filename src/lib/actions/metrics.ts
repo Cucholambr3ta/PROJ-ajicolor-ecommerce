@@ -13,10 +13,10 @@ export async function getVentasUltimos30Dias() {
 
   const orders = await prisma.order.findMany({
     where: {
-      estado: "Entregado",
-      createdAt: { gte: hace30Dias, lte: hoy },
+      estadoPago: "Pagado",
+      pagadoAt: { gte: hace30Dias, lte: hoy },
     },
-    select: { total: true, createdAt: true },
+    select: { total: true, pagadoAt: true },
   });
 
   const porDia = new Map<string, number>();
@@ -27,7 +27,8 @@ export async function getVentasUltimos30Dias() {
   }
 
   for (const order of orders) {
-    const key = order.createdAt.toISOString().slice(0, 10);
+    if (!order.pagadoAt) continue;
+    const key = order.pagadoAt.toISOString().slice(0, 10);
     porDia.set(key, (porDia.get(key) ?? 0) + Number(order.total));
   }
 
@@ -116,13 +117,14 @@ export async function exportPedidosCSV() {
     orderBy: { createdAt: "desc" },
   });
 
-  const headers = ["ID", "Cliente", "Email", "Total", "Estado", "Canal", "Items", "Fecha"];
+  const headers = ["Número", "Cliente", "Email", "Total", "Estado", "Estado Pago", "Canal", "Items", "Fecha"];
   const rows = orders.map((o) => [
-    o.id,
+    String(o.numero),
     o.customer.nombre,
     o.customer.email,
     o.total.toString(),
     o.estado,
+    o.estadoPago,
     o.canal,
     String(o.items.length),
     o.createdAt.toISOString(),
@@ -141,7 +143,7 @@ export async function exportStockCSV() {
   const headers = ["SKU", "Producto", "Talle", "Color", "Stock", "Stock Min"];
   const rows = variants.map((v) => [
     v.sku,
-    v.product.nombreSlug,
+    v.product.nombre,
     v.talle,
     v.color,
     String(v.stock),

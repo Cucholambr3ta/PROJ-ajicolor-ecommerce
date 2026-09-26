@@ -4,32 +4,51 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { formatCLP } from "@/lib/format";
 
 interface ItemInput {
   variantId: string;
   cantidad: number;
   costoUnitario: number;
+  orderItemIds?: string[];
+}
+
+interface Sugerido {
+  variantId: string;
+  label: string;
+  cantidad: number;
+  costoUnitario: number;
+  orderItemIds: string[];
 }
 
 export default function ProduccionFormClient({
   suppliers,
   variants,
+  sugeridos,
 }: {
   suppliers: { id: string; nombre: string }[];
   variants: { id: string; label: string }[];
+  sugeridos: Sugerido[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id ?? "");
   const [fechaEstimada, setFechaEstimada] = useState("");
-  const [items, setItems] = useState<ItemInput[]>([
-    { variantId: variants[0]?.id ?? "", cantidad: 10, costoUnitario: 0 },
-  ]);
+  const [items, setItems] = useState<ItemInput[]>(
+    sugeridos.length > 0
+      ? sugeridos.map((s) => ({
+          variantId: s.variantId,
+          cantidad: s.cantidad,
+          costoUnitario: s.costoUnitario,
+          orderItemIds: s.orderItemIds,
+        }))
+      : [{ variantId: variants[0]?.id ?? "", cantidad: 1, costoUnitario: 0 }]
+  );
   const [error, setError] = useState("");
 
   function addItem() {
-    setItems([...items, { variantId: variants[0]?.id ?? "", cantidad: 10, costoUnitario: 0 }]);
+    setItems([...items, { variantId: variants[0]?.id ?? "", cantidad: 1, costoUnitario: 0 }]);
   }
 
   function removeItem(index: number) {
@@ -58,17 +77,39 @@ export default function ProduccionFormClient({
       setError("La fecha estimada es obligatoria");
       return;
     }
-    if (totalUnidades < 10) {
-      setError("El lote debe tener un mínimo de 10 unidades");
+    if (totalUnidades < 1) {
+      setError("Agrega al menos una unidad");
       return;
     }
 
     try {
       const { createBatch } = await import("@/lib/actions/production");
+      // Un lote solo guarda un orderItemId por línea, así que si un mismo
+      // ítem sugerido agrupa varios pedidos, se manda una línea por cada uno.
+      const expandedItems = items.flatMap((item) => {
+        if (!item.orderItemIds || item.orderItemIds.length <= 1) {
+          return [{
+            variantId: item.variantId,
+            cantidad: item.cantidad,
+            costoUnitario: item.costoUnitario,
+            orderItemId: item.orderItemIds?.[0],
+          }];
+        }
+        // Reparte la cantidad total en partes iguales entre los pedidos que
+        // la componen (aproximado — el admin puede ajustar a mano si hace falta).
+        const porPedido = Math.floor(item.cantidad / item.orderItemIds.length);
+        return item.orderItemIds.map((oid) => ({
+          variantId: item.variantId,
+          cantidad: porPedido || 1,
+          costoUnitario: item.costoUnitario,
+          orderItemId: oid,
+        }));
+      });
+
       await createBatch({
         supplierId,
         fechaEstimada: new Date(fechaEstimada),
-        items,
+        items: expandedItems,
       });
       startTransition(() => router.push("/admin/produccion"));
     } catch (err: unknown) {
@@ -97,6 +138,18 @@ export default function ProduccionFormClient({
         </Link>
         <h1 className="text-2xl font-black mt-2 dark:text-neutral-100">Nuevo Lote de Producción</h1>
       </div>
+
+      {sugeridos.length > 0 && (
+        <div className="mb-6 p-4 bg-ajicolor-yellow/30 border-2 border-ajicolor-yellow rounded-md text-sm">
+          <p className="font-medium mb-1">
+            Precargamos {sugeridos.length} variante{sugeridos.length === 1 ? "" : "s"} de pedidos ya pagados
+            que todavía no tienen lote asignado.
+          </p>
+          <p className="text-gray-600 dark:text-neutral-300">
+            Podés editar cantidades, quitar líneas o agregar más variantes antes de confirmar.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <Card className="p-6 mb-6">
@@ -142,7 +195,9 @@ export default function ProduccionFormClient({
             {items.map((item, i) => (
               <div key={i} className="grid grid-cols-4 gap-3 items-end">
                 <div className="col-span-2">
-                  <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">Variante</label>
+                  <label className="block text-xs text-gray-500 dark:text-neutral-400 mb-1">
+                    Variante {item.orderItemIds?.length ? <span className="text-ajicolor-magenta">(de pedido pagado)</span> : null}
+                  </label>
                   <select
                     value={item.variantId}
                     onChange={(e) => updateItem(i, "variantId", e.target.value)}
@@ -188,7 +243,7 @@ export default function ProduccionFormClient({
           </div>
           <div className="mt-4 pt-4 border-t dark:border-neutral-700 text-sm text-gray-600 dark:text-neutral-300 flex gap-6">
             <p><span className="font-medium">Total unidades:</span> {totalUnidades}</p>
-            <p><span className="font-medium">Costo total:</span> ${costoTotal.toFixed(2)}</p>
+            <p><span className="font-medium">Costo total:</span> {formatCLP(costoTotal)}</p>
           </div>
         </Card>
 

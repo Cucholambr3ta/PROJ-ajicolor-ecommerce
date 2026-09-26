@@ -3,13 +3,18 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Footer } from "@/components/Footer";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { getStoreSettings } from "@/lib/actions/settings";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Contacto",
   description: "Datos de contacto e información legal de Ajicolor.",
 };
 
-export default function ContactoPage() {
+export default async function ContactoPage() {
+  const settings = await getStoreSettings();
+
   return (
     <div className="min-h-screen bg-ajicolor-light flex flex-col">
       <nav className="site-nav">
@@ -30,38 +35,42 @@ export default function ContactoPage() {
         <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-8 space-y-6">
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">Razón social</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta">[COMPLETAR]</p>
+            <p className="text-lg font-semibold text-ajicolor-magenta">{settings.razonSocial ?? "[COMPLETAR]"}</p>
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">RUT</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta">[COMPLETAR]</p>
+            <p className="text-lg font-semibold text-ajicolor-magenta">{settings.rut ?? "[COMPLETAR]"}</p>
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">Dirección</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta">[COMPLETAR]</p>
+            <p className="text-lg font-semibold text-ajicolor-magenta">{settings.direccionLegal ?? "[COMPLETAR]"}</p>
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">Email</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta">ajicolorserigrafia28@gmail.com</p>
+            <p className="text-lg font-semibold text-ajicolor-magenta">{settings.emailContacto ?? "[COMPLETAR]"}</p>
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">Teléfono / WhatsApp</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta">+56 9 7828 3064</p>
+            <p className="text-lg font-semibold text-ajicolor-magenta">{settings.telefonoContacto ?? "[COMPLETAR]"}</p>
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">Redes sociales</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta space-x-3">
-              <span>Instagram: @el_aji_color_estampados</span>
+            <p className="text-lg font-semibold text-ajicolor-magenta">
+              {settings.instagram && <span>Instagram: @{settings.instagram}</span>}
             </p>
             <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
-              Facebook: El Ají Color Diseño y Estampados · TikTok: @el.aji.color.esta
+              {[
+                settings.facebook && `Facebook: ${settings.facebook}`,
+                settings.tiktok && `TikTok: @${settings.tiktok}`,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">Horario de atención</h2>
-            <p className="text-lg font-semibold text-ajicolor-magenta">
-              Lunes a viernes: 09:00 – 19:00 hrs<br />
-              Sábado: 09:00 – 14:00 hrs
+            <p className="text-lg font-semibold text-ajicolor-magenta whitespace-pre-line">
+              {settings.horarioAtencion ?? "[COMPLETAR]"}
             </p>
           </div>
         </div>
