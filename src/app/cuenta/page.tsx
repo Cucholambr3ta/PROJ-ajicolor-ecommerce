@@ -42,7 +42,7 @@ export default async function CuentaPage() {
   const reviewedKeys = new Set(myReviews.map((r) => `${r.orderId}:${r.productId}`));
 
   return (
-    <div className="min-h-screen bg-ajicolor-light">
+    <div className="min-h-screen bg-ajicolor-light dark:bg-[var(--bg-light)]">
       <SiteHeader />
 
       <main className="max-w-5xl mx-auto py-12 p-8">
