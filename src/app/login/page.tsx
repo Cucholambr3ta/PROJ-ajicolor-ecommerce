@@ -20,16 +20,20 @@ export default function LoginPage() {
     setLoading(true);
 
     if (!needsTotp) {
-      const check = await fetch("/api/auth/check-2fa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      }).then((r) => r.json());
+      try {
+        const check = await fetch("/api/auth/check-2fa", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }).then((r) => r.json());
 
-      if (check.totpEnabled) {
-        setNeedsTotp(true);
-        setLoading(false);
-        return;
+        if (check.totpEnabled) {
+          setNeedsTotp(true);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // Si falla la verificación, seguimos al login normal — authorize() valida igual.
       }
     }
 

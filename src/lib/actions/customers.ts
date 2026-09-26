@@ -5,6 +5,7 @@ import { hash } from "bcryptjs";
 import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
 import { updateCustomerSchema, registerCustomerSchema, parseOrThrow } from "@/lib/schemas";
+import { type ActionResult, toActionResult } from "@/lib/action-result";
 
 export async function getCustomers() {
   await requireAdmin();
@@ -97,20 +98,24 @@ export async function registerCustomer(data: {
   password: string;
   telefono: string;
   direccion: string;
-}) {
-  const parsed = parseOrThrow(registerCustomerSchema, data);
-  const existing = await prisma.customer.findUnique({ where: { email: parsed.email } });
-  if (existing) throw new Error("Ya existe una cuenta con ese email");
+}): Promise<ActionResult<{ id: string; email: string }>> {
+  return toActionResult(async () => {
+    const parsed = parseOrThrow(registerCustomerSchema, data);
+    const existing = await prisma.customer.findUnique({ where: { email: parsed.email } });
+    if (existing) throw new Error("Ya existe una cuenta con ese email");
 
-  const passwordHash = await hash(parsed.password, 12);
+    const passwordHash = await hash(parsed.password, 12);
 
-  return prisma.customer.create({
-    data: {
-      nombre: parsed.nombre,
-      email: parsed.email,
-      passwordHash,
-      telefono: parsed.telefono,
-      direccion: parsed.direccion,
-    },
+    const customer = await prisma.customer.create({
+      data: {
+        nombre: parsed.nombre,
+        email: parsed.email,
+        passwordHash,
+        telefono: parsed.telefono,
+        direccion: parsed.direccion,
+      },
+    });
+
+    return { id: customer.id, email: customer.email };
   });
 }

@@ -15,7 +15,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         totpToken: { label: "Código 2FA", type: "text" },
       },
       async authorize(credentials) {
-        const email = credentials?.email as string | undefined;
+        const email = (credentials?.email as string | undefined)?.trim().toLowerCase();
         const password = credentials?.password as string | undefined;
         const totpToken = credentials?.totpToken as string | undefined;
 
@@ -49,7 +49,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const email = credentials?.email as string | undefined;
+        const email = (credentials?.email as string | undefined)?.trim().toLowerCase();
         const password = credentials?.password as string | undefined;
         if (!email || !password) return null;
 
@@ -68,19 +68,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     maxAge: 30 * 60,
   },
   pages: {
-    signIn: "/login",
+    signIn: "/login-cliente",
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.rol = (user as any).rol;
-        token.id = user.id;
+        token.rol = user.rol;
+        token.id = user.id as string;
       }
       return token;
     },
     async session({ session, token }) {
-      (session.user as any).rol = token.rol;
-      (session.user as any).id = token.id;
+      session.user.rol = token.rol;
+      session.user.id = token.id;
       return session;
     },
   },

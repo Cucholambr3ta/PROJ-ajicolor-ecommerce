@@ -9,6 +9,9 @@ export function parseOrThrow<T extends z.ZodType>(schema: T, data: unknown): z.i
   return result.data;
 }
 
+/** Email normalizado a minúsculas — evita cuentas duplicadas por may/min. */
+export const emailSchema = z.string().trim().toLowerCase().email("Email inválido").max(200);
+
 export const addToCartSchema = z.object({
   variantId: z.string().min(1),
   cantidad: z.number().int().positive().max(99),
@@ -30,7 +33,7 @@ export const checkoutAddressSchema = z.object({
 
 export const registerCustomerSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio").max(200),
-  email: z.string().trim().email("Email inválido").max(200),
+  email: emailSchema,
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(200),
   telefono: z.string().trim().min(1, "El teléfono es obligatorio").max(30),
   direccion: z.string().trim().min(1, "La dirección es obligatoria").max(300),
@@ -38,7 +41,7 @@ export const registerCustomerSchema = z.object({
 
 export const updateCustomerSchema = z.object({
   nombre: z.string().trim().min(1).max(200).optional(),
-  email: z.string().trim().email().max(200).optional(),
+  email: emailSchema.optional(),
   telefono: z.string().trim().min(1).max(30).optional(),
   direccion: z.string().trim().min(1).max(300).optional(),
   backstagePass: z.boolean().optional(),
