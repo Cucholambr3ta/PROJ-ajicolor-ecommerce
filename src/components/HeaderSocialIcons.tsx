@@ -61,7 +61,7 @@ export async function HeaderSocialIcons() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={link.label}
-          className="text-ajicolor-ink dark:text-neutral-100 hover:text-ajicolor-magenta transition-colors"
+          className="text-ajicolor-purple dark:text-neutral-100 hover:text-ajicolor-magenta transition-colors"
         >
           {link.icon}
         </a>

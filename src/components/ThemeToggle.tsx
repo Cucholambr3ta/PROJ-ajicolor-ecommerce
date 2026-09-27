@@ -92,40 +92,24 @@ const StyledWrapper = styled.div`
   }
 
   .theme-switch__aji {
-    width: 82%;
-    height: 82%;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
+    object-position: center;
+    display: block;
     transition: var(--transition);
   }
 
-  .moon {
-    transform: translateX(100%);
-    filter: drop-shadow(0.062em 0.125em 0.125em rgba(0, 0, 0, 0.25));
+  .sun-aji {
+    opacity: 1;
+    transform: scale(1);
   }
 
-  .spot {
-    position: absolute;
-    top: 0.75em;
-    left: 0.312em;
-    width: 0.75em;
-    height: 0.75em;
-    border-radius: 9999px;
-    background-color: var(--spot-color);
-    box-shadow: 0em 0.062em 0.062em rgba(0, 0, 0, 0.25) inset;
-  }
-
-  .spot:nth-of-type(2) {
-    width: 0.375em;
-    height: 0.375em;
-    top: 0.937em;
-    left: 1.375em;
-  }
-
-  .spot:nth-of-type(3) {
-    width: 0.25em;
-    height: 0.25em;
-    top: 0.312em;
-    left: 0.937em;
+  .moon-aji {
+    opacity: 0;
+    transform: scale(0.4);
   }
 
   .clouds {
@@ -199,13 +183,18 @@ const StyledWrapper = styled.div`
     left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter));
   }
 
-  .theme-switch__checkbox:checked + .theme-switch__container .sun-moon {
+  .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__sun-moon-container {
     background-color: var(--moon-bg);
   }
 
-  .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__aji {
+  .theme-switch__checkbox:checked + .theme-switch__container .sun-aji {
     opacity: 0;
     transform: scale(0.4);
+  }
+
+  .theme-switch__checkbox:checked + .theme-switch__container .moon-aji {
+    opacity: 1;
+    transform: scale(1);
   }
 
   .theme-switch__checkbox:checked + .theme-switch__container .stars {
@@ -252,12 +241,9 @@ export function ThemeToggle() {
           <div className="theme-switch__circle-container">
             <div className="theme-switch__sun-moon-container sun-moon">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo/icono.png" alt="" className="theme-switch__aji" />
-              <div className="moon">
-                <div className="spot" />
-                <div className="spot" />
-                <div className="spot" />
-              </div>
+              <img src="/logo/icono.png" alt="" className="theme-switch__aji sun-aji" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo/icono-luna.png" alt="" className="theme-switch__aji moon-aji" />
             </div>
           </div>
           <div className="stars">

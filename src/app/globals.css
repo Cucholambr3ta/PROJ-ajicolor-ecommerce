@@ -92,12 +92,27 @@
   .site-nav {
     display: flex;
     flex-direction: column;
-    background: var(--card-bg);
+    background-color: var(--card-bg);
+    background-image: url('/fondo/fondo-claro.png');
+    background-repeat: repeat;
+    background-size: 520px;
+    background-attachment: fixed;
     border-bottom: var(--border-width) solid var(--border-ink);
     position: sticky;
     top: 0;
     z-index: 50;
     transition: background-color 0.2s;
+  }
+
+  /* El header pinta el mismo estampado que el body (background-attachment:
+     fixed mantiene el patrón continuo entre header, contenido y footer,
+     en vez de reiniciarlo en cada bloque). */
+  .dark .site-nav {
+    background-color: var(--bg-light);
+    background-image: url('/fondo/fondo-oscuro.png');
+    background-repeat: repeat;
+    background-size: 520px;
+    background-attachment: fixed;
   }
 
   .site-nav-top {
@@ -113,10 +128,114 @@
     align-items: center;
     gap: 40px;
     padding: 10px 40px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid rgba(0, 0, 0, 0.22);
   }
 
   .dark .site-nav-bottom {
-    border-top-color: rgba(255, 255, 255, 0.08);
+    border-top-color: rgba(255, 255, 255, 0.22);
+  }
+
+  /* Tarjetas del hero (galería tipo acordeón): angostas con texto
+     "caído" (rotado 90°) pegado al borde izquierdo en reposo; la
+     tarjeta activa (controlada por React, no :hover puro, para que
+     la primera empiece ya expandida) se ensancha y el texto se
+     endereza con una rotación continua (no writing-mode, que salta
+     en vez de animarse). Solo en desktop — en mobile van apiladas
+     y siempre en su tamaño/orientación horizontal normal. */
+  .hero-card {
+    flex: 1;
+    transition: flex-grow 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
+  }
+
+  /* La imagen de fondo de una tarjeta (cuando tiene una) solo se ve
+     estando activa/expandida, en cualquier viewport — en mobile las
+     tarjetas van siempre expandidas (ver @media abajo), así que acá
+     se muestra directo; en desktop empieza oculta y aparece con la
+     tarjeta activa. */
+  .hero-card-image {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-card {
+      flex: 0.5;
+      position: relative;
+    }
+
+    .hero-card.hero-card-active {
+      flex: 4;
+    }
+
+    .hero-card-text {
+      white-space: nowrap;
+      font-size: clamp(1.1rem, 2.4vw, 1.75rem) !important;
+      transform-origin: left top;
+      position: absolute;
+      left: 28px;
+      top: 28px;
+      transform: rotate(90deg);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+        left 0.5s cubic-bezier(0.4, 0, 0.2, 1), top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Texto compacto de 2 líneas (ej. "PRODUCTO / AJI COLOR"): más
+       chico que el clamp() general para que quepa entero al rotar
+       dentro de la tarjeta angosta. */
+    .hero-card-text-compact-sm {
+      font-size: clamp(0.65rem, 1.3vw, 1rem) !important;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-card.hero-card-active .hero-card-text {
+      font-size: clamp(1.5rem, 2.8vw, 3rem) !important;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(0deg);
+      width: max-content;
+      max-width: calc(100% - 56px);
+      text-align: center;
+    }
+
+    /* Variante para tarjetas con imagen de fondo o contenido flexible
+       (carrusel): el texto queda pegado al borde izquierdo también
+       cuando la tarjeta está activa, en vez de centrarse, y ocupa el
+       ancho real de la tarjeta (no max-content) para que el
+       carrusel interno tenga espacio donde expandirse. */
+    .hero-card.hero-card-active .hero-card-text.hero-card-text-left {
+      left: 28px;
+      top: 50%;
+      transform: translate(0, -50%) rotate(0deg);
+      text-align: left;
+      width: calc(100% - 56px);
+    }
+
+    /* Texto compacto (una línea) en reposo, para que quepa entero
+       al rotar 90° dentro de la tarjeta angosta; al expandirse se
+       cambia por la versión apilada en varias líneas. */
+    .hero-card-text-expanded {
+      display: none;
+    }
+
+    .hero-card.hero-card-active .hero-card-text-compact {
+      display: none;
+    }
+
+    .hero-card.hero-card-active .hero-card-text-expanded {
+      display: block;
+    }
+
+    .hero-card.hero-card-active .hero-card-text-expanded.hero-card-text-expanded-flex {
+      display: flex;
+    }
+
+    .hero-card-image {
+      opacity: 0;
+    }
+
+    .hero-card.hero-card-active .hero-card-image {
+      opacity: 1;
+      transition: opacity 0.3s ease 0.2s;
+    }
   }
 }

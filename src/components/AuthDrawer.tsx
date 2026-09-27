@@ -39,7 +39,7 @@ export function AuthDrawer({ open, onClose }: { open: boolean; onClose: () => vo
         role="dialog"
         aria-modal="true"
         aria-label="Iniciar sesión o crear cuenta"
-        className={`fixed top-0 right-0 h-full w-full max-w-sm bg-white dark:bg-neutral-900 z-50 shadow-2xl transition-transform duration-300 flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-full max-w-sm bg-white bg-[url('/fondo/fondo-claro.png')] bg-repeat [background-size:520px] [background-attachment:fixed] dark:bg-[var(--bg-light)] dark:bg-[url('/fondo/fondo-oscuro.png')] dark:bg-repeat dark:[background-size:520px] dark:[background-attachment:fixed] z-50 shadow-2xl transition-transform duration-300 flex flex-col ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >

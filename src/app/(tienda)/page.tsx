@@ -3,6 +3,8 @@ import Image from "next/image";
 import { getProducts, getFilterOptions, getActiveCollections } from "@/lib/actions/products";
 import { CatalogFilters } from "@/components/CatalogFilters";
 import { Pagination } from "@/components/Pagination";
+import { HeroCards } from "@/components/HeroCards";
+import { ProductCarousel } from "@/components/ProductCarousel";
 
 export const dynamic = "force-dynamic";
 
@@ -37,59 +39,65 @@ export default async function TiendaPage({
   ]);
 
   const hasFilters = !!(sp.q || sp.color || sp.talle || sp.coleccion);
-  const dropActivo = collections.find((c) => !c.fechaCierre || c.fechaCierre > new Date());
 
   return (
     <>
       <section className="max-w-7xl mx-auto p-8 pt-10">
         {!hasFilters && page === 1 && (
-          <div className="grid lg:grid-cols-2 gap-6 mb-6">
-            <Link
-              href="/categorias"
-              className="bg-ajicolor-magenta thick-border p-10 flex flex-col justify-center min-h-[320px] hover:opacity-90 transition-opacity"
-            >
-              <h1 className="text-5xl font-black text-white leading-tight mb-2">
-                PRODUCTO
-                <br />
-                AJI COLOR
-              </h1>
-            </Link>
-            <div className="grid grid-rows-2 gap-6">
-              <div className="grid grid-cols-2 gap-6">
-                <Link
-                  href="/cotizador"
-                  className="bg-ajicolor-purple thick-border p-6 flex items-center justify-center hover:opacity-90 transition-opacity"
-                >
-                  <p className="text-white text-xl font-black text-center leading-tight">
-                    Le ponemos <span className="text-ajicolor-yellow">color</span>
+          <HeroCards
+            cards={[
+              {
+                href: "/categorias",
+                bg: "bg-ajicolor-magenta p-10",
+                content: (
+                  <div className="hero-card-text hero-card-text-left relative">
+                    <span className="hero-card-text-compact hero-card-text-compact-sm font-black text-white leading-tight">
+                      PRODUCTO AJI COLOR
+                    </span>
+                    <div className="hero-card-text-expanded hero-card-text-expanded-flex items-center gap-6 w-full">
+                      <h1 className="text-3xl lg:text-5xl font-black text-white leading-tight shrink-0">
+                        PRODUCTO
+                        <br />
+                        AJI COLOR
+                      </h1>
+                      <div className="flex-1 min-w-0 h-40 lg:h-56">
+                        <ProductCarousel />
+                      </div>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                href: "/cotizador",
+                bg: "bg-ajicolor-purple p-6",
+                image: "/hero/le-ponemos-color.jpg",
+                imagePosition: "95% center",
+                content: (
+                  <p className="hero-card-text hero-card-text-left relative z-10 text-white text-2xl lg:text-4xl font-black text-left leading-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.7)]">
+                    <span className="hero-card-text-compact">
+                      Le ponemos <span className="text-ajicolor-yellow">color</span>
+                    </span>
+                    <span className="hero-card-text-expanded">
+                      Le
+                      <br />
+                      Ponemos
+                      <br />
+                      <span className="text-ajicolor-yellow">Color</span>
+                    </span>
                   </p>
-                </Link>
-                <div className="bg-ajicolor-yellow thick-border p-6 flex items-center justify-center">
-                  <p className="text-ajicolor-green text-xl font-black text-center leading-tight">
-                    Merch para tu proyecto
+                ),
+              },
+              {
+                href: "/drops",
+                bg: "bg-ajicolor-green p-6",
+                content: (
+                  <p className="hero-card-text relative text-white text-5xl font-black uppercase tracking-wide text-center">
+                    Drops
                   </p>
-                </div>
-              </div>
-              {dropActivo ? (
-                <Link
-                  href="/drops"
-                  className="bg-ajicolor-green thick-border p-6 flex flex-col items-center justify-center text-center hover:opacity-90 transition-opacity"
-                >
-                  <p className="text-white text-[10px] font-bold uppercase tracking-widest mb-1">Drop activo</p>
-                  <p className="text-white text-2xl font-black uppercase tracking-wide">{dropActivo.nombre}</p>
-                </Link>
-              ) : (
-                <Link
-                  href="/drops"
-                  className="bg-ajicolor-green thick-border p-6 flex items-center justify-center hover:opacity-90 transition-opacity"
-                >
-                  <p className="text-white text-2xl font-black uppercase tracking-wide text-center">
-                    Colecciones exclusivas
-                  </p>
-                </Link>
-              )}
-            </div>
-          </div>
+                ),
+              },
+            ]}
+          />
         )}
 
         <div className="flex justify-between items-end mb-6 border-b-2 border-ajicolor-ink pb-4">

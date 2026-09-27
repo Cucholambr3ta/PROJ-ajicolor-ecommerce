@@ -15,7 +15,7 @@ export async function Footer() {
   return (
     <>
       <WhatsAppFloatButton />
-    <footer className="bg-white dark:bg-neutral-900 border-t-2 border-ajicolor-ink">
+    <footer className="bg-white bg-[url('/fondo/fondo-claro.png')] bg-repeat [background-size:520px] [background-attachment:fixed] dark:bg-[var(--bg-light)] dark:bg-[url('/fondo/fondo-oscuro.png')] dark:bg-repeat dark:[background-size:520px] dark:[background-attachment:fixed] border-t-2 border-ajicolor-ink">
       <div className="bg-ajicolor-purple">
         <div className="max-w-7xl mx-auto px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
@@ -37,8 +37,8 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Navegación</h3>
-          <ul className="space-y-2 text-sm text-gray-600 dark:text-neutral-300">
+          <h3 className="text-xs font-bold uppercase tracking-widest mb-4 text-ajicolor-purple dark:text-neutral-100">Navegación</h3>
+          <ul className="space-y-2 text-sm text-ajicolor-purple dark:text-neutral-300">
             <li>
               <Link href="/" className="hover:text-ajicolor-magenta">
                 Catálogo
@@ -68,8 +68,8 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Cuenta</h3>
-          <ul className="space-y-2 text-sm text-gray-600 dark:text-neutral-300">
+          <h3 className="text-xs font-bold uppercase tracking-widest mb-4 text-ajicolor-purple dark:text-neutral-100">Cuenta</h3>
+          <ul className="space-y-2 text-sm text-ajicolor-purple dark:text-neutral-300">
             <li>
               <Link href="/login-cliente" className="hover:text-ajicolor-magenta">
                 Iniciar sesión
@@ -89,8 +89,8 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Ayuda</h3>
-          <ul className="space-y-2 text-sm text-gray-600 dark:text-neutral-300">
+          <h3 className="text-xs font-bold uppercase tracking-widest mb-4 text-ajicolor-purple dark:text-neutral-100">Ayuda</h3>
+          <ul className="space-y-2 text-sm text-ajicolor-purple dark:text-neutral-300">
             <li>
               <Link href="/contacto" className="hover:text-ajicolor-magenta">
                 Contacto
@@ -115,8 +115,8 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Síguenos</h3>
-          <ul className="space-y-2 text-sm text-gray-600 dark:text-neutral-300">
+          <h3 className="text-xs font-bold uppercase tracking-widest mb-4 text-ajicolor-purple dark:text-neutral-100">Síguenos</h3>
+          <ul className="space-y-2 text-sm text-ajicolor-purple dark:text-neutral-300">
             {redes.length === 0 && <li className="text-gray-400 dark:text-neutral-500">—</li>}
             {redes.map((red) => (
               <li key={red.label}>

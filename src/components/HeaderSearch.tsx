@@ -32,7 +32,7 @@ export function HeaderSearch() {
           type="button"
           onClick={() => setOpen(false)}
           aria-label="Cerrar búsqueda"
-          className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md"
+          className="p-2 text-ajicolor-purple dark:text-neutral-100 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md"
         >
           <X className="h-4 w-4" />
         </button>
@@ -44,7 +44,7 @@ export function HeaderSearch() {
     <button
       onClick={() => setOpen(true)}
       aria-label="Buscar"
-      className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md transition-colors"
+      className="p-2 text-ajicolor-purple dark:text-neutral-100 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md transition-colors"
     >
       <Search className="h-5 w-5" />
     </button>
