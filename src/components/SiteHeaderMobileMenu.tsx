@@ -32,7 +32,7 @@ export function SiteHeaderMobileMenu({ isCliente }: { isCliente: boolean }) {
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "Cerrar menú" : "Abrir menú"}
         aria-expanded={open}
-        className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md"
+        className="p-2 text-ajicolor-purple dark:text-neutral-100 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
