@@ -7,17 +7,9 @@ import { SiteHeaderMobileMenu } from "@/components/SiteHeaderMobileMenu";
 import { LoginButtonWithDrawer } from "@/components/LoginButtonWithDrawer";
 import { HeaderSearch } from "@/components/HeaderSearch";
 import { HeaderSocialIcons } from "@/components/HeaderSocialIcons";
+import { SiteHeaderNav } from "@/components/SiteHeaderNav";
 
-const NAV_LINKS = [
-  { href: "/", label: "Catálogo" },
-  { href: "/categorias", label: "Categorías" },
-  { href: "/drops", label: "Drops" },
-  { href: "/cotizador", label: "Cotizador" },
-  { href: "/conoce-al-aji", label: "Conoce al Ají" },
-  { href: "/contacto", label: "Contacto" },
-];
-
-export async function SiteHeader({ active }: { active?: string }) {
+export async function SiteHeader() {
   const session = await auth();
   const isCliente = session?.user?.rol === "Cliente";
 
@@ -32,12 +24,6 @@ export async function SiteHeader({ active }: { active?: string }) {
 
         <div className="flex items-center gap-2 sm:gap-4">
           <HeaderSearch />
-          <Link
-            href="/login"
-            className="hidden lg:inline text-[10px] font-bold text-gray-300 dark:text-neutral-600 hover:text-gray-500 dark:hover:text-neutral-400 uppercase"
-          >
-            Admin
-          </Link>
           <CartIcon />
           {isCliente ? (
             <>
@@ -64,17 +50,7 @@ export async function SiteHeader({ active }: { active?: string }) {
         </div>
       </div>
 
-      <div className="site-nav-bottom hidden lg:flex font-bold text-sm text-ajicolor-purple dark:text-neutral-100">
-        {NAV_LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={active === link.href ? "underline decoration-2 underline-offset-4" : ""}
-          >
-            {link.label}
-          </Link>
-        ))}
-      </div>
+      <SiteHeaderNav />
     </nav>
   );
 }
