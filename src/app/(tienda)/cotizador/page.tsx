@@ -1,29 +1,41 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getPrendasActivas } from "@/lib/actions/cotizador";
+import CotizadorClient from "./CotizadorClient";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Cotizador",
-  description: "Cotiza tu merch personalizado con Ajicolor.",
+  description: "Personaliza tu merch: poleras, polerones, totebags y relojes con tu propio diseño.",
 };
 
-export default function CotizadorPage() {
-  return (
-    <>
+export default async function CotizadorPage() {
+  const prendas = await getPrendasActivas();
 
-      <main className="max-w-2xl mx-auto py-20 p-8 flex-1 text-center">
-        <div className="bg-ajicolor-purple thick-border pop-shadow p-10">
-          <p className="text-ajicolor-yellow text-[10px] font-bold uppercase tracking-widest mb-3">Le ponemos color</p>
-          <h1 className="text-3xl font-black text-white mb-4">Cotizador de merch</h1>
-          <p className="text-white/80 text-sm mb-8">
-            Estamos armando una herramienta para que cotices tu proyecto personalizado — diseño, cantidad y
-            colores — directo desde aquí. Mientras tanto, escríbenos y te ayudamos a mano.
-          </p>
-          <Link href="/contacto" className="btn-block bg-ajicolor-yellow inline-flex">
-            Contáctanos
-          </Link>
-        </div>
-      </main>
-    </>
+  return (
+    <main className="max-w-6xl mx-auto py-12 p-8">
+      <h1 className="text-4xl font-black mb-2 border-b-2 border-ajicolor-ink pb-4">Cotizador</h1>
+      <p className="text-sm text-gray-500 dark:text-neutral-400 mb-10">
+        Sube tu diseño, elige la prenda y el color, y te enviamos una cotización a tu email.
+      </p>
+
+      <CotizadorClient
+        prendas={prendas.map((p) => ({
+          id: p.id,
+          nombre: p.nombre,
+          slug: p.slug,
+          descripcion: p.descripcion,
+          precioBase: Number(p.precioBase),
+          zonaAnchoCm: p.zonaAnchoCm != null ? Number(p.zonaAnchoCm) : null,
+          zonaAltoCm: p.zonaAltoCm != null ? Number(p.zonaAltoCm) : null,
+          tallasDisponibles: p.tallasDisponibles,
+          mockupFrenteUrl: p.mockupFrenteUrl,
+          colores: p.colores.map((c) => ({
+            id: c.id,
+            nombre: c.nombre,
+            hex: c.hex,
+          })),
+        }))}
+      />
+    </main>
   );
 }

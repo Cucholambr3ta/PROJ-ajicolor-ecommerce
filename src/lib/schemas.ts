@@ -154,3 +154,15 @@ export const createShipmentSchema = z.object({
   costo: z.number().nonnegative().optional(),
   fechaEstimada: z.date().optional(),
 });
+
+export const crearCotizacionSchema = z.object({
+  nombreContacto: z.string().trim().min(1, "El nombre es obligatorio").max(200),
+  emailContacto: emailSchema,
+  telefonoContacto: z.string().trim().max(30).optional(),
+  prendaBaseId: z.string().min(1, "Selecciona una prenda"),
+  colorNombre: z.string().trim().min(1, "Selecciona un color"),
+  talla: z.string().trim().max(10).optional(),
+  cantidad: z.number().int().positive().max(500),
+  disenoUrl: z.string().trim().min(1, "Sube tu diseño").max(500),
+  notas: z.string().trim().max(1000).optional(),
+});

@@ -66,6 +66,14 @@ enum CanalVenta {
   Otro
 }
 
+enum EstadoCotizacion {
+  Pendiente     // recién enviada por el cliente, sin revisar
+  EnRevision    // el dueño la está evaluando
+  Cotizada      // el dueño fijó un precio y respondió al cliente
+  Aceptada      // el cliente confirmó, pasa a producción manual
+  Rechazada
+}
+
 // ============================================================
 // Usuarios y clientes
 // ============================================================
@@ -107,6 +115,7 @@ model Customer {
   favorites           Favorite[]
   reviews             Review[]
   emailTokens         EmailToken[]
+  cotizaciones        CotizacionPersonalizada[]
 }
 
 /// Direcciones guardadas del cliente (envío rápido en próximas compras).
@@ -495,4 +504,68 @@ model StoreSettings {
   costoEnvioCorreos   Decimal  @default(3000)
   plazoProduccionDias Int      @default(7)
   updatedAt           DateTime @updatedAt
+}
+
+// ============================================================
+// Cotizador — prendas personalizables (merch a pedido)
+// ============================================================
+
+/// Tipo de prenda que se puede personalizar (Poleras, Polerones, Totebag, Relojes...).
+/// Separado de Product porque estas no tienen diseño fijo: el diseño lo trae el cliente.
+model PrendaBase {
+  id            String        @id @default(cuid())
+  nombre        String
+  slug          String        @unique
+  descripcion   String?
+  precioBase    Decimal       @default(0)
+  zonaAnchoCm   Decimal? // ancho máximo imprimible, en cm reales
+  zonaAltoCm    Decimal? // alto máximo imprimible, en cm reales
+  tallasDisponibles String[] @default([]) // ej: ["S","M","L","XL","2XL"] — vacío si la prenda no usa talla (ej. reloj)
+  // Mockup ÚNICO en gris/blanco neutro (fondo transparente): el color de
+  // cada variante se aplica encima con CSS (mix-blend-mode), no se necesita
+  // una foto distinta por color.
+  mockupFrenteUrl String?
+  mockupEspaldaUrl String?
+  activa        Boolean       @default(true)
+  orden         Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  colores       PrendaColor[]
+  cotizaciones  CotizacionPersonalizada[]
+}
+
+/// Color disponible para una prenda base. El mockup vive en PrendaBase — acá
+/// solo el nombre y el hex que se aplica sobre ese mockup como tinte.
+model PrendaColor {
+  id            String     @id @default(cuid())
+  prendaBaseId  String
+  prendaBase    PrendaBase @relation(fields: [prendaBaseId], references: [id], onDelete: Cascade)
+  nombre        String // "Negro", "Blanco", etc.
+  hex           String // color real de la tela, aplicado como tinte sobre el mockup
+  createdAt     DateTime   @default(now())
+
+  @@unique([prendaBaseId, nombre])
+}
+
+/// Solicitud de personalización enviada por un cliente desde /cotizador.
+/// No es un Order: se cotiza manualmente (precio variable según diseño/cantidad
+/// de estampados) antes de confirmar el pedido real.
+model CotizacionPersonalizada {
+  id              String           @id @default(cuid())
+  customerId      String?
+  customer        Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  nombreContacto  String
+  emailContacto   String
+  telefonoContacto String?
+  prendaBaseId    String
+  prendaBase      PrendaBase       @relation(fields: [prendaBaseId], references: [id])
+  colorNombre     String
+  talla           String?
+  cantidad        Int              @default(1)
+  disenoUrl       String // imagen subida por el cliente
+  notas           String?
+  precioCotizado  Decimal?
+  estado          EstadoCotizacion @default(Pendiente)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
