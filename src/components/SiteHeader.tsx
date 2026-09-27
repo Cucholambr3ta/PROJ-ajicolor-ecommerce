@@ -18,8 +18,8 @@ export async function SiteHeader() {
       <div className="site-nav-top">
         <HeaderSocialIcons />
 
-        <Link href="/" className="mx-auto lg:mx-0">
-          <Logo />
+        <Link href="/" className="mx-auto">
+          <Logo className="h-16 sm:h-20 w-auto" />
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-4">
