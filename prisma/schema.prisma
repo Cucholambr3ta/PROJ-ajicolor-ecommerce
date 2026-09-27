@@ -521,6 +521,11 @@ model PrendaBase {
   zonaAnchoCm   Decimal? // ancho máximo imprimible, en cm reales
   zonaAltoCm    Decimal? // alto máximo imprimible, en cm reales
   tallasDisponibles String[] @default([]) // ej: ["S","M","L","XL","2XL"] — vacío si la prenda no usa talla (ej. reloj)
+  // Mockup ÚNICO en gris/blanco neutro (fondo transparente): el color de
+  // cada variante se aplica encima con CSS (mix-blend-mode), no se necesita
+  // una foto distinta por color.
+  mockupFrenteUrl String?
+  mockupEspaldaUrl String?
   activa        Boolean       @default(true)
   orden         Int           @default(0)
   createdAt     DateTime      @default(now())
@@ -529,15 +534,14 @@ model PrendaBase {
   cotizaciones  CotizacionPersonalizada[]
 }
 
-/// Color disponible para una prenda base, con su mockup para el preview del cotizador.
+/// Color disponible para una prenda base. El mockup vive en PrendaBase — acá
+/// solo el nombre y el hex que se aplica sobre ese mockup como tinte.
 model PrendaColor {
   id            String     @id @default(cuid())
   prendaBaseId  String
   prendaBase    PrendaBase @relation(fields: [prendaBaseId], references: [id], onDelete: Cascade)
   nombre        String // "Negro", "Blanco", etc.
-  hex           String // para el swatch del selector, ej "#1a1a1a"
-  mockupFrenteUrl String? // PNG fondo transparente — placeholder hasta recibir el mockup real
-  mockupEspaldaUrl String?
+  hex           String // color real de la tela, aplicado como tinte sobre el mockup
   createdAt     DateTime   @default(now())
 
   @@unique([prendaBaseId, nombre])

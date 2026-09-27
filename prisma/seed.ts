@@ -337,9 +337,10 @@ async function main() {
   });
   console.log('Store settings created');
 
-  // Cotizador — prendas personalizables. mockupFrenteUrl queda null hasta
-  // que el dueño entregue los mockups reales; mientras tanto el cotizador
-  // muestra un placeholder de color sólido con el hex de cada color.
+  // Cotizador — prendas personalizables. PrendaBase.mockupFrenteUrl queda
+  // null hasta que el dueño entregue el mockup real (una foto en gris/blanco
+  // neutro por prenda, sin necesidad de una por color) — mientras tanto el
+  // cotizador muestra un placeholder de color sólido con el hex del color.
   const prendas = [
     {
       nombre: 'Poleras',
