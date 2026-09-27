@@ -28,11 +28,11 @@ export default async function CotizadorPage() {
           zonaAnchoCm: p.zonaAnchoCm != null ? Number(p.zonaAnchoCm) : null,
           zonaAltoCm: p.zonaAltoCm != null ? Number(p.zonaAltoCm) : null,
           tallasDisponibles: p.tallasDisponibles,
+          mockupFrenteUrl: p.mockupFrenteUrl,
           colores: p.colores.map((c) => ({
             id: c.id,
             nombre: c.nombre,
             hex: c.hex,
-            mockupFrenteUrl: c.mockupFrenteUrl,
           })),
         }))}
       />

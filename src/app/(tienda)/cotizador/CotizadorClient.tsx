@@ -7,7 +7,6 @@ interface Color {
   id: string;
   nombre: string;
   hex: string;
-  mockupFrenteUrl: string | null;
 }
 
 interface Prenda {
@@ -19,6 +18,7 @@ interface Prenda {
   zonaAnchoCm: number | null;
   zonaAltoCm: number | null;
   tallasDisponibles: string[];
+  mockupFrenteUrl: string | null;
   colores: Color[];
 }
 
@@ -159,15 +159,33 @@ export default function CotizadorClient({ prendas }: { prendas: Prenda[] }) {
         <div className="thick-border pop-shadow bg-white dark:bg-neutral-900 p-4 sticky top-24">
           <p className="text-center font-black text-sm py-2 border-b-2 border-ajicolor-ink mb-3">Vista previa</p>
           <div
-            className="relative w-full aspect-square overflow-hidden flex items-center justify-center"
-            style={{ backgroundColor: color?.hex ?? "#e5e5e5" }}
+            className="relative w-full aspect-square overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-neutral-800"
           >
-            {color?.mockupFrenteUrl ? (
-              <Image src={color.mockupFrenteUrl} alt={`${prenda?.nombre} ${color.nombre}`} fill className="object-contain" />
+            {prenda?.mockupFrenteUrl ? (
+              <>
+                {/* Mockup único en gris/blanco neutro, se tiñe con el color
+                    elegido vía mix-blend-mode — no hace falta una foto por
+                    color, solo una por prenda. */}
+                <Image
+                  src={prenda.mockupFrenteUrl}
+                  alt={`${prenda.nombre} ${color?.nombre ?? ""}`}
+                  fill
+                  className="object-contain"
+                />
+                <div
+                  className="absolute inset-0 mix-blend-multiply"
+                  style={{ backgroundColor: color?.hex ?? "#e5e5e5" }}
+                />
+              </>
             ) : (
-              <p className="text-xs font-bold uppercase tracking-widest text-white/40 mix-blend-difference">
-                {prenda?.nombre} · {color?.nombre}
-              </p>
+              <div
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ backgroundColor: color?.hex ?? "#e5e5e5" }}
+              >
+                <p className="text-xs font-bold uppercase tracking-widest text-white/40 mix-blend-difference">
+                  {prenda?.nombre} · {color?.nombre}
+                </p>
+              </div>
             )}
             {showPreview && previewUrl && (
               <div
