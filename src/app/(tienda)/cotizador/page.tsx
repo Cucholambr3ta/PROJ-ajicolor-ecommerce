@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getPrendasActivas } from "@/lib/actions/cotizador";
-import CotizadorClient from "./CotizadorClient";
+import CotizadorClient from "@/components/cotizador/CotizadorClient";
+import type { PrendaCotizador } from "@/components/cotizador/config";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -19,20 +20,32 @@ export default async function CotizadorPage() {
       </p>
 
       <CotizadorClient
-        prendas={prendas.map((p) => ({
+        prendas={prendas.map((p): PrendaCotizador => ({
           id: p.id,
           nombre: p.nombre,
           slug: p.slug,
           descripcion: p.descripcion,
           precioBase: Number(p.precioBase),
-          zonaAnchoCm: p.zonaAnchoCm != null ? Number(p.zonaAnchoCm) : null,
-          zonaAltoCm: p.zonaAltoCm != null ? Number(p.zonaAltoCm) : null,
           tallasDisponibles: p.tallasDisponibles,
           mockupFrenteUrl: p.mockupFrenteUrl,
+          mockupEspaldaUrl: p.mockupEspaldaUrl,
+          modelo3dUrl: p.modelo3dUrl,
           colores: p.colores.map((c) => ({
             id: c.id,
             nombre: c.nombre,
             hex: c.hex,
+          })),
+          zonas: p.zonas.map((z) => ({
+            lado: z.lado,
+            anchoCm: Number(z.anchoCm),
+            altoCm: Number(z.altoCm),
+            x2d: Number(z.x2d),
+            y2d: Number(z.y2d),
+            w2d: Number(z.w2d),
+            h2d: Number(z.h2d),
+            pos3d: z.pos3d as [number, number, number],
+            rot3d: z.rot3d as [number, number, number],
+            size3d: z.size3d as [number, number, number],
           })),
         }))}
       />

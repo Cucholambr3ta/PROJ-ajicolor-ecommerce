@@ -8,11 +8,14 @@ import { type ActionResult, toActionResult } from "@/lib/action-result";
 import { auth } from "@/lib/auth";
 import { sendEmail } from "@/lib/email/send";
 
-/** Prendas activas con sus colores, para el selector del cotizador público. */
+/** Prendas activas con sus colores y zonas de impresión, para el cotizador público (2D/3D). */
 export async function getPrendasActivas() {
   return prisma.prendaBase.findMany({
     where: { activa: true },
-    include: { colores: { orderBy: { nombre: "asc" } } },
+    include: {
+      colores: { orderBy: { nombre: "asc" } },
+      zonas: true,
+    },
     orderBy: { orden: "asc" },
   });
 }

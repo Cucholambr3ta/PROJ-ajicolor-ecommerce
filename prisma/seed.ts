@@ -433,6 +433,36 @@ async function main() {
   }
   console.log('Prendas personalizables (cotizador) created');
 
+  // Cotizador 3D (H0) — modelo provisional + zona de impresión Frente para
+  // Poleras. anchoCm/altoCm copian el valor que ya tenía zonaAnchoCm/AltoCm
+  // (decisión §12 punto 3 del spec). x2d/y2d/w2d/h2d replican el rect
+  // hardcodeado que tenía el cotizador 2D (45%×45%, top 22%, centrado). Los
+  // valores 3D ubican el decal centrado sobre el pecho del modelo
+  // provisional (extensión aprox X:-0.55..0.55, Y:-0.5..0.5, Z:-0.06..0.06).
+  // Solo Frente en H0 — Espalda/Polerones/Totebag/Relojes quedan para H2.
+  const prendaPoleraParaZona = await prisma.prendaBase.update({
+    where: { slug: 'poleras' },
+    data: { modelo3dUrl: '/models/prenda-provisional.glb' },
+  });
+  await prisma.prendaZona.upsert({
+    where: { prendaBaseId_lado: { prendaBaseId: prendaPoleraParaZona.id, lado: 'Frente' } },
+    update: {},
+    create: {
+      prendaBaseId: prendaPoleraParaZona.id,
+      lado: 'Frente',
+      anchoCm: 35,
+      altoCm: 45,
+      x2d: 27.5,
+      y2d: 22,
+      w2d: 45,
+      h2d: 45,
+      pos3d: [0, 0, 0.065],
+      rot3d: [0, 0, 0],
+      size3d: [0.5, 0.5, 0.1],
+    },
+  });
+  console.log('Zona de impresión (cotizador 3D) created for Poleras');
+
   // Cotizaciones de ejemplo — cubren el flujo /cotizador → admin revisa y
   // fija precio → cliente acepta. Buscamos las prendas recién creadas para
   // enlazar prendaBaseId/colorNombre válidos.
