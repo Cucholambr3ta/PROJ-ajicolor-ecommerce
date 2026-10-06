@@ -60,6 +60,7 @@ export default async function CuentaPage() {
           orders={customer.orders.map((order) => {
             const productosUnicos = new Map<string, string>();
             for (const item of order.items) {
+              if (!item.variant) continue; // ítem libre (cotización) — no es reseñable como producto de catálogo
               productosUnicos.set(item.variant.productId, item.variant.product.nombre);
             }
             return {

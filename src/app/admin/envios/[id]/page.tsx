@@ -4,6 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
+import { SHIPMENT_TRANSITIONS } from "@/lib/state-machines";
+import { formatCLP } from "@/lib/format";
+import DevolucionForm from "@/components/DevolucionForm";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +77,27 @@ export default async function EnvioDetailPage({
           })}
         </div>
       </Card>
+
+      {shipment.estado === "Devuelto" ? (
+        <Card className="p-6 mb-6 border-2 border-red-300">
+          <h2 className="font-semibold text-red-600 mb-3">Devolución registrada</h2>
+          <div className="space-y-1 text-sm">
+            <p><span className="font-medium">Motivo:</span> {shipment.devolucionMotivo ?? "—"}</p>
+            <p><span className="font-medium">Resolución:</span> {shipment.devolucionResolucion ?? "—"}</p>
+            {shipment.devolucionResolucion === "Reembolso" && (
+              <p><span className="font-medium">Monto reembolsado:</span> {formatCLP(Number(shipment.devolucionMontoReembolsado ?? 0))}</p>
+            )}
+            {shipment.devolucionNotas && <p><span className="font-medium">Notas:</span> {shipment.devolucionNotas}</p>}
+            {shipment.devolucionAt && <p className="text-xs text-gray-400">{shipment.devolucionAt.toLocaleDateString("es-CL")}</p>}
+          </div>
+        </Card>
+      ) : (
+        (SHIPMENT_TRANSITIONS[shipment.estado] ?? []).includes("Devuelto") && (
+          <Card className="p-6 mb-6">
+            <DevolucionForm shipmentId={shipment.id} total={Number(shipment.order.total)} />
+          </Card>
+        )
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="p-6">
@@ -167,8 +191,10 @@ export default async function EnvioDetailPage({
           <tbody>
             {shipment.order.items.map((item) => (
               <tr key={item.id} className="border-b last:border-0 dark:border-neutral-700">
-                <td className="py-2">{item.variant.product.nombre}</td>
-                <td className="py-2">{item.variant.talle} / {item.variant.color}</td>
+                <td className="py-2">{item.variant ? item.variant.product.nombre : (item.descripcionLibre ?? "Encargo personalizado")}</td>
+                <td className="py-2">
+                  {item.variant ? `${item.variant.talle} / ${item.variant.color}` : `${item.tallaLibre ?? "—"} / ${item.colorLibre ?? "—"}`}
+                </td>
                 <td className="py-2 text-right">{item.cantidad}</td>
                 <td className="py-2 text-right">${Number(item.precioUnit).toFixed(2)}</td>
               </tr>

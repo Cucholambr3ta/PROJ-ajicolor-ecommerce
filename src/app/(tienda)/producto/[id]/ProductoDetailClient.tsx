@@ -57,6 +57,20 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
   const gallery = product.images && product.images.length > 0 ? product.images : [{ id: "main", url: product.disenoUrl, alt: product.nombre }];
   const [activeImage, setActiveImage] = useState(0);
 
+  // Si el producto tiene una foto en /productos/negras/ y otra en
+  // /productos/claras/ con el mismo nombre de archivo, se puede ofrecer el
+  // switch de transición negro↔blanco en vez de la galería de miniaturas.
+  const { imagenNegra, imagenBlanca } = useMemo(() => {
+    const negra = gallery.find((img) => img.url.includes("/productos/negras/"));
+    const claraNombre = negra ? negra.url.split("/").pop() : null;
+    const clara = claraNombre
+      ? gallery.find((img) => img.url === `/productos/claras/${claraNombre}`)
+      : undefined;
+    return { imagenNegra: negra, imagenBlanca: clara };
+  }, [gallery]);
+  const tieneSwitchColor = Boolean(imagenNegra && imagenBlanca);
+  const [esBlanco, setEsBlanco] = useState(false);
+
   const coloresDisponibles = useMemo(
     () => Array.from(new Set(product.variants.map((v) => v.color))),
     [product.variants]
@@ -81,6 +95,19 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
     setSelectedColor(color);
     const variantesDelColor = product.variants.filter((v) => v.color === color);
     setSelectedTalle(variantesDelColor[0]?.talle ?? TALLES_ORDEN[0]);
+    if (color === "Blanco") setEsBlanco(true);
+    else if (color === "Negro") setEsBlanco(false);
+  }
+
+  function handleToggleColorSwitch() {
+    const nuevoEsBlanco = !esBlanco;
+    setEsBlanco(nuevoEsBlanco);
+    const colorObjetivo = nuevoEsBlanco ? "Blanco" : "Negro";
+    if (coloresDisponibles.includes(colorObjetivo)) {
+      setSelectedColor(colorObjetivo);
+      const variantesDelColor = product.variants.filter((v) => v.color === colorObjetivo);
+      setSelectedTalle(variantesDelColor[0]?.talle ?? TALLES_ORDEN[0]);
+    }
   }
 
   async function handleAddToCart() {
@@ -107,15 +134,34 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
         <div>
           <div className="thick-border pop-shadow bg-white dark:bg-neutral-900 p-3">
             <p className="text-center font-black text-sm py-2 border-b-2 border-ajicolor-ink mb-3">Producto</p>
-            <div className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={gallery[activeImage]?.url ?? product.disenoUrl}
-                alt={gallery[activeImage]?.alt ?? product.nombre}
-                className="w-full aspect-square object-cover"
-              />
-            </div>
-            {gallery.length > 1 && (
+            {tieneSwitchColor ? (
+              <div className="relative w-full aspect-square overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imagenNegra!.url}
+                  alt={imagenNegra!.alt ?? product.nombre}
+                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-out"
+                  style={{ opacity: esBlanco ? 0 : 1 }}
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imagenBlanca!.url}
+                  alt={imagenBlanca!.alt ?? product.nombre}
+                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-out"
+                  style={{ opacity: esBlanco ? 1 : 0 }}
+                />
+              </div>
+            ) : (
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={gallery[activeImage]?.url ?? product.disenoUrl}
+                  alt={gallery[activeImage]?.alt ?? product.nombre}
+                  className="w-full aspect-square object-cover"
+                />
+              </div>
+            )}
+            {!tieneSwitchColor && gallery.length > 1 && (
               <div className="flex gap-2 mt-3 overflow-x-auto">
                 {gallery.map((img, i) => (
                   <button
@@ -133,21 +179,37 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
               <span className="bg-ajicolor-magenta text-white px-4 py-2 text-xs font-black uppercase flex-1 text-center">
                 Dale color!
               </span>
-              {coloresDisponibles.length > 0 && (
-                <div className="flex gap-2">
-                  {coloresDisponibles.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => handleSelectColor(color)}
-                      title={color}
-                      aria-label={color}
-                      className={`w-6 h-6 rounded-full border-2 transition-transform ${
-                        color === selectedColor ? "border-ajicolor-ink scale-110" : "border-gray-300 dark:border-neutral-700"
-                      }`}
-                      style={{ backgroundColor: COLOR_HEX[color] ?? "#ccc" }}
-                    />
-                  ))}
-                </div>
+              {tieneSwitchColor ? (
+                <button
+                  onClick={handleToggleColorSwitch}
+                  role="switch"
+                  aria-checked={esBlanco}
+                  aria-label="Cambiar color de la polera"
+                  className="relative w-14 h-7 thick-border rounded-full shrink-0 transition-colors duration-300"
+                  style={{ backgroundColor: esBlanco ? "#fafafa" : "#1a1a1a" }}
+                >
+                  <span
+                    className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white border-2 border-ajicolor-ink transition-transform duration-300 ease-out"
+                    style={{ transform: esBlanco ? "translateX(26px)" : "translateX(0)" }}
+                  />
+                </button>
+              ) : (
+                coloresDisponibles.length > 0 && (
+                  <div className="flex gap-2">
+                    {coloresDisponibles.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => handleSelectColor(color)}
+                        title={color}
+                        aria-label={color}
+                        className={`w-6 h-6 rounded-full border-2 transition-transform ${
+                          color === selectedColor ? "border-ajicolor-ink scale-110" : "border-gray-300 dark:border-neutral-700"
+                        }`}
+                        style={{ backgroundColor: COLOR_HEX[color] ?? "#ccc" }}
+                      />
+                    ))}
+                  </div>
+                )
               )}
             </div>
           </div>

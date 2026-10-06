@@ -184,6 +184,7 @@ async function main() {
 
   const orderSeeds = [
     { customerId: customers[0].id, canal: 'Web' as const, estado: 'Pendiente' as const, estadoPago: 'PendienteTransferencia' as const },
+    { customerId: customers[2].id, canal: 'Web' as const, estado: 'Pendiente' as const, estadoPago: 'EnRevision' as const },
     { customerId: customers[1].id, canal: 'Instagram' as const, estado: 'Pagado' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 1 * day) },
     { customerId: customers[2].id, canal: 'WhatsApp' as const, estado: 'EnProduccion' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 3 * day) },
     { customerId: customers[0].id, canal: 'Web' as const, estado: 'ListoParaEnvio' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 6 * day) },
@@ -231,7 +232,7 @@ async function main() {
     });
     orders.push({ ...order, estado: seed.estado });
 
-    if (seed.estado !== 'Pendiente' && seed.estado !== 'Cancelado') {
+    if (seed.estadoPago === 'Pagado') {
       await prisma.payment.create({
         data: {
           orderId: order.id,
@@ -241,6 +242,23 @@ async function main() {
           estado: 'Pagado',
           confirmadoPorId: admin.id,
           confirmadoAt: 'pagadoAt' in seed ? seed.pagadoAt : new Date(),
+        },
+      });
+    } else if (seed.estadoPago === 'EnRevision') {
+      // Cliente ya subió el comprobante, pero el admin todavía no lo
+      // confirma — este es el caso que ejercita el flujo de revisión manual.
+      await prisma.payment.create({
+        data: {
+          orderId: order.id,
+          monto: order.total,
+          banco: 'Banco Estado',
+          fechaTransferencia: new Date(now - 2 * 60 * 60 * 1000),
+          referencia: `REF-${order.numero}`,
+          // En producción esto es una URL firmada de Supabase Storage; para
+          // la BD local reusamos un asset público existente solo para que
+          // el <img> del admin tenga algo que renderizar.
+          comprobanteUrl: '/hero/le-ponemos-color.jpg',
+          estado: 'EnRevision',
         },
       });
     }
@@ -273,7 +291,7 @@ async function main() {
   const enProduccion = orders.find((o) => o.estado === 'EnProduccion');
   if (enProduccion) {
     const orderItem = await prisma.orderItem.findFirst({ where: { orderId: enProduccion.id } });
-    if (orderItem) {
+    if (orderItem && orderItem.variantId) {
       await prisma.productionBatch.create({
         data: {
           supplierId: supplierTextil.id,
@@ -414,6 +432,45 @@ async function main() {
     }
   }
   console.log('Prendas personalizables (cotizador) created');
+
+  // Cotizaciones de ejemplo — cubren el flujo /cotizador → admin revisa y
+  // fija precio → cliente acepta. Buscamos las prendas recién creadas para
+  // enlazar prendaBaseId/colorNombre válidos.
+  const prendaPoleras = await prisma.prendaBase.findUniqueOrThrow({ where: { slug: 'poleras' } });
+  const prendaPolerones = await prisma.prendaBase.findUniqueOrThrow({ where: { slug: 'polerones' } });
+
+  await prisma.cotizacionPersonalizada.create({
+    data: {
+      customerId: customers[1].id,
+      nombreContacto: customers[1].nombre,
+      emailContacto: customers[1].email,
+      telefonoContacto: customers[1].telefono,
+      prendaBaseId: prendaPoleras.id,
+      colorNombre: 'Negro',
+      talla: 'M',
+      cantidad: 20,
+      disenoUrl: '/carousel/polera.png',
+      notas: 'Merch para evento de banda — necesitamos 20 unidades antes del 15 del próximo mes.',
+      estado: 'Pendiente',
+    },
+  });
+
+  await prisma.cotizacionPersonalizada.create({
+    data: {
+      nombreContacto: 'Rodrigo Fuentes',
+      emailContacto: 'rodrigo.fuentes@test.cl',
+      telefonoContacto: '+56955566677',
+      prendaBaseId: prendaPolerones.id,
+      colorNombre: 'Negro',
+      talla: 'L',
+      cantidad: 8,
+      disenoUrl: '/carousel/poleron.png',
+      notas: 'Logo de la empresa en el pecho, sin espalda.',
+      precioCotizado: 189920,
+      estado: 'Cotizada',
+    },
+  });
+  console.log('Cotizaciones de ejemplo created');
 
   console.log('Seed complete!');
 }

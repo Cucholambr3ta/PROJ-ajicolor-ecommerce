@@ -54,6 +54,7 @@ export async function getReporteMargen() {
   >();
 
   for (const item of items) {
+    if (!item.variant) continue; // ítem libre (cotización) — sin producto de catálogo que agrupar
     const key = item.variant.productId;
     const nombre = item.variant.product.nombre;
     const ingresos = Number(item.precioUnit) * item.cantidad;
@@ -211,6 +212,24 @@ export async function exportClientesCSV() {
     String(c.orders.length),
     c.totalGastado.toString(),
     c.backstagePass ? "Sí" : "No",
+  ]);
+
+  return buildCSV(headers, rows);
+}
+
+export async function exportGastoProveedoresCSV() {
+  await requireAdmin();
+  const { getGastoPorProveedor } = await import("@/lib/actions/materials");
+  const { movimientos } = await getGastoPorProveedor();
+
+  const headers = ["Fecha", "Insumo", "Proveedor", "Cantidad", "Unidad", "Costo Total"];
+  const rows = movimientos.map((m) => [
+    m.fecha.toISOString(),
+    m.insumo,
+    m.proveedor,
+    String(m.cantidad),
+    m.unidad,
+    String(m.costoTotal),
   ]);
 
   return buildCSV(headers, rows);

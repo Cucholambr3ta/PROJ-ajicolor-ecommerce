@@ -68,6 +68,10 @@ export async function getItemsPorProducir() {
     where: {
       order: { estadoPago: "Pagado", estado: { in: ["Pagado", "EnProduccion"] } },
       batchItems: { none: {} },
+      // Los ítems "libres" (de una cotización personalizada, sin SKU de
+      // catálogo) no entran a esta cola agrupada por variante — se
+      // producen por fuera del sistema de lotes, coordinados a mano.
+      variantId: { not: null },
     },
     include: {
       order: { include: { customer: true } },
@@ -82,6 +86,7 @@ export async function getItemsPorProducir() {
   >();
 
   for (const item of items) {
+    if (!item.variantId || !item.variant) continue;
     const key = item.variantId;
     const existing = porVariante.get(key);
     if (existing) {

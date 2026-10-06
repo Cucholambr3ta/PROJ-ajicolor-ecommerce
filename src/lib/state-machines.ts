@@ -14,7 +14,9 @@ export const SHIPMENT_TRANSITIONS: Record<EstadoEnvio, EstadoEnvio[]> = {
   Preparando: ["Despachado", "Devuelto"],
   Despachado: ["EnTransito", "Devuelto"],
   EnTransito: ["Entregado", "Devuelto"],
-  Entregado: [],
+  // Un cliente puede devolver después de haber recibido el pedido — por
+  // eso Entregado también permite pasar a Devuelto.
+  Entregado: ["Devuelto"],
   Devuelto: [],
 };
 

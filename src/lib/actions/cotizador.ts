@@ -87,9 +87,31 @@ export async function crearCotizacion(data: {
 export async function getCotizacionesAdmin() {
   await requireAdmin();
   return prisma.cotizacionPersonalizada.findMany({
-    include: { prendaBase: true, customer: { select: { nombre: true, email: true } } },
+    include: { prendaBase: true, customer: { select: { nombre: true, email: true } }, order: { select: { id: true, numero: true } } },
     orderBy: { createdAt: "desc" },
   });
+}
+
+/** Métricas del dashboard de cotizaciones: volumen y tasa de conversión a pedido real. */
+export async function getCotizacionesMetrics() {
+  await requireAdmin();
+
+  const [total, porEstado, aceptadasConPedido] = await Promise.all([
+    prisma.cotizacionPersonalizada.count(),
+    prisma.cotizacionPersonalizada.groupBy({ by: ["estado"], _count: true }),
+    prisma.cotizacionPersonalizada.count({ where: { estado: "Aceptada", order: { isNot: null } } }),
+  ]);
+
+  const aceptadas = porEstado.find((e) => e.estado === "Aceptada")?._count ?? 0;
+  const tasaConversion = total > 0 ? Math.round((aceptadasConPedido / total) * 100) : 0;
+
+  return {
+    total,
+    porEstado: Object.fromEntries(porEstado.map((e) => [e.estado, e._count])),
+    aceptadas,
+    convertidasAPedido: aceptadasConPedido,
+    tasaConversion,
+  };
 }
 
 export async function actualizarCotizacion(
@@ -100,4 +122,90 @@ export async function actualizarCotizacion(
   const cotizacion = await prisma.cotizacionPersonalizada.update({ where: { id }, data });
   revalidatePath("/admin/cotizaciones");
   return cotizacion;
+}
+
+/**
+ * Convierte una cotización ya Aceptada (con precio fijado) en un pedido
+ * real. El ítem queda "libre" (sin ProductVariant de catálogo) porque la
+ * prenda es a medida — ver OrderItem.descripcionLibre/colorLibre/etc.
+ * Requiere que el cliente de la cotización tenga cuenta (customerId), ya
+ * que Order.customerId es obligatorio; si la cotización vino de un
+ * contacto sin cuenta, falla con un mensaje claro para que el admin cree
+ * primero el cliente.
+ */
+export async function convertirCotizacionAPedido(cotizacionId: string): Promise<ActionResult<{ orderId: string; numero: number }>> {
+  return toActionResult(async () => {
+    await requireAdmin();
+
+    const cotizacion = await prisma.cotizacionPersonalizada.findUnique({
+      where: { id: cotizacionId },
+      include: { prendaBase: true, order: true },
+    });
+    if (!cotizacion) throw new Error("Cotización no encontrada");
+    if (cotizacion.order) throw new Error("Esta cotización ya tiene un pedido generado");
+    if (cotizacion.estado !== "Aceptada") throw new Error("Solo se puede convertir una cotización Aceptada");
+    if (!cotizacion.precioCotizado) throw new Error("Falta fijar el precio cotizado antes de convertir");
+    if (!cotizacion.customerId) {
+      throw new Error("Este contacto no tiene cuenta de cliente — crea el cliente primero en Clientes");
+    }
+
+    const precioUnit = Number(cotizacion.precioCotizado);
+    const subtotal = precioUnit; // precioCotizado ya es el total por la cantidad pedida
+
+    const order = await prisma.order.create({
+      data: {
+        customerId: cotizacion.customerId,
+        canal: "Web",
+        cotizacionId: cotizacion.id,
+        subtotal,
+        total: subtotal,
+        notas: `Generado desde cotización personalizada — ${cotizacion.prendaBase.nombre} × ${cotizacion.cantidad}`,
+        items: {
+          create: {
+            cantidad: cotizacion.cantidad,
+            precioUnit: precioUnit / cotizacion.cantidad,
+            descripcionLibre: cotizacion.prendaBase.nombre,
+            colorLibre: cotizacion.colorNombre,
+            tallaLibre: cotizacion.talla,
+            disenoUrlLibre: cotizacion.disenoUrl,
+          },
+        },
+      },
+      include: { customer: true },
+    });
+
+    const { getStoreSettings } = await import("@/lib/actions/settings");
+    const { pedidoRecibidoTemplate } = await import("@/lib/email/templates");
+    const settings = await getStoreSettings();
+    await sendEmail({
+      to: order.customer.email,
+      ...pedidoRecibidoTemplate({
+        nombre: order.customer.nombre,
+        numero: order.numero,
+        items: [
+          {
+            nombre: cotizacion.prendaBase.nombre,
+            talle: cotizacion.talla,
+            color: cotizacion.colorNombre,
+            cantidad: cotizacion.cantidad,
+            precioUnit: precioUnit / cotizacion.cantidad,
+          },
+        ],
+        total: subtotal,
+        datosBancarios: {
+          titular: settings.bancoTitular,
+          rut: settings.bancoRut,
+          banco: settings.bancoNombre,
+          tipoCuenta: settings.bancoTipoCuenta,
+          numeroCuenta: settings.bancoNumeroCuenta,
+          email: settings.bancoEmail,
+        },
+      }),
+    });
+
+    revalidatePath("/admin/cotizaciones");
+    revalidatePath("/admin/pedidos");
+    revalidatePath("/admin");
+    return { orderId: order.id, numero: order.numero };
+  });
 }

@@ -21,11 +21,13 @@ import {
   Star,
   Boxes,
   History,
+  Palette,
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
+  { href: "/admin/cotizaciones", label: "Cotizaciones", icon: Palette },
   { href: "/admin/produccion", label: "Producción", icon: Package },
   { href: "/admin/proveedores", label: "Proveedores", icon: Factory },
   { href: "/admin/insumos", label: "Insumos", icon: Boxes },

@@ -32,7 +32,7 @@ export async function createReview(data: {
     if (!order || order.customerId !== customerId) throw new Error("Pedido no encontrado");
     if (order.estado !== "Entregado") throw new Error("Solo puedes reseñar pedidos entregados");
 
-    const compró = order.items.some((item) => item.variant.productId === parsed.productId);
+    const compró = order.items.some((item) => item.variant?.productId === parsed.productId);
     if (!compró) throw new Error("Este producto no está en el pedido indicado");
 
     const existing = await prisma.review.findFirst({

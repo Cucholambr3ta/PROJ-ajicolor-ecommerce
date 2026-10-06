@@ -15,14 +15,15 @@
     --border-width: 2px;
   }
 
-  /* Modo oscuro: grafito, no negro puro. El texto se aclara para
-     contraste, pero --border-ink se mantiene oscuro a propósito —
-     bordes y sombras "pop" nunca se invierten a blanco. */
+  /* Modo oscuro: morado de marca derivado de ajicolor-purple, no
+     grafito neutro — combina con el fondo estampado. El texto se
+     aclara para contraste, pero --border-ink se mantiene oscuro a
+     propósito: bordes y sombras "pop" nunca se invierten a blanco. */
   .dark {
-    --ink: #f2f2f2;
+    --ink: #f1ebf5;
     --border-ink: #0a0a0a;
-    --bg-light: #22252a;
-    --card-bg: #2c2f36;
+    --bg-light: #2a1533;
+    --card-bg: #3a1f45;
   }
 
   body {
@@ -237,5 +238,17 @@
       opacity: 1;
       transition: opacity 0.3s ease 0.2s;
     }
+  }
+}
+
+/* Comprobante de venta: imprime solo el documento, sin header/sidebar/fondo
+   estampado ni el botón de imprimir. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
   }
 }

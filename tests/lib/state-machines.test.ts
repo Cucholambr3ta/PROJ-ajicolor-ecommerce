@@ -46,15 +46,15 @@ describe("ORDER_TRANSITIONS", () => {
 describe("SHIPMENT_TRANSITIONS", () => {
   assertValidStateMachine(SHIPMENT_TRANSITIONS, "SHIPMENT_TRANSITIONS");
 
-  it("Entregado y Devuelto son estados terminales", () => {
-    expect(SHIPMENT_TRANSITIONS.Entregado).toEqual([]);
+  it("Devuelto es un estado terminal", () => {
     expect(SHIPMENT_TRANSITIONS.Devuelto).toEqual([]);
   });
 
-  it("se puede marcar Devuelto desde cualquier estado no terminal", () => {
+  it("se puede marcar Devuelto desde cualquier estado previo, incluido Entregado", () => {
     expect(SHIPMENT_TRANSITIONS.Preparando).toContain("Devuelto");
     expect(SHIPMENT_TRANSITIONS.Despachado).toContain("Devuelto");
     expect(SHIPMENT_TRANSITIONS.EnTransito).toContain("Devuelto");
+    expect(SHIPMENT_TRANSITIONS.Entregado).toContain("Devuelto");
   });
 });
 

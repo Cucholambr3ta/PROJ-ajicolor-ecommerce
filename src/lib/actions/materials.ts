@@ -19,6 +19,7 @@ const movementSchema = z.object({
   tipo: z.enum(["Entrada", "Salida", "Ajuste"]),
   origen: z.string().trim().min(1).max(200),
   descripcion: z.string().trim().max(500).optional(),
+  costoTotal: z.number().nonnegative().optional(),
 });
 
 export async function getMaterials() {
@@ -68,6 +69,7 @@ export async function createMaterialMovement(data: {
   tipo: "Entrada" | "Salida" | "Ajuste";
   origen: string;
   descripcion?: string;
+  costoTotal?: number;
 }) {
   await requireAdmin();
   const parsed = parseOrThrow(movementSchema, data);
@@ -88,6 +90,9 @@ export async function createMaterialMovement(data: {
         tipo: parsed.tipo,
         origen: parsed.origen,
         descripcion: parsed.descripcion,
+        // El costo solo tiene sentido en compras (Entrada) — se ignora en
+        // Salida/Ajuste aunque venga en el formulario.
+        costoTotal: parsed.tipo === "Entrada" ? parsed.costoTotal : undefined,
       },
     }),
   ]);
@@ -102,5 +107,50 @@ export async function getMaterialMovements(materialId: string) {
     where: { materialId },
     orderBy: { createdAt: "desc" },
   });
-  return movements.map((m) => ({ ...m, cantidad: Number(m.cantidad) }));
+  return movements.map((m) => ({ ...m, cantidad: Number(m.cantidad), costoTotal: m.costoTotal != null ? Number(m.costoTotal) : null }));
+}
+
+/** Gasto total en compras de insumos (Entrada con costoTotal) agrupado por proveedor, en el período dado. */
+export async function getGastoPorProveedor(desde?: Date, hasta?: Date) {
+  await requireAdmin();
+  const movimientos = await prisma.materialMovement.findMany({
+    where: {
+      tipo: "Entrada",
+      costoTotal: { not: null },
+      ...(desde || hasta ? { createdAt: { gte: desde, lte: hasta } } : {}),
+    },
+    include: { material: { include: { supplier: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const porProveedor = new Map<string, { proveedor: string; total: number; compras: number }>();
+  for (const mov of movimientos) {
+    const key = mov.material.supplier?.id ?? "sin-proveedor";
+    const nombre = mov.material.supplier?.nombre ?? "Sin proveedor asignado";
+    const existing = porProveedor.get(key);
+    const monto = Number(mov.costoTotal ?? 0);
+    if (existing) {
+      existing.total += monto;
+      existing.compras += 1;
+    } else {
+      porProveedor.set(key, { proveedor: nombre, total: monto, compras: 1 });
+    }
+  }
+
+  const porProveedorArr = Array.from(porProveedor.values()).sort((a, b) => b.total - a.total);
+  const totalGeneral = porProveedorArr.reduce((sum, p) => sum + p.total, 0);
+
+  return {
+    porProveedor: porProveedorArr,
+    totalGeneral,
+    movimientos: movimientos.map((m) => ({
+      id: m.id,
+      fecha: m.createdAt,
+      insumo: m.material.nombre,
+      proveedor: m.material.supplier?.nombre ?? "Sin proveedor",
+      cantidad: Number(m.cantidad),
+      unidad: m.material.unidad,
+      costoTotal: Number(m.costoTotal ?? 0),
+    })),
+  };
 }

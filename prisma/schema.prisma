@@ -44,6 +44,11 @@ enum EstadoEnvio {
   Devuelto
 }
 
+enum ResolucionDevolucion {
+  Reembolso
+  Cambio
+}
+
 enum EstadoLote {
   Solicitado
   EnProgreso
@@ -291,21 +296,26 @@ model Coupon {
 // ============================================================
 
 model Order {
-  id              String       @id @default(cuid())
-  numero          Int          @unique @default(autoincrement())
+  id              String                   @id @default(cuid())
+  numero          Int                      @unique @default(autoincrement())
   customerId      String
-  customer        Customer     @relation(fields: [customerId], references: [id])
-  subtotal        Decimal      @default(0)
-  costoEnvio      Decimal      @default(0)
-  descuento       Decimal      @default(0)
+  customer        Customer                 @relation(fields: [customerId], references: [id])
+  subtotal        Decimal                  @default(0)
+  costoEnvio      Decimal                  @default(0)
+  descuento       Decimal                  @default(0)
   total           Decimal
-  estado          EstadoPedido @default(Pendiente)
-  estadoPago      EstadoPago   @default(PendienteTransferencia)
-  canal           CanalVenta   @default(Web)
+  estado          EstadoPedido             @default(Pendiente)
+  estadoPago      EstadoPago               @default(PendienteTransferencia)
+  canal           CanalVenta               @default(Web)
   metodoEnvio     MetodoEnvio?
   notas           String?
   couponId        String?
-  coupon          Coupon?      @relation(fields: [couponId], references: [id])
+  coupon          Coupon?                  @relation(fields: [couponId], references: [id])
+  // Pedido generado al aceptar una cotización personalizada del cotizador
+  // (merch a medida) — permite calcular la tasa de conversión y mostrar el
+  // origen del pedido en la vista interna.
+  cotizacionId    String?                  @unique
+  cotizacion      CotizacionPersonalizada? @relation(fields: [cotizacionId], references: [id])
   envioNombre     String?
   envioTelefono   String?
   envioCalle      String?
@@ -315,8 +325,8 @@ model Order {
   pagadoAt        DateTime?
   fechaCompromiso DateTime?
   pagoExpiraAt    DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
   items           OrderItem[]
   shipment        Shipment?
   payments        Payment[]
@@ -327,8 +337,16 @@ model OrderItem {
   id         String                @id @default(cuid())
   orderId    String
   order      Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  variantId  String
-  variant    ProductVariant        @relation(fields: [variantId], references: [id])
+  // Ítem de catálogo normal: tiene variantId. Ítem "libre" (viene de una
+  // cotización personalizada, sin SKU de catálogo): variantId es null y se
+  // usan los campos *Libre para describirlo.
+  variantId        String?
+  variant          ProductVariant? @relation(fields: [variantId], references: [id])
+  descripcionLibre String?
+  colorLibre       String?
+  tallaLibre       String?
+  disenoUrlLibre   String? // diseño de Frente (o único lado)
+  disenoEspaldaUrlLibre String? // diseño de Espalda, si la cotización tenía ambos lados
   cantidad   Int
   precioUnit Decimal
   costoUnit  Decimal               @default(0) // snapshot del costo al momento de la venta, para margen
@@ -394,6 +412,11 @@ model MaterialMovement {
   tipo        TipoMovimiento
   origen      String
   descripcion String?
+  // Costo total pagado en esta compra específica (solo relevante en
+  // entradas por compra a proveedor — el precio puede variar entre
+  // compras). Permite sumar gasto real por proveedor/período, a
+  // diferencia de Material.costo que es un valor de referencia fijo.
+  costoTotal  Decimal?
   createdAt   DateTime       @default(now())
 }
 
@@ -467,6 +490,12 @@ model Shipment {
   fechaEstimada  DateTime?
   fechaEntrega   DateTime?
   estado         EstadoEnvio  @default(Preparando)
+  // Devoluciones — solo se completan cuando estado pasa a Devuelto.
+  devolucionMotivo             String?
+  devolucionResolucion         ResolucionDevolucion?
+  devolucionMontoReembolsado   Decimal?
+  devolucionNotas              String?
+  devolucionAt                 DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
@@ -510,6 +539,39 @@ model StoreSettings {
 // Cotizador — prendas personalizables (merch a pedido)
 // ============================================================
 
+enum LadoPrenda {
+  Frente
+  Espalda
+}
+
+/// Zona de impresión fija por prenda y lado (cotizador 3D/2D). Una fila = un
+/// lado imprimible. Las medidas (anchoCm/altoCm) y los rects 2D se estiman
+/// al crearse — se recalibran desde el panel debug (solo dev) cuando se
+/// tengan las medidas reales del taller. Ver docs/SPEC-cotizador-3d.md §5.
+model PrendaZona {
+  id            String     @id @default(cuid())
+  prendaBaseId  String
+  prendaBase    PrendaBase @relation(fields: [prendaBaseId], references: [id], onDelete: Cascade)
+  lado          LadoPrenda
+
+  // Tamaño real imprimible (cm). Define calidad requerida y, a futuro, precio.
+  anchoCm       Decimal
+  altoCm        Decimal
+
+  // Preview 2D: rectángulo en % del mockup (0–100)
+  x2d           Decimal
+  y2d           Decimal
+  w2d           Decimal
+  h2d           Decimal
+
+  // Preview 3D (Decal): posición/rotación en unidades del modelo (Euler, radianes)
+  pos3d         Json // [x, y, z]
+  rot3d         Json // [x, y, z]
+  size3d        Json // [ancho, alto, profundidad de proyección]
+
+  @@unique([prendaBaseId, lado])
+}
+
 /// Tipo de prenda que se puede personalizar (Poleras, Polerones, Totebag, Relojes...).
 /// Separado de Product porque estas no tienen diseño fijo: el diseño lo trae el cliente.
 model PrendaBase {
@@ -518,19 +580,22 @@ model PrendaBase {
   slug          String        @unique
   descripcion   String?
   precioBase    Decimal       @default(0)
-  zonaAnchoCm   Decimal? // ancho máximo imprimible, en cm reales
-  zonaAltoCm    Decimal? // alto máximo imprimible, en cm reales
+  zonaAnchoCm   Decimal? // DEPRECADO — ver PrendaZona. Se mantiene solo por compatibilidad de datos históricos.
+  zonaAltoCm    Decimal? // DEPRECADO — ver PrendaZona.
   tallasDisponibles String[] @default([]) // ej: ["S","M","L","XL","2XL"] — vacío si la prenda no usa talla (ej. reloj)
   // Mockup ÚNICO en gris/blanco neutro (fondo transparente): el color de
   // cada variante se aplica encima con CSS (mix-blend-mode), no se necesita
   // una foto distinta por color.
   mockupFrenteUrl String?
   mockupEspaldaUrl String?
+  // Modelo 3D (.glb) para el cotizador interactivo — ver docs/SPEC-cotizador-3d.md §6.
+  modelo3dUrl   String?
   activa        Boolean       @default(true)
   orden         Int           @default(0)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   colores       PrendaColor[]
+  zonas         PrendaZona[]
   cotizaciones  CotizacionPersonalizada[]
 }
 
@@ -549,7 +614,8 @@ model PrendaColor {
 
 /// Solicitud de personalización enviada por un cliente desde /cotizador.
 /// No es un Order: se cotiza manualmente (precio variable según diseño/cantidad
-/// de estampados) antes de confirmar el pedido real.
+/// de estampados) antes de confirmar el pedido real. Al aceptarse, genera un
+/// Order vinculado (ver Order.cotizacionId) — permite medir conversión.
 model CotizacionPersonalizada {
   id              String           @id @default(cuid())
   customerId      String?
@@ -562,10 +628,31 @@ model CotizacionPersonalizada {
   colorNombre     String
   talla           String?
   cantidad        Int              @default(1)
-  disenoUrl       String // imagen subida por el cliente
+  // Diseño del Frente (o Espalda si solo hay espalda) — se mantiene por
+  // compatibilidad con admin/email/conversión existentes. El detalle por
+  // lado vive en CotizacionDiseno (cotizador 3D).
+  disenoUrl       String
+  disenos         CotizacionDiseno[]
   notas           String?
   precioCotizado  Decimal?
   estado          EstadoCotizacion @default(Pendiente)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  order           Order?
+}
+
+/// Un diseño por lado dentro de una cotización (cotizador 3D). Ver
+/// docs/SPEC-cotizador-3d.md §5.
+model CotizacionDiseno {
+  id            String                  @id @default(cuid())
+  cotizacionId  String
+  cotizacion    CotizacionPersonalizada @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+  lado          LadoPrenda
+  disenoUrl     String
+  escalaPct     Int                     @default(100) // 50–100
+  anchoPx       Int
+  altoPx        Int
+  previewUrl    String? // snapshot de la composición (CT-13)
+
+  @@unique([cotizacionId, lado])
 }
