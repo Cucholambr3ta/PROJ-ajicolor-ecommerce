@@ -91,6 +91,7 @@ export default async function ProductoPage({
           disenoUrl: product.disenoUrl,
           artista: product.artista,
           temporada: product.temporada,
+          categoria: product.categoria,
           precio: Number(product.precio),
           variants: product.variants.map((v) => ({
             id: v.id,

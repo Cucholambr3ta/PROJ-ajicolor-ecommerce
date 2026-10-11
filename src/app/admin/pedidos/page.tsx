@@ -17,9 +17,9 @@ function esEstadoPedido(value: string): value is EstadoPedido {
 export default async function PedidosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ estado?: string; q?: string; vencidos?: string; page?: string }>;
+  searchParams: Promise<{ estado?: string; q?: string; vencidos?: string; cotizador?: string; page?: string }>;
 }) {
-  const { estado, q, vencidos, page: pageParam } = await searchParams;
+  const { estado, q, vencidos, cotizador, page: pageParam } = await searchParams;
   const estadoValido = estado && esEstadoPedido(estado) ? estado : undefined;
   const page = pageParam ? parseInt(pageParam, 10) || 1 : 1;
   const numeroBuscado = q ? parseInt(q.replace(/\D/g, ""), 10) : NaN;
@@ -42,6 +42,7 @@ export default async function PedidosPage({
           createdAt: { lt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
         }
       : {}),
+    ...(cotizador === "1" ? { cotizacionId: { not: null } } : {}),
   };
 
   const [pedidos, total] = await Promise.all([
@@ -62,7 +63,7 @@ export default async function PedidosPage({
 
   function buildHref(overrides: Record<string, string | undefined>) {
     const params = new URLSearchParams();
-    const merged = { estado, q, vencidos, ...overrides };
+    const merged = { estado, q, vencidos, cotizador, ...overrides };
     for (const [key, value] of Object.entries(merged)) {
       if (value) params.set(key, value);
     }
@@ -88,7 +89,7 @@ export default async function PedidosPage({
           name="q"
           defaultValue={q}
           placeholder="Buscar por número, cliente o email..."
-          className="flex-1 border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900"
+          className="flex-1 border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
         />
         <button type="submit" className="px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800">
           Buscar
@@ -111,6 +112,11 @@ export default async function PedidosPage({
             Vencidos sin pago
           </Badge>
         </Link>
+        <Link href={buildHref({ cotizador: cotizador === "1" ? undefined : "1", page: undefined })}>
+          <Badge variant={cotizador === "1" ? "default" : "outline"} className="cursor-pointer">
+            Desde cotizador
+          </Badge>
+        </Link>
       </div>
 
       <Card>
@@ -121,8 +127,11 @@ export default async function PedidosPage({
             {pedidos.map((p) => (
               <div key={p.id} className="p-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium dark:text-neutral-100">
+                  <p className="font-medium dark:text-neutral-100 flex items-center gap-2">
                     #{String(p.numero).padStart(4, "0")} — {p.customer.nombre}
+                    {p.cotizacionId && (
+                      <Badge className="bg-ajicolor-purple text-white">Cotizador</Badge>
+                    )}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-neutral-400">
                     {p.items.length} item(s) — {p.canal}

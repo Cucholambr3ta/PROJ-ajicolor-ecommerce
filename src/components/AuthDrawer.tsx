@@ -83,6 +83,8 @@ function LoginForm({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [totpToken, setTotpToken] = useState("");
+  const [needsTotp, setNeedsTotp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -90,6 +92,44 @@ function LoginForm({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     setError("");
     setLoading(true);
+
+    // Un mismo formulario sirve para cliente y admin: primero se chequea si
+    // el email+contraseña corresponden a una cuenta admin (y si tiene 2FA
+    // activo), sin revelar nada si las credenciales no son válidas — mismo
+    // endpoint que usa /login. Si no es admin, se intenta como cliente.
+    if (!needsTotp) {
+      try {
+        const check = await fetch("/api/auth/check-2fa", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }).then((r) => r.json());
+
+        if (check.totpEnabled) {
+          setNeedsTotp(true);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // Si falla la verificación, seguimos el flujo normal abajo.
+      }
+    }
+
+    const adminRes = await signIn("admin-login", { email, password, totpToken, redirect: false });
+
+    if (!adminRes?.error) {
+      setLoading(false);
+      onClose();
+      router.push("/admin");
+      router.refresh();
+      return;
+    }
+
+    if (needsTotp) {
+      setLoading(false);
+      setError("Código 2FA inválido");
+      return;
+    }
 
     const res = await signIn("cliente-login", { email, password, redirect: false });
 
@@ -118,7 +158,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
         </div>
 
@@ -132,7 +172,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
           <a
             href="/recuperar"
@@ -142,6 +182,25 @@ function LoginForm({ onClose }: { onClose: () => void }) {
           </a>
         </div>
 
+        {needsTotp && (
+          <div>
+            <label htmlFor="drawer-login-totp" className="block text-xs font-bold uppercase tracking-wide mb-2">
+              Código de autenticación (2FA)
+            </label>
+            <input
+              id="drawer-login-totp"
+              type="text"
+              inputMode="numeric"
+              autoFocus
+              required
+              maxLength={6}
+              value={totpToken}
+              onChange={(e) => setTotpToken(e.target.value)}
+              className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            />
+          </div>
+        )}
+
         {error && <p className="text-sm font-semibold text-ajicolor-magenta">{error}</p>}
 
         <button
@@ -149,7 +208,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
           disabled={loading}
           className="btn-block w-full bg-ajicolor-yellow justify-center py-3 disabled:opacity-50"
         >
-          {loading ? "Ingresando..." : "Login"}
+          {loading ? (needsTotp ? "Verificando..." : "Ingresando...") : "Login"}
         </button>
       </form>
 
@@ -220,7 +279,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
             required
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
         </div>
 
@@ -234,7 +293,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
         </div>
 
@@ -249,7 +308,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
           <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">Mínimo 8 caracteres.</p>
         </div>
@@ -264,7 +323,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
             required
             value={telefono}
             onChange={(e) => setTelefono(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
         </div>
 
@@ -278,7 +337,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
             required
             value={direccion}
             onChange={(e) => setDireccion(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
         </div>
 

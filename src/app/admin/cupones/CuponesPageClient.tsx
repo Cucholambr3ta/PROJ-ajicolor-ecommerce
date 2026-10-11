@@ -96,7 +96,7 @@ export default function CuponesPageClient({ cupones }: { cupones: Coupon[] }) {
                 value={codigo}
                 onChange={(e) => setCodigo(e.target.value.toUpperCase())}
                 required
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono dark:border-neutral-700 dark:bg-neutral-900"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div>
@@ -104,7 +104,7 @@ export default function CuponesPageClient({ cupones }: { cupones: Coupon[] }) {
               <select
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value as typeof tipo)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               >
                 <option value="porcentaje">% descuento</option>
                 <option value="monto">Monto fijo</option>
@@ -121,7 +121,7 @@ export default function CuponesPageClient({ cupones }: { cupones: Coupon[] }) {
                   min={0}
                   value={valor}
                   onChange={(e) => setValor(Number(e.target.value))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                 />
               </div>
             )}
@@ -132,7 +132,7 @@ export default function CuponesPageClient({ cupones }: { cupones: Coupon[] }) {
                 min={0}
                 value={montoMinimo}
                 onChange={(e) => setMontoMinimo(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div>
@@ -142,7 +142,7 @@ export default function CuponesPageClient({ cupones }: { cupones: Coupon[] }) {
                 min={1}
                 value={usosMaximos}
                 onChange={(e) => setUsosMaximos(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div>
@@ -151,7 +151,7 @@ export default function CuponesPageClient({ cupones }: { cupones: Coupon[] }) {
                 type="date"
                 value={vigenteHasta}
                 onChange={(e) => setVigenteHasta(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div className="md:col-span-3 flex justify-end">

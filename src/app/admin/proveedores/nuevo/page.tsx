@@ -20,6 +20,7 @@ export default async function NuevoProveedorPage({
           id: supplier.id,
           nombre: supplier.nombre,
           contacto: supplier.contacto,
+          telefono: supplier.telefono,
           leadTimeDias: supplier.leadTimeDias,
           costoBase: Number(supplier.costoBase),
           calificacion: supplier.calificacion,

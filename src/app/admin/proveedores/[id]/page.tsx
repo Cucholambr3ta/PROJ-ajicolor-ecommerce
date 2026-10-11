@@ -3,6 +3,7 @@ import { getSupplierById } from "@/lib/actions/suppliers";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import CompraWhatsAppClient from "./CompraWhatsAppClient";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,7 @@ export default async function ProveedorDetailPage({
           <h2 className="font-semibold text-gray-700 dark:text-neutral-200 mb-3">Información</h2>
           <div className="space-y-2 text-sm">
             <p><span className="font-medium">Contacto:</span> {supplier.contacto}</p>
+            <p><span className="font-medium">WhatsApp:</span> {supplier.telefono ?? "Sin cargar"}</p>
             <p><span className="font-medium">Lead time:</span> {supplier.leadTimeDias} días</p>
             <p><span className="font-medium">Costo base:</span> ${Number(supplier.costoBase).toFixed(2)}</p>
             <p>
@@ -53,6 +55,13 @@ export default async function ProveedorDetailPage({
           </div>
         </Card>
       </div>
+
+      <CompraWhatsAppClient
+        supplierId={supplier.id}
+        supplierNombre={supplier.nombre}
+        telefono={supplier.telefono}
+        leadTimeDias={supplier.leadTimeDias}
+      />
 
       <Card className="p-6">
         <h2 className="font-semibold text-gray-700 dark:text-neutral-200 mb-3">Historial de lotes</h2>

@@ -4,6 +4,18 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { PALETA_KIDS, TALLES_KIDS } from "@/lib/kids";
+
+// Misma paleta adulto que usa la ficha pública (ProductoDetailClient.tsx) —
+// duplicada acá porque esa paleta vive en un componente de cliente de la
+// tienda, no en un módulo compartido como kids.ts. Si cambia una, cambia la
+// otra a mano (o se mueve a un solo lib/paletas.ts más adelante).
+const PALETA_ADULTO = [
+  "Negro", "Chocolate", "Azul Marino", "Gris Carbón", "Verde Bosque",
+  "Burdeo", "Morado", "Gris Melange", "Azul Royal", "Mostaza", "Arena", "Blanco",
+];
+const NOMBRES_KIDS = PALETA_KIDS.map((c) => c.nombre);
+const TALLES_ADULTO = ["S", "M", "L", "XL", "2XL"];
 
 interface VariantInput {
   id?: string;
@@ -31,6 +43,7 @@ export default function ProductoFormClient({
     disenoUrl: string;
     artista: string;
     temporada: string;
+    categoria: "Adulto" | "Kids";
     precio: number | any;
     variants: { id: string; talle: string; color: string; sku: string; stock: number; stockMin: number }[];
     images?: ProductImageData[];
@@ -57,7 +70,10 @@ export default function ProductoFormClient({
   const [disenoUrl, setDisenoUrl] = useState(initialData?.disenoUrl ?? "");
   const [artista, setArtista] = useState(initialData?.artista ?? "");
   const [temporada, setTemporada] = useState(initialData?.temporada ?? "");
+  const [categoria, setCategoria] = useState<"Adulto" | "Kids">(initialData?.categoria ?? "Adulto");
   const [precio, setPrecio] = useState(initialData ? Number(initialData.precio) : 0);
+  const paletaActiva: string[] = categoria === "Kids" ? NOMBRES_KIDS : PALETA_ADULTO;
+  const tallesActivos: string[] = categoria === "Kids" ? [...TALLES_KIDS] : TALLES_ADULTO;
   const [variants, setVariants] = useState<VariantInput[]>(
     initialData?.variants.map((v) => ({
       id: v.id,
@@ -139,6 +155,7 @@ export default function ProductoFormClient({
           disenoUrl,
           artista,
           temporada,
+          categoria,
           precio,
           variants,
         });
@@ -151,6 +168,7 @@ export default function ProductoFormClient({
           disenoUrl,
           artista,
           temporada,
+          categoria,
           precio,
           variants,
         });
@@ -219,6 +237,20 @@ export default function ProductoFormClient({
                 onChange={(e) => setTemporada(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Categoría</label>
+              <select
+                value={categoria}
+                onChange={(e) => setCategoria(e.target.value as "Adulto" | "Kids")}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+              >
+                <option value="Adulto">Adulto</option>
+                <option value="Kids">Kids</option>
+              </select>
+              <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
+                Determina la paleta de colores de las variantes y en qué sección aparece (/ o /kids).
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">URL del Diseño</label>
@@ -307,21 +339,39 @@ export default function ProductoFormClient({
                 <div key={i} className="grid grid-cols-5 gap-3 items-end">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Talle</label>
-                    <input
-                      type="text"
+                    <select
                       value={v.talle}
                       onChange={(e) => updateVariant(i, "talle", e.target.value)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                    />
+                    >
+                      <option value="">Seleccionar...</option>
+                      {tallesActivos.map((talle) => (
+                        <option key={talle} value={talle}>
+                          {talle}
+                        </option>
+                      ))}
+                      {v.talle && !tallesActivos.includes(v.talle) && (
+                        <option value={v.talle}>{v.talle} (fuera de rango)</option>
+                      )}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Color</label>
-                    <input
-                      type="text"
+                    <select
                       value={v.color}
                       onChange={(e) => updateVariant(i, "color", e.target.value)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                    />
+                    >
+                      <option value="">Seleccionar...</option>
+                      {paletaActiva.map((nombre) => (
+                        <option key={nombre} value={nombre}>
+                          {nombre}
+                        </option>
+                      ))}
+                      {v.color && !paletaActiva.includes(v.color) && (
+                        <option value={v.color}>{v.color} (fuera de paleta)</option>
+                      )}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">SKU</label>

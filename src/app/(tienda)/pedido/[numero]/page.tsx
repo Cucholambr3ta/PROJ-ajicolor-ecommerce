@@ -44,6 +44,7 @@ export default async function PedidoConfirmacionPage({
         items: { include: { variant: { include: { product: true } } } },
         payments: { orderBy: { createdAt: "desc" } },
         shipment: true,
+        cotizacion: true,
       },
     }),
     getStoreSettings(),
@@ -68,13 +69,23 @@ export default async function PedidoConfirmacionPage({
           {ESTADO_LABELS[order.estado] ?? order.estado}
         </p>
 
+        {order.cotizacion?.notas && (
+          <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6 text-left mb-6">
+            <h2 className="font-black uppercase text-sm mb-2">Tu encargo personalizado</h2>
+            <p className="text-sm text-gray-600 dark:text-neutral-300">{order.cotizacion.notas}</p>
+          </div>
+        )}
+
         <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6 text-left mb-6">
           <h2 className="font-black uppercase text-sm mb-4">Items</h2>
           <div className="space-y-2 text-sm">
             {order.items.map((item) => (
               <div key={item.id} className="flex justify-between text-gray-600 dark:text-neutral-300">
                 <span>
-                  {item.variant.product.nombre} ({item.variant.talle}/{item.variant.color}) ×{item.cantidad}
+                  {item.variant
+                    ? `${item.variant.product.nombre} (${item.variant.talle}/${item.variant.color})`
+                    : `${item.descripcionLibre ?? "Diseño personalizado"} (${item.tallaLibre ?? "—"}/${item.colorLibre ?? "—"})`}{" "}
+                  ×{item.cantidad}
                 </span>
                 <span>{formatCLP(item.cantidad * Number(item.precioUnit))}</span>
               </div>

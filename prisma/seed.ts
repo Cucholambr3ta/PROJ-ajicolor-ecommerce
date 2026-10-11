@@ -184,6 +184,7 @@ async function main() {
 
   const orderSeeds = [
     { customerId: customers[0].id, canal: 'Web' as const, estado: 'Pendiente' as const, estadoPago: 'PendienteTransferencia' as const },
+    { customerId: customers[2].id, canal: 'Web' as const, estado: 'Pendiente' as const, estadoPago: 'EnRevision' as const },
     { customerId: customers[1].id, canal: 'Instagram' as const, estado: 'Pagado' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 1 * day) },
     { customerId: customers[2].id, canal: 'WhatsApp' as const, estado: 'EnProduccion' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 3 * day) },
     { customerId: customers[0].id, canal: 'Web' as const, estado: 'ListoParaEnvio' as const, estadoPago: 'Pagado' as const, pagadoAt: new Date(now - 6 * day) },
@@ -231,7 +232,7 @@ async function main() {
     });
     orders.push({ ...order, estado: seed.estado });
 
-    if (seed.estado !== 'Pendiente' && seed.estado !== 'Cancelado') {
+    if (seed.estadoPago === 'Pagado') {
       await prisma.payment.create({
         data: {
           orderId: order.id,
@@ -241,6 +242,23 @@ async function main() {
           estado: 'Pagado',
           confirmadoPorId: admin.id,
           confirmadoAt: 'pagadoAt' in seed ? seed.pagadoAt : new Date(),
+        },
+      });
+    } else if (seed.estadoPago === 'EnRevision') {
+      // Cliente ya subió el comprobante, pero el admin todavía no lo
+      // confirma — este es el caso que ejercita el flujo de revisión manual.
+      await prisma.payment.create({
+        data: {
+          orderId: order.id,
+          monto: order.total,
+          banco: 'Banco Estado',
+          fechaTransferencia: new Date(now - 2 * 60 * 60 * 1000),
+          referencia: `REF-${order.numero}`,
+          // En producción esto es una URL firmada de Supabase Storage; para
+          // la BD local reusamos un asset público existente solo para que
+          // el <img> del admin tenga algo que renderizar.
+          comprobanteUrl: '/hero/le-ponemos-color.jpg',
+          estado: 'EnRevision',
         },
       });
     }
@@ -273,7 +291,7 @@ async function main() {
   const enProduccion = orders.find((o) => o.estado === 'EnProduccion');
   if (enProduccion) {
     const orderItem = await prisma.orderItem.findFirst({ where: { orderId: enProduccion.id } });
-    if (orderItem) {
+    if (orderItem && orderItem.variantId) {
       await prisma.productionBatch.create({
         data: {
           supplierId: supplierTextil.id,
@@ -414,6 +432,163 @@ async function main() {
     }
   }
   console.log('Prendas personalizables (cotizador) created');
+
+  // Cotizador 3D (H0) — modelo provisional + zona de impresión Frente para
+  // Poleras. anchoCm/altoCm copian el valor que ya tenía zonaAnchoCm/AltoCm
+  // (decisión §12 punto 3 del spec). x2d/y2d/w2d/h2d replican el rect
+  // hardcodeado que tenía el cotizador 2D (45%×45%, top 22%, centrado). Los
+  // valores 3D ubican el decal centrado sobre el pecho del modelo
+  // provisional (extensión aprox X:-0.55..0.55, Y:-0.5..0.5, Z:-0.06..0.06).
+  // Solo Frente en H0 — Espalda/Polerones/Totebag/Relojes quedan para H2.
+  const prendaPoleraParaZona = await prisma.prendaBase.update({
+    where: { slug: 'poleras' },
+    data: { modelo3dUrl: '/models/prenda-provisional.glb' },
+  });
+  await prisma.prendaZona.upsert({
+    where: { prendaBaseId_lado: { prendaBaseId: prendaPoleraParaZona.id, lado: 'Frente' } },
+    update: {},
+    create: {
+      prendaBaseId: prendaPoleraParaZona.id,
+      lado: 'Frente',
+      anchoCm: 35,
+      altoCm: 45,
+      x2d: 27.5,
+      y2d: 22,
+      w2d: 45,
+      h2d: 45,
+      pos3d: [0, 0, 0.065],
+      rot3d: [0, 0, 0],
+      size3d: [0.5, 0.5, 0.1],
+    },
+  });
+  console.log('Zona de impresión (cotizador 3D) created for Poleras');
+
+  // Cotizaciones de ejemplo — cubren el flujo /cotizador → admin revisa y
+  // fija precio → cliente acepta. Buscamos las prendas recién creadas para
+  // enlazar prendaBaseId/colorNombre válidos.
+  const prendaPoleras = await prisma.prendaBase.findUniqueOrThrow({ where: { slug: 'poleras' } });
+  const prendaPolerones = await prisma.prendaBase.findUniqueOrThrow({ where: { slug: 'polerones' } });
+
+  await prisma.cotizacionPersonalizada.create({
+    data: {
+      customerId: customers[1].id,
+      nombreContacto: customers[1].nombre,
+      emailContacto: customers[1].email,
+      telefonoContacto: customers[1].telefono,
+      prendaBaseId: prendaPoleras.id,
+      colorNombre: 'Negro',
+      talla: 'M',
+      cantidad: 20,
+      disenoUrl: '/carousel/polera.png',
+      notas: 'Merch para evento de banda — necesitamos 20 unidades antes del 15 del próximo mes.',
+      estado: 'Pendiente',
+    },
+  });
+
+  await prisma.cotizacionPersonalizada.create({
+    data: {
+      nombreContacto: 'Rodrigo Fuentes',
+      emailContacto: 'rodrigo.fuentes@test.cl',
+      telefonoContacto: '+56955566677',
+      prendaBaseId: prendaPolerones.id,
+      colorNombre: 'Negro',
+      talla: 'L',
+      cantidad: 8,
+      disenoUrl: '/carousel/poleron.png',
+      notas: 'Logo de la empresa en el pecho, sin espalda.',
+      precioCotizado: 189920,
+      estado: 'Cotizada',
+    },
+  });
+  console.log('Cotizaciones de ejemplo created');
+
+  // Producto "Chancho" (sembrado antes para probar el selector de color por
+  // foto real) suma variantes con la paleta real completa (12 colores) para
+  // poder probar el selector a fondo — el resto del catálogo sigue con solo
+  // Negro/Blanco/Gris, que es lo que tienen fotos reales en negras/claras.
+  const PALETA_REAL = [
+    'Negro', 'Chocolate', 'Azul Marino', 'Gris Carbón', 'Verde Bosque',
+    'Burdeo', 'Morado', 'Gris Melange', 'Azul Royal', 'Mostaza', 'Arena', 'Blanco',
+  ] as const;
+
+  const productoChancho = await prisma.product.findUnique({ where: { slug: 'chancho' } });
+  if (productoChancho) {
+    let skuIdx = 1;
+    for (const color of PALETA_REAL) {
+      for (const talle of TALLES) {
+        const sku = `CHANCHO-${talle}-${color.replace(/\s+/g, '').slice(0, 4).toUpperCase()}-${skuIdx}`;
+        await prisma.productVariant.upsert({
+          where: { sku },
+          update: {},
+          create: {
+            productId: productoChancho.id,
+            talle,
+            color,
+            sku,
+            stock: 0,
+          },
+        });
+        skuIdx++;
+      }
+    }
+    console.log('Paleta real (12 colores) created for Chancho');
+  }
+
+  // Línea Kids — mismo diseño "Chancho" reusado como arte de prueba
+  // (todavía no llegan diseños propios de la línea), talles por edad y
+  // paleta propia (ver src/lib/kids.ts). categoria: 'Kids' es lo que separa
+  // este producto del resto en /kids (los otros 44 quedan en Adulto, el
+  // default del schema).
+  const TALLES_KIDS_SEED = ['2-4', '6-8', '10-12', '14-16'] as const;
+  const PALETA_KIDS_SEED = [
+    'Negro', 'Morado', 'Azul Marino', 'Verde Jade', 'Rojo',
+    'Naranja', 'Rosado', 'Amarillo', 'Celeste', 'Blanco',
+  ] as const;
+
+  const disenoKids = disenos[0];
+  if (disenoKids) {
+    const slugBaseKids = disenoKids.replace(/\.png$/, '');
+    const nombreKids = tituloDesdeSlug(slugBaseKids);
+    const disenoUrlKids = `/productos/negras/${disenoKids}`;
+
+    const productoKids = await prisma.product.upsert({
+      where: { slug: `${slugBaseKids}-kids` },
+      update: {},
+      create: {
+        nombre: `${nombreKids} Kids`,
+        slug: `${slugBaseKids}-kids`,
+        nombreSlug: `${slugBaseKids}-kids-legado`,
+        descripcion: `Polera ${nombreKids} Kids — mismo estampado, talles infantiles.`,
+        disenoUrl: disenoUrlKids,
+        artista: nombreKids,
+        temporada: 'Bandas 2026',
+        categoria: 'Kids',
+        precio: 13990,
+        costoUnitario: 4500,
+        images: { create: [{ url: disenoUrlKids, alt: `${nombreKids} Kids`, orden: 0 }] },
+      },
+    });
+
+    let skuIdxKids = 1;
+    for (const color of PALETA_KIDS_SEED) {
+      for (const talle of TALLES_KIDS_SEED) {
+        const sku = `KIDS-${talle}-${color.replace(/\s+/g, '').slice(0, 4).toUpperCase()}-${skuIdxKids}`;
+        await prisma.productVariant.upsert({
+          where: { sku },
+          update: {},
+          create: {
+            productId: productoKids.id,
+            talle,
+            color,
+            sku,
+            stock: 0,
+          },
+        });
+        skuIdxKids++;
+      }
+    }
+    console.log(`Producto Kids created: ${productoKids.nombre}`);
+  }
 
   console.log('Seed complete!');
 }
