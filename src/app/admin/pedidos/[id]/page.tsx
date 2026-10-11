@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { ORDER_TRANSITIONS } from "@/lib/state-machines";
 import { formatCLP, formatFechaCorta } from "@/lib/format";
+import ImprimirEtiquetaButton from "@/components/ImprimirEtiquetaButton";
 
 export const dynamic = "force-dynamic";
 
@@ -62,12 +63,15 @@ export default async function PedidoDetailPage({
             )}
           </h1>
         </div>
-        <Link
-          href={`/admin/pedidos/${order.id}/comprobante`}
-          className="px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800"
-        >
-          Ver comprobante
-        </Link>
+        <div className="flex gap-2">
+          <ImprimirEtiquetaButton orderId={order.id} />
+          <Link
+            href={`/admin/pedidos/${order.id}/comprobante`}
+            className="px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800"
+          >
+            Ver comprobante
+          </Link>
+        </div>
       </div>
 
       {order.cotizacion && (

@@ -502,6 +502,94 @@ async function main() {
   });
   console.log('Cotizaciones de ejemplo created');
 
+  // Producto "Chancho" (sembrado antes para probar el selector de color por
+  // foto real) suma variantes con la paleta real completa (12 colores) para
+  // poder probar el selector a fondo — el resto del catálogo sigue con solo
+  // Negro/Blanco/Gris, que es lo que tienen fotos reales en negras/claras.
+  const PALETA_REAL = [
+    'Negro', 'Chocolate', 'Azul Marino', 'Gris Carbón', 'Verde Bosque',
+    'Burdeo', 'Morado', 'Gris Melange', 'Azul Royal', 'Mostaza', 'Arena', 'Blanco',
+  ] as const;
+
+  const productoChancho = await prisma.product.findUnique({ where: { slug: 'chancho' } });
+  if (productoChancho) {
+    let skuIdx = 1;
+    for (const color of PALETA_REAL) {
+      for (const talle of TALLES) {
+        const sku = `CHANCHO-${talle}-${color.replace(/\s+/g, '').slice(0, 4).toUpperCase()}-${skuIdx}`;
+        await prisma.productVariant.upsert({
+          where: { sku },
+          update: {},
+          create: {
+            productId: productoChancho.id,
+            talle,
+            color,
+            sku,
+            stock: 0,
+          },
+        });
+        skuIdx++;
+      }
+    }
+    console.log('Paleta real (12 colores) created for Chancho');
+  }
+
+  // Línea Kids — mismo diseño "Chancho" reusado como arte de prueba
+  // (todavía no llegan diseños propios de la línea), talles por edad y
+  // paleta propia (ver src/lib/kids.ts). categoria: 'Kids' es lo que separa
+  // este producto del resto en /kids (los otros 44 quedan en Adulto, el
+  // default del schema).
+  const TALLES_KIDS_SEED = ['2-4', '6-8', '10-12', '14-16'] as const;
+  const PALETA_KIDS_SEED = [
+    'Negro', 'Morado', 'Azul Marino', 'Verde Jade', 'Rojo',
+    'Naranja', 'Rosado', 'Amarillo', 'Celeste', 'Blanco',
+  ] as const;
+
+  const disenoKids = disenos[0];
+  if (disenoKids) {
+    const slugBaseKids = disenoKids.replace(/\.png$/, '');
+    const nombreKids = tituloDesdeSlug(slugBaseKids);
+    const disenoUrlKids = `/productos/negras/${disenoKids}`;
+
+    const productoKids = await prisma.product.upsert({
+      where: { slug: `${slugBaseKids}-kids` },
+      update: {},
+      create: {
+        nombre: `${nombreKids} Kids`,
+        slug: `${slugBaseKids}-kids`,
+        nombreSlug: `${slugBaseKids}-kids-legado`,
+        descripcion: `Polera ${nombreKids} Kids — mismo estampado, talles infantiles.`,
+        disenoUrl: disenoUrlKids,
+        artista: nombreKids,
+        temporada: 'Bandas 2026',
+        categoria: 'Kids',
+        precio: 13990,
+        costoUnitario: 4500,
+        images: { create: [{ url: disenoUrlKids, alt: `${nombreKids} Kids`, orden: 0 }] },
+      },
+    });
+
+    let skuIdxKids = 1;
+    for (const color of PALETA_KIDS_SEED) {
+      for (const talle of TALLES_KIDS_SEED) {
+        const sku = `KIDS-${talle}-${color.replace(/\s+/g, '').slice(0, 4).toUpperCase()}-${skuIdxKids}`;
+        await prisma.productVariant.upsert({
+          where: { sku },
+          update: {},
+          create: {
+            productId: productoKids.id,
+            talle,
+            color,
+            sku,
+            stock: 0,
+          },
+        });
+        skuIdxKids++;
+      }
+    }
+    console.log(`Producto Kids created: ${productoKids.nombre}`);
+  }
+
   console.log('Seed complete!');
 }
 

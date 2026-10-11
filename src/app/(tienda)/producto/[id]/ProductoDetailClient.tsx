@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { PALETA_KIDS, TALLES_KIDS, COLOR_HEX_KIDS } from "@/lib/kids";
 
 interface Variant {
   id: string;
@@ -23,15 +25,17 @@ interface Product {
   disenoUrl: string;
   artista: string;
   temporada: string;
+  categoria: "Adulto" | "Kids";
   precio: number | any;
   variants: Variant[];
   images?: ProductImage[];
 }
 
-const TALLES_ORDEN = ["S", "M", "L", "XL", "2XL"];
 const CANTIDAD_MAXIMA = 10;
 
-const MEDIDAS_POR_TALLE: Record<string, { ancho: number; largo: number }> = {
+const TALLES_ADULTO = ["S", "M", "L", "XL", "2XL"];
+
+const MEDIDAS_POR_TALLE_ADULTO: Record<string, { ancho: number; largo: number }> = {
   S: { ancho: 48, largo: 68 },
   M: { ancho: 51, largo: 70 },
   L: { ancho: 54, largo: 72 },
@@ -39,43 +43,107 @@ const MEDIDAS_POR_TALLE: Record<string, { ancho: number; largo: number }> = {
   "2XL": { ancho: 60, largo: 76 },
 };
 
-const COLOR_HEX: Record<string, string> = {
-  Negro: "#1a1a1a",
-  Blanco: "#fafafa",
-  Gris: "#9ca3af",
-  Azul: "#1e3a8a",
-  Rojo: "#dc2626",
-  Morado: "#4f266a",
-  Amarillo: "#ffd141",
-  Verde: "#1ea96a",
-  Naranja: "#ea580c",
+// Medidas Kids provisionales (por edad) — a reemplazar cuando llegue la
+// tabla real de medidas de la línea infantil.
+const MEDIDAS_POR_TALLE_KIDS: Record<string, { ancho: number; largo: number }> = {
+  "2-4": { ancho: 30, largo: 40 },
+  "6-8": { ancho: 34, largo: 46 },
+  "10-12": { ancho: 38, largo: 52 },
+  "14-16": { ancho: 42, largo: 58 },
 };
+
+/** Paleta real de la marca (línea adulto) — 12 colores de tela, con el hex
+ * exacto entregado por el dueño y la carpeta donde se sube la foto real de
+ * cada color (el mismo nombre de archivo en cada carpeta, igual convención
+ * que ya usaba negras/claras — ver public/productos/<slug>/). */
+const PALETA_ADULTO: { nombre: string; hex: string; slug: string }[] = [
+  { nombre: "Negro", hex: "#000000", slug: "negro" },
+  { nombre: "Chocolate", hex: "#3F280F", slug: "chocolate" },
+  { nombre: "Azul Marino", hex: "#00104F", slug: "azul-marino" },
+  { nombre: "Gris Carbón", hex: "#403E41", slug: "gris-carbon" },
+  { nombre: "Verde Bosque", hex: "#085231", slug: "verde-bosque" },
+  { nombre: "Burdeo", hex: "#963548", slug: "burdeo" },
+  { nombre: "Morado", hex: "#473D84", slug: "morado" },
+  { nombre: "Gris Melange", hex: "#7C7C7C", slug: "gris-melange" },
+  { nombre: "Azul Royal", hex: "#2757BD", slug: "azul-royal" },
+  { nombre: "Mostaza", hex: "#E8B600", slug: "mostaza" },
+  { nombre: "Arena", hex: "#EBE5CB", slug: "arena" },
+  { nombre: "Blanco", hex: "#FFFFFF", slug: "blanco" },
+];
+const COLOR_HEX_ADULTO: Record<string, string> = Object.fromEntries(PALETA_ADULTO.map((c) => [c.nombre, c.hex]));
 
 export default function ProductoDetailClient({ product }: { product: Product }) {
   const router = useRouter();
 
+  const esKids = product.categoria === "Kids";
+  const TALLES_ORDEN = esKids ? TALLES_KIDS : TALLES_ADULTO;
+  const MEDIDAS_POR_TALLE = esKids ? MEDIDAS_POR_TALLE_KIDS : MEDIDAS_POR_TALLE_ADULTO;
+  const PALETA = esKids ? PALETA_KIDS : PALETA_ADULTO;
+  const COLOR_HEX = esKids ? COLOR_HEX_KIDS : COLOR_HEX_ADULTO;
+
   const gallery = product.images && product.images.length > 0 ? product.images : [{ id: "main", url: product.disenoUrl, alt: product.nombre }];
   const [activeImage, setActiveImage] = useState(0);
 
-  // Si el producto tiene una foto en /productos/negras/ y otra en
-  // /productos/claras/ con el mismo nombre de archivo, se puede ofrecer el
-  // switch de transición negro↔blanco en vez de la galería de miniaturas.
-  const { imagenNegra, imagenBlanca } = useMemo(() => {
-    const negra = gallery.find((img) => img.url.includes("/productos/negras/"));
-    const claraNombre = negra ? negra.url.split("/").pop() : null;
-    const clara = claraNombre
-      ? gallery.find((img) => img.url === `/productos/claras/${claraNombre}`)
-      : undefined;
-    return { imagenNegra: negra, imagenBlanca: clara };
-  }, [gallery]);
-  const tieneSwitchColor = Boolean(imagenNegra && imagenBlanca);
-  const [esBlanco, setEsBlanco] = useState(false);
+  // Foto por color real: si existe /productos/<slug-del-color>/<archivo>.png
+  // con el mismo nombre de archivo que ya usa el producto (detectado desde
+  // disenoUrl o cualquier imagen de la galería como ancla), se arma un mapa
+  // color→URL. El selector de abajo solo ofrece los colores que tienen foto.
+  const nombreArchivo = useMemo(() => {
+    const ancla = product.disenoUrl || product.images?.[0]?.url || "";
+    return ancla.split("/").pop() ?? null;
+  }, [product.disenoUrl, product.images]);
+
+  const [fotoPorColor, setFotoPorColor] = useState<Record<string, string>>({});
+  const [verificando, setVerificando] = useState(true);
+
+  // HEAD a cada carpeta de color para confirmar cuáles tienen el archivo —
+  // así el selector solo muestra swatches con foto real, sin asumir que
+  // todas las carpetas están completas para todos los productos.
+  useEffect(() => {
+    if (!nombreArchivo) {
+      setVerificando(false);
+      return;
+    }
+    let cancelado = false;
+    setVerificando(true);
+    Promise.all(
+      PALETA.map(async (c) => {
+        const url = `/productos/${c.slug}/${nombreArchivo}`;
+        try {
+          const res = await fetch(url, { method: "HEAD" });
+          return res.ok ? ([c.nombre, url] as const) : null;
+        } catch {
+          return null;
+        }
+      })
+    ).then((resultados) => {
+      if (cancelado) return;
+      const mapa: Record<string, string> = {};
+      for (const r of resultados) if (r) mapa[r[0]] = r[1];
+      setFotoPorColor(mapa);
+      setVerificando(false);
+    });
+    return () => {
+      cancelado = true;
+    };
+    // PALETA apunta a una de dos constantes de módulo (misma referencia
+    // mientras esKids no cambie), así que entra en deps sin re-disparar el
+    // efecto en cada render.
+  }, [nombreArchivo, PALETA]);
+
+  const coloresConFoto = useMemo(() => Object.keys(fotoPorColor), [fotoPorColor]);
+  const tieneSelectorColor = !verificando && coloresConFoto.length > 0;
 
   const coloresDisponibles = useMemo(
     () => Array.from(new Set(product.variants.map((v) => v.color))),
     [product.variants]
   );
   const [selectedColor, setSelectedColor] = useState(coloresDisponibles[0] ?? "");
+  // Preview en vivo al pasar el mouse por un swatch, sin confirmar la
+  // selección todavía (eso sigue pasando solo al hacer clic, que también
+  // actualiza la talla disponible — el hover no debe tocar la talla).
+  const [colorHover, setColorHover] = useState<string | null>(null);
+  const colorEnPreview = colorHover ?? selectedColor;
 
   const tallesDelColor = useMemo(
     () => product.variants.filter((v) => v.color === selectedColor),
@@ -95,19 +163,6 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
     setSelectedColor(color);
     const variantesDelColor = product.variants.filter((v) => v.color === color);
     setSelectedTalle(variantesDelColor[0]?.talle ?? TALLES_ORDEN[0]);
-    if (color === "Blanco") setEsBlanco(true);
-    else if (color === "Negro") setEsBlanco(false);
-  }
-
-  function handleToggleColorSwitch() {
-    const nuevoEsBlanco = !esBlanco;
-    setEsBlanco(nuevoEsBlanco);
-    const colorObjetivo = nuevoEsBlanco ? "Blanco" : "Negro";
-    if (coloresDisponibles.includes(colorObjetivo)) {
-      setSelectedColor(colorObjetivo);
-      const variantesDelColor = product.variants.filter((v) => v.color === colorObjetivo);
-      setSelectedTalle(variantesDelColor[0]?.talle ?? TALLES_ORDEN[0]);
-    }
   }
 
   async function handleAddToCart() {
@@ -134,22 +189,18 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
         <div>
           <div className="thick-border pop-shadow bg-white dark:bg-neutral-900 p-3">
             <p className="text-center font-black text-sm py-2 border-b-2 border-ajicolor-ink mb-3">Producto</p>
-            {tieneSwitchColor ? (
+            {tieneSelectorColor ? (
               <div className="relative w-full aspect-square overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imagenNegra!.url}
-                  alt={imagenNegra!.alt ?? product.nombre}
-                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-out"
-                  style={{ opacity: esBlanco ? 0 : 1 }}
-                />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imagenBlanca!.url}
-                  alt={imagenBlanca!.alt ?? product.nombre}
-                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-out"
-                  style={{ opacity: esBlanco ? 1 : 0 }}
-                />
+                {coloresConFoto.map((color) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={color}
+                    src={fotoPorColor[color]}
+                    alt={`${product.nombre} — ${color}`}
+                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
+                    style={{ opacity: color === colorEnPreview ? 1 : 0 }}
+                  />
+                ))}
               </div>
             ) : (
               <div className="relative">
@@ -161,7 +212,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                 />
               </div>
             )}
-            {!tieneSwitchColor && gallery.length > 1 && (
+            {!tieneSelectorColor && gallery.length > 1 && (
               <div className="flex gap-2 mt-3 overflow-x-auto">
                 {gallery.map((img, i) => (
                   <button
@@ -179,37 +230,29 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
               <span className="bg-ajicolor-magenta text-white px-4 py-2 text-xs font-black uppercase flex-1 text-center">
                 Dale color!
               </span>
-              {tieneSwitchColor ? (
-                <button
-                  onClick={handleToggleColorSwitch}
-                  role="switch"
-                  aria-checked={esBlanco}
-                  aria-label="Cambiar color de la polera"
-                  className="relative w-14 h-7 thick-border rounded-full shrink-0 transition-colors duration-300"
-                  style={{ backgroundColor: esBlanco ? "#fafafa" : "#1a1a1a" }}
-                >
-                  <span
-                    className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white border-2 border-ajicolor-ink transition-transform duration-300 ease-out"
-                    style={{ transform: esBlanco ? "translateX(26px)" : "translateX(0)" }}
-                  />
-                </button>
-              ) : (
-                coloresDisponibles.length > 0 && (
-                  <div className="flex gap-2">
-                    {coloresDisponibles.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => handleSelectColor(color)}
-                        title={color}
-                        aria-label={color}
-                        className={`w-6 h-6 rounded-full border-2 transition-transform ${
-                          color === selectedColor ? "border-ajicolor-ink scale-110" : "border-gray-300 dark:border-neutral-700"
-                        }`}
-                        style={{ backgroundColor: COLOR_HEX[color] ?? "#ccc" }}
-                      />
-                    ))}
-                  </div>
-                )
+              {coloresDisponibles.length > 0 && (
+                <div className="flex gap-1.5 flex-wrap justify-end">
+                  {coloresDisponibles.map((color) => (
+                    <motion.button
+                      key={color}
+                      onClick={() => handleSelectColor(color)}
+                      onMouseEnter={() => tieneSelectorColor && fotoPorColor[color] && setColorHover(color)}
+                      onMouseLeave={() => setColorHover(null)}
+                      onFocus={() => tieneSelectorColor && fotoPorColor[color] && setColorHover(color)}
+                      onBlur={() => setColorHover(null)}
+                      title={color}
+                      aria-label={color}
+                      aria-pressed={color === selectedColor}
+                      whileHover={{ scale: 1.35 }}
+                      whileTap={{ scale: 1.1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                      className={`w-6 h-6 rounded-full border-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ajicolor-magenta ${
+                        color === selectedColor ? "border-ajicolor-magenta" : "border-gray-300 dark:border-neutral-700"
+                      }`}
+                      style={{ backgroundColor: COLOR_HEX[color] ?? "#ccc" }}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           </div>
@@ -310,7 +353,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
               Especificación técnica
             </p>
             <div className="thick-border p-4 text-sm italic text-gray-600 dark:text-neutral-300 font-medium">
-              Polera {product.artista} Hombre MC
+              Polera {product.artista} {esKids ? "Kids" : "Hombre"} MC
               <br />
               100% Algodón Heavy Weight · 195 Grs
             </div>

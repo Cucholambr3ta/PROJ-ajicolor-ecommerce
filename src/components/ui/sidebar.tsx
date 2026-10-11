@@ -48,35 +48,43 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 bg-white dark:bg-neutral-900 border-r-2 border-ajicolor-ink flex flex-col p-5">
-      <div className="mb-8">
-        <Logo className="h-12 w-auto" />
-      </div>
-      <nav className="flex-1 space-y-1">
-        {navItems.map((item) => {
-          const isActive =
-            item.href === "/admin"
-              ? pathname === "/admin"
-              : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded font-semibold text-sm transition-colors ${
-                isActive
-                  ? "bg-ajicolor-magenta text-white"
-                  : "text-ajicolor-ink hover:bg-gray-100 dark:hover:bg-neutral-800"
-              }`}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="pt-4 mt-4 border-t border-gray-200 dark:border-neutral-700 flex items-center justify-between gap-3">
-        <p className="text-[10px] text-gray-400 dark:text-neutral-500 font-semibold uppercase tracking-widest">Ajicolor Admin v0.1.0</p>
-        <ThemeToggle />
+    <aside className="relative w-60 bg-[url('/fondo/fondo-claro.png')] bg-repeat [background-size:520px] [background-attachment:fixed] dark:bg-[url('/fondo/fondo-oscuro.png')] dark:bg-repeat dark:[background-size:520px] dark:[background-attachment:fixed] border-r-2 border-ajicolor-ink flex flex-col">
+      {/* Capa glass: separada del fondo estampado para poder aplicar blur +
+          semitransparencia sin perder el patrón detrás (backdrop-filter no
+          se puede combinar limpiamente con background-image en el mismo
+          elemento). */}
+      <div className="absolute inset-0 bg-white/70 dark:bg-[var(--bg-light)]/70 backdrop-blur-md" />
+
+      <div className="relative flex flex-col flex-1 p-5">
+        <div className="mb-8">
+          <Logo className="h-12 w-auto" />
+        </div>
+        <nav className="flex-1 space-y-1">
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/admin"
+                ? pathname === "/admin"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded font-semibold text-sm transition-colors ${
+                  isActive
+                    ? "bg-ajicolor-magenta text-white"
+                    : "text-ajicolor-ink dark:text-ajicolor-ink hover:bg-white/60 dark:hover:bg-neutral-800/60"
+                }`}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="pt-4 mt-4 border-t border-gray-300 dark:border-neutral-700 flex items-center justify-between gap-3">
+          <p className="text-[10px] text-ajicolor-ink dark:text-ajicolor-ink font-semibold uppercase tracking-widest">Ajicolor Admin v0.1.0</p>
+          <ThemeToggle />
+        </div>
       </div>
     </aside>
   );

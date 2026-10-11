@@ -163,7 +163,7 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
                 <select
                   value={tipo}
                   onChange={(e) => setTipo(e.target.value as typeof tipo)}
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 >
                   <option value="Entrada">Entrada</option>
                   <option value="Salida">Salida</option>
@@ -177,7 +177,7 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
                   min={1}
                   value={cantidad}
                   onChange={(e) => setCantidad(parseInt(e.target.value) || 1)}
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 />
               </div>
               <div>
@@ -187,7 +187,7 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
                   value={origen}
                   onChange={(e) => setOrigen(e.target.value)}
                   placeholder="Ej: Recepción de lote, Devolución..."
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                   required
                 />
               </div>
@@ -197,7 +197,7 @@ export default function StockPageClient({ variants }: { variants: Variant[] }) {
                   type="text"
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}

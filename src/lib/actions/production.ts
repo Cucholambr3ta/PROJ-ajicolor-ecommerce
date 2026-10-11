@@ -27,7 +27,15 @@ export async function getBatchById(id: string) {
 export async function createBatch(data: {
   supplierId: string;
   fechaEstimada: Date;
-  items: { variantId: string; cantidad: number; costoUnitario: number; orderItemId?: string }[];
+  mensajeWhatsapp?: string;
+  items: {
+    variantId?: string;
+    colorLibre?: string;
+    tallaLibre?: string;
+    cantidad: number;
+    costoUnitario: number;
+    orderItemId?: string;
+  }[];
 }) {
   await requireAdmin();
   const parsed = parseOrThrow(createBatchSchema, data);
@@ -39,10 +47,13 @@ export async function createBatch(data: {
     data: {
       supplierId: parsed.supplierId,
       fechaEstimada: parsed.fechaEstimada,
+      mensajeWhatsapp: parsed.mensajeWhatsapp,
       costoTotal,
       items: {
-        create: data.items.map((item) => ({
+        create: parsed.items.map((item) => ({
           variantId: item.variantId,
+          colorLibre: item.colorLibre,
+          tallaLibre: item.tallaLibre,
           cantidad: item.cantidad,
           costoUnitario: item.costoUnitario,
           orderItemId: item.orderItemId,
@@ -127,20 +138,25 @@ export async function updateBatchStatus(id: string, nuevoEstado: EstadoLote, fec
       const ordenesAfectadas = new Set<string>();
 
       for (const item of batch.items) {
-        await tx.productVariant.update({
-          where: { id: item.variantId },
-          data: { stock: { increment: item.cantidad } },
-        });
-        await tx.stockMovement.create({
-          data: {
-            variantId: item.variantId,
-            userId: session.user.id,
-            cantidad: item.cantidad,
-            tipo: "Entrada",
-            origen: "Producción",
-            descripcion: `Lote ${batch.id} recibido`,
-          },
-        });
+        // Ítems "on demand" (polera lisa sin variante de catálogo, solo
+        // color/talla libres) no tienen stock de catálogo que acreditar —
+        // la trazabilidad queda en el ítem del lote mismo, no en StockMovement.
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { increment: item.cantidad } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              variantId: item.variantId,
+              userId: session.user.id,
+              cantidad: item.cantidad,
+              tipo: "Entrada",
+              origen: "Producción",
+              descripcion: `Lote ${batch.id} recibido`,
+            },
+          });
+        }
         if (item.orderItem) ordenesAfectadas.add(item.orderItem.orderId);
       }
 

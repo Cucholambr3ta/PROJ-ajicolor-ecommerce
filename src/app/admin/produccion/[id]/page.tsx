@@ -87,7 +87,9 @@ export default async function LoteDetailPage({
             {batch.items.map((item) => (
               <tr key={item.id} className="border-b dark:border-neutral-700 last:border-0">
                 <td className="py-2">
-                  {item.variant.product.nombre} — {item.variant.color} / {item.variant.talle}
+                  {item.variant
+                    ? `${item.variant.product.nombre} — ${item.variant.color} / ${item.variant.talle}`
+                    : `Polera lisa (on demand) — ${item.colorLibre} / ${item.tallaLibre}`}
                 </td>
                 <td className="py-2">
                   {item.orderItem ? (

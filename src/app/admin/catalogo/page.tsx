@@ -15,6 +15,7 @@ export default async function CatalogoPage() {
     descripcion: p.descripcion,
     artista: p.artista,
     temporada: p.temporada,
+    categoria: p.categoria,
     variants: p.variants.map((v) => ({ id: v.id, talle: v.talle, color: v.color, stock: v.stock })),
   }));
 

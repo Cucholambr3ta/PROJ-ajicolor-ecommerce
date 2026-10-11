@@ -310,7 +310,7 @@ export default function InsumosPageClient({
                 <select
                   value={movTipo}
                   onChange={(e) => setMovTipo(e.target.value as typeof movTipo)}
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 >
                   <option value="Entrada">Entrada</option>
                   <option value="Salida">Salida</option>
@@ -324,7 +324,7 @@ export default function InsumosPageClient({
                   min={1}
                   value={movCantidad}
                   onChange={(e) => setMovCantidad(Number(e.target.value) || 1)}
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 />
               </div>
               <div>
@@ -334,7 +334,7 @@ export default function InsumosPageClient({
                   onChange={(e) => setMovOrigen(e.target.value)}
                   required
                   placeholder="Ej: Compra a proveedor, Consumo en lote..."
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 />
               </div>
               {movTipo === "Entrada" && (
@@ -346,7 +346,7 @@ export default function InsumosPageClient({
                     value={movCostoTotal}
                     onChange={(e) => setMovCostoTotal(e.target.value === "" ? "" : Number(e.target.value))}
                     placeholder="Ej: 45000"
-                    className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                   />
                   <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
                     Para llevar el control de gasto por proveedor. Déjalo vacío si no corresponde a una compra.

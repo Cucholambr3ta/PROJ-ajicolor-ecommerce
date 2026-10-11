@@ -71,6 +71,11 @@ enum CanalVenta {
   Otro
 }
 
+enum CategoriaProducto {
+  Adulto
+  Kids
+}
+
 enum EstadoCotizacion {
   Pendiente     // recién enviada por el cliente, sin revisar
   EnRevision    // el dueño la está evaluando
@@ -201,14 +206,29 @@ model Product {
   slug          String           @unique
   nombreSlug    String           @unique // legado, se mantiene por compatibilidad de datos históricos
   descripcion   String
-  disenoUrl     String // legado: imagen principal antes de ProductImage
+  disenoUrl     String // legado: foto completa de la polera ya puesta — fallback cuando no hay estampadoUrl
   artista       String
   temporada     String
+  categoria     CategoriaProducto @default(Adulto)
   precio        Decimal          @default(0)
   costoUnitario Decimal          @default(0)
   activo        Boolean          @default(true)
   collectionId  String?
   collection    Collection?      @relation(fields: [collectionId], references: [id])
+  // Ficha con mockup teñible por color (ver docs/SPEC-ficha-producto-mockup.md):
+  // estampadoUrl es SOLO el diseño recortado (PNG transparente, sin la
+  // polera) — si está presente, la ficha usa el mockup único
+  // (public/productos/mockup/polera-base.png) teñido con el color elegido
+  // + este estampado superpuesto en la zona configurada. Si es null, la
+  // ficha sigue mostrando disenoUrl/ProductImage como hoy (fallback).
+  estampadoUrl  String?
+  // Zona del estampado sobre el mockup, en % (0-100) — mismo criterio que
+  // PrendaZona.x2d/y2d/w2d/h2d del cotizador, pero fija por producto (no
+  // por lado, ya que acá todas las variantes son la misma prenda base).
+  estampadoX    Decimal?
+  estampadoY    Decimal?
+  estampadoW    Decimal?
+  estampadoH    Decimal?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   variants      ProductVariant[]
@@ -421,25 +441,35 @@ model MaterialMovement {
 }
 
 model ProductionBatch {
-  id             String                @id @default(cuid())
-  supplierId     String
-  supplier       Supplier              @relation(fields: [supplierId], references: [id])
-  costoTotal     Decimal
-  fechaPedido    DateTime              @default(now())
-  fechaEstimada  DateTime
-  fechaRecepcion DateTime?
-  estado         EstadoLote            @default(Solicitado)
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
-  items          ProductionBatchItem[]
+  id               String                @id @default(cuid())
+  supplierId       String
+  supplier         Supplier              @relation(fields: [supplierId], references: [id])
+  costoTotal       Decimal
+  fechaPedido      DateTime              @default(now())
+  fechaEstimada    DateTime
+  fechaRecepcion   DateTime?
+  estado           EstadoLote            @default(Solicitado)
+  // Snapshot del mensaje de WhatsApp enviado al proveedor al crear el
+  // pedido (encabezado editable + detalle armado por color/talla/cantidad)
+  // — queda guardado para trazabilidad aunque el encabezado no se reuse.
+  mensajeWhatsapp  String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  items            ProductionBatchItem[]
 }
 
 model ProductionBatchItem {
   id            String          @id @default(cuid())
   batchId       String
   batch         ProductionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  variantId     String
-  variant       ProductVariant  @relation(fields: [variantId], references: [id])
+  // Ítem de catálogo: tiene variantId (polera ya cargada como producto).
+  // Ítem "on demand" (polera lisa pedida al proveedor sin que exista stock
+  // ni variante cargada todavía): variantId es null y se usa color/talla
+  // libres — mismo patrón que OrderItem.colorLibre/tallaLibre.
+  variantId     String?
+  variant       ProductVariant? @relation(fields: [variantId], references: [id])
+  colorLibre    String?
+  tallaLibre    String?
   orderItemId   String? // vincula el lote a un ítem de pedido pagado (venta bajo pedido)
   orderItem     OrderItem?      @relation(fields: [orderItemId], references: [id])
   cantidad      Int

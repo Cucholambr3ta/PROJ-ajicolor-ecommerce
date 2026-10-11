@@ -4,11 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
 import { createProductSchema, parseOrThrow } from "@/lib/schemas";
-import type { Prisma } from "@prisma/client";
+import type { CategoriaProducto, Prisma } from "@prisma/client";
 
 export interface ProductFilters {
   q?: string;
   collectionSlug?: string;
+  categoria?: CategoriaProducto;
   color?: string;
   talle?: string;
   precioMin?: number;
@@ -37,6 +38,7 @@ export async function getProducts(filtros: ProductFilters = {}) {
         }
       : {}),
     ...(filtros.collectionSlug ? { collection: { slug: filtros.collectionSlug } } : {}),
+    ...(filtros.categoria ? { categoria: filtros.categoria } : {}),
     ...(filtros.precioMin != null || filtros.precioMax != null
       ? {
           precio: {
@@ -79,9 +81,9 @@ export async function getProducts(filtros: ProductFilters = {}) {
 }
 
 /** Valores distintos de color/talle entre productos activos, para poblar los filtros. */
-export async function getFilterOptions() {
+export async function getFilterOptions(categoria?: CategoriaProducto) {
   const variants = await prisma.productVariant.findMany({
-    where: { product: { activo: true } },
+    where: { product: { activo: true, ...(categoria ? { categoria } : {}) } },
     select: { color: true, talle: true },
     distinct: ["color", "talle"],
   });
@@ -143,6 +145,7 @@ export async function createProduct(data: {
   disenoUrl: string;
   artista: string;
   temporada: string;
+  categoria?: CategoriaProducto;
   precio: number;
   costoUnitario?: number;
   collectionId?: string;
@@ -159,6 +162,7 @@ export async function createProduct(data: {
       disenoUrl: parsed.disenoUrl,
       artista: parsed.artista,
       temporada: parsed.temporada,
+      categoria: parsed.categoria,
       precio: parsed.precio,
       costoUnitario: parsed.costoUnitario,
       collectionId: parsed.collectionId,
@@ -180,6 +184,7 @@ export async function updateProduct(
     disenoUrl?: string;
     artista?: string;
     temporada?: string;
+    categoria?: CategoriaProducto;
     precio?: number;
     costoUnitario?: number;
     activo?: boolean;

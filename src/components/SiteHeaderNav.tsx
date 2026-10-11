@@ -15,6 +15,7 @@ const CATEGORIAS = [
 
 const NAV_LINKS = [
   { href: "/", label: "Catálogo" },
+  { href: "/kids", label: "Kids" },
   { href: "/drops", label: "Drops" },
   { href: "/cotizador", label: "Cotizador" },
   { href: "/conoce-al-aji", label: "Conoce al Ají" },

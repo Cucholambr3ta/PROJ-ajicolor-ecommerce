@@ -24,6 +24,7 @@ export async function getSupplierById(id: string) {
 export async function createSupplier(data: {
   nombre: string;
   contacto: string;
+  telefono?: string;
   leadTimeDias: number;
   costoBase: number;
   calificacion: number;
@@ -40,6 +41,7 @@ export async function updateSupplier(
   data: {
     nombre?: string;
     contacto?: string;
+    telefono?: string;
     leadTimeDias?: number;
     costoBase?: number;
     calificacion?: number;

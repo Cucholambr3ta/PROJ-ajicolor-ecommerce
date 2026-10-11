@@ -1,9 +1,11 @@
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
+import { TemaPorRuta } from "@/components/TemaPorRuta";
 
 export default function TiendaLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-ajicolor-light bg-[url('/fondo/fondo-claro.png')] bg-repeat [background-size:520px] [background-attachment:fixed] dark:bg-[var(--bg-light)] dark:bg-[url('/fondo/fondo-oscuro.png')] dark:bg-repeat dark:[background-size:520px] dark:[background-attachment:fixed] flex flex-col print:bg-none">
+    <div className="tienda-shell min-h-screen bg-ajicolor-light bg-[url('/fondo/fondo-claro.png')] bg-repeat [background-size:520px] [background-attachment:fixed] dark:bg-[var(--bg-light)] dark:bg-[url('/fondo/fondo-oscuro.png')] dark:bg-repeat dark:[background-size:520px] dark:[background-attachment:fixed] flex flex-col print:bg-none">
+      <TemaPorRuta />
       <div className="no-print">
         <SiteHeader />
       </div>
