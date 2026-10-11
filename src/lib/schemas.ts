@@ -59,6 +59,7 @@ export const createProductSchema = z.object({
   disenoUrl: z.string().trim().max(500),
   artista: z.string().trim().max(200),
   temporada: z.string().trim().max(100),
+  categoria: z.enum(["Adulto", "Kids"]).optional(),
   precio: z.number().nonnegative(),
   costoUnitario: z.number().nonnegative().optional(),
   collectionId: z.string().trim().min(1).optional(),
@@ -102,6 +103,7 @@ export const addressSchema = z.object({
 export const createSupplierSchema = z.object({
   nombre: z.string().trim().min(1).max(200),
   contacto: z.string().trim().min(1).max(200),
+  telefono: z.string().trim().max(30).optional(),
   leadTimeDias: z.number().int().nonnegative(),
   costoBase: z.number().nonnegative(),
   calificacion: z.number().int().min(1).max(5),
@@ -135,14 +137,20 @@ export const createOrderSchema = z.object({
 export const createBatchSchema = z.object({
   supplierId: z.string().min(1),
   fechaEstimada: z.date(),
+  mensajeWhatsapp: z.string().trim().max(4000).optional(),
   items: z
     .array(
       z.object({
-        variantId: z.string().min(1),
+        variantId: z.string().min(1).optional(),
+        colorLibre: z.string().trim().min(1).max(100).optional(),
+        tallaLibre: z.string().trim().min(1).max(50).optional(),
         cantidad: z.number().int().positive(),
         costoUnitario: z.number().nonnegative(),
         orderItemId: z.string().min(1).optional(),
       })
+        .refine((item) => item.variantId || (item.colorLibre && item.tallaLibre), {
+          message: "Cada ítem necesita variantId o color/talla libres",
+        })
     )
     .min(1),
 });

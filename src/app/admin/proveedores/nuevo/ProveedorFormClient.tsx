@@ -9,6 +9,7 @@ interface SupplierData {
   id: string;
   nombre: string;
   contacto: string;
+  telefono: string | null;
   leadTimeDias: number;
   costoBase: number;
   calificacion: number;
@@ -21,6 +22,7 @@ export default function ProveedorFormClient({ initialData }: { initialData?: Sup
 
   const [nombre, setNombre] = useState(initialData?.nombre ?? "");
   const [contacto, setContacto] = useState(initialData?.contacto ?? "");
+  const [telefono, setTelefono] = useState(initialData?.telefono ?? "");
   const [leadTimeDias, setLeadTimeDias] = useState(initialData?.leadTimeDias ?? 15);
   const [costoBase, setCostoBase] = useState(initialData?.costoBase ?? 0);
   const [calificacion, setCalificacion] = useState(initialData?.calificacion ?? 3);
@@ -38,9 +40,9 @@ export default function ProveedorFormClient({ initialData }: { initialData?: Sup
     try {
       const { createSupplier, updateSupplier } = await import("@/lib/actions/suppliers");
       if (isEdit) {
-        await updateSupplier(initialData.id, { nombre, contacto, leadTimeDias, costoBase, calificacion });
+        await updateSupplier(initialData.id, { nombre, contacto, telefono, leadTimeDias, costoBase, calificacion });
       } else {
-        await createSupplier({ nombre, contacto, leadTimeDias, costoBase, calificacion });
+        await createSupplier({ nombre, contacto, telefono, leadTimeDias, costoBase, calificacion });
       }
       startTransition(() => router.push("/admin/proveedores"));
     } catch (err: unknown) {
@@ -66,7 +68,7 @@ export default function ProveedorFormClient({ initialData }: { initialData?: Sup
                 type="text"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 required
               />
             </div>
@@ -77,9 +79,22 @@ export default function ProveedorFormClient({ initialData }: { initialData?: Sup
                 value={contacto}
                 onChange={(e) => setContacto(e.target.value)}
                 placeholder="Email o teléfono"
-                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 required
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-1">WhatsApp</label>
+              <input
+                type="text"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                placeholder="+56912345678"
+                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
+              />
+              <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
+                Con código de país, sin espacios ni guiones — se usa para armar el link de WhatsApp al comprar.
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-1">Lead time (días)</label>
@@ -88,7 +103,7 @@ export default function ProveedorFormClient({ initialData }: { initialData?: Sup
                 min={0}
                 value={leadTimeDias}
                 onChange={(e) => setLeadTimeDias(parseInt(e.target.value) || 0)}
-                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div>
@@ -99,7 +114,7 @@ export default function ProveedorFormClient({ initialData }: { initialData?: Sup
                 step="0.01"
                 value={costoBase}
                 onChange={(e) => setCostoBase(parseFloat(e.target.value) || 0)}
-                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div>
@@ -107,7 +122,7 @@ export default function ProveedorFormClient({ initialData }: { initialData?: Sup
               <select
                 value={calificacion}
                 onChange={(e) => setCalificacion(parseInt(e.target.value))}
-                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
               >
                 {[1, 2, 3, 4, 5].map((n) => (
                   <option key={n} value={n}>{n}</option>

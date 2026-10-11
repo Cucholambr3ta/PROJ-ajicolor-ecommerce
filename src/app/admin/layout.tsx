@@ -19,10 +19,12 @@ export default async function AdminLayout({
   const session = await auth();
 
   return (
-    <div className="flex h-screen bg-ajicolor-light dark:bg-[var(--bg-light)]">
-      <Sidebar />
+    <div className="flex h-screen bg-ajicolor-light bg-[url('/fondo/fondo-claro.png')] bg-repeat [background-size:520px] [background-attachment:fixed] dark:bg-[var(--bg-light)] dark:bg-[url('/fondo/fondo-oscuro.png')] dark:bg-repeat dark:[background-size:520px] dark:[background-attachment:fixed] print:bg-none">
+      <div className="no-print contents">
+        <Sidebar />
+      </div>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white dark:bg-neutral-900 border-b-2 border-ajicolor-ink flex items-center justify-end px-6">
+        <header className="no-print h-16 bg-[url('/fondo/fondo-claro.png')] bg-repeat [background-size:520px] [background-attachment:fixed] dark:bg-[url('/fondo/fondo-oscuro.png')] dark:bg-repeat dark:[background-size:520px] dark:[background-attachment:fixed] border-b-2 border-ajicolor-ink flex items-center justify-end px-6">
           <UserNav user={session?.user} />
         </header>
         <main className="flex-1 overflow-y-auto p-8">{children}</main>

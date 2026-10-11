@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { ORDER_TRANSITIONS } from "@/lib/state-machines";
 import { formatCLP, formatFechaCorta } from "@/lib/format";
+import ImprimirEtiquetaButton from "@/components/ImprimirEtiquetaButton";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function PedidoDetailPage({
       items: { include: { variant: { include: { product: true } } } },
       shipment: true,
       payments: { orderBy: { createdAt: "desc" } },
+      cotizacion: { include: { prendaBase: true } },
     },
   });
 
@@ -49,14 +51,48 @@ export default async function PedidoDetailPage({
 
   return (
     <div>
-      <div className="mb-6">
-        <Link href="/admin/pedidos" className="text-sm text-gray-500 dark:text-neutral-400 hover:underline">
-          ← Volver a Pedidos
-        </Link>
-        <h1 className="text-2xl font-black mt-2 dark:text-neutral-100">
-          Pedido #{String(order.numero).padStart(4, "0")}
-        </h1>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <Link href="/admin/pedidos" className="text-sm text-gray-500 dark:text-neutral-400 hover:underline">
+            ← Volver a Pedidos
+          </Link>
+          <h1 className="text-2xl font-black mt-2 dark:text-neutral-100 flex items-center gap-3">
+            Pedido #{String(order.numero).padStart(4, "0")}
+            {order.cotizacion && (
+              <Badge className="bg-ajicolor-purple text-white">Desde cotizador</Badge>
+            )}
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          <ImprimirEtiquetaButton orderId={order.id} />
+          <Link
+            href={`/admin/pedidos/${order.id}/comprobante`}
+            className="px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800"
+          >
+            Ver comprobante
+          </Link>
+        </div>
       </div>
+
+      {order.cotizacion && (
+        <Card className="p-6 mb-6 border-2 border-ajicolor-purple">
+          <h2 className="font-semibold text-gray-700 dark:text-neutral-300 mb-3">Encargo personalizado</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <p><span className="font-medium">Prenda:</span> {order.cotizacion.prendaBase.nombre}</p>
+            {(order.cotizacion.prendaBase.zonaAnchoCm != null || order.cotizacion.prendaBase.zonaAltoCm != null) && (
+              <p>
+                <span className="font-medium">Área de impresión:</span>{" "}
+                {order.cotizacion.prendaBase.zonaAnchoCm != null ? Number(order.cotizacion.prendaBase.zonaAnchoCm) : "—"}
+                {" × "}
+                {order.cotizacion.prendaBase.zonaAltoCm != null ? Number(order.cotizacion.prendaBase.zonaAltoCm) : "—"} cm
+              </p>
+            )}
+          </div>
+          {order.cotizacion.notas && (
+            <p className="text-sm mt-2"><span className="font-medium">Notas del cliente:</span> {order.cotizacion.notas}</p>
+          )}
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="p-6">
@@ -182,18 +218,43 @@ export default async function PedidoDetailPage({
             </tr>
           </thead>
           <tbody>
-            {order.items.map((item) => (
-              <tr key={item.id} className="border-b dark:border-neutral-700 last:border-0">
-                <td className="py-2">{item.variant.product.nombre}</td>
-                <td className="py-2">{item.variant.talle} / {item.variant.color}</td>
-                <td className="py-2 font-mono text-xs">{item.variant.sku}</td>
-                <td className="py-2 text-right">{item.cantidad}</td>
-                <td className="py-2 text-right">{formatCLP(Number(item.precioUnit))}</td>
-                <td className="py-2 text-right font-medium">
-                  {formatCLP(item.cantidad * Number(item.precioUnit))}
-                </td>
-              </tr>
-            ))}
+            {order.items.map((item) =>
+              item.variant ? (
+                <tr key={item.id} className="border-b dark:border-neutral-700 last:border-0">
+                  <td className="py-2">{item.variant.product.nombre}</td>
+                  <td className="py-2">{item.variant.talle} / {item.variant.color}</td>
+                  <td className="py-2 font-mono text-xs">{item.variant.sku}</td>
+                  <td className="py-2 text-right">{item.cantidad}</td>
+                  <td className="py-2 text-right">{formatCLP(Number(item.precioUnit))}</td>
+                  <td className="py-2 text-right font-medium">
+                    {formatCLP(item.cantidad * Number(item.precioUnit))}
+                  </td>
+                </tr>
+              ) : (
+                <tr key={item.id} className="border-b dark:border-neutral-700 last:border-0">
+                  <td className="py-2">
+                    {item.descripcionLibre ?? "Encargo personalizado"}
+                    {item.disenoUrlLibre && (
+                      <>
+                        {" — "}
+                        <a href={item.disenoUrlLibre} target="_blank" rel="noopener noreferrer" className="text-ajicolor-magenta hover:underline">
+                          ver diseño
+                        </a>
+                      </>
+                    )}
+                  </td>
+                  <td className="py-2">
+                    {item.tallaLibre ?? "—"} / {item.colorLibre ?? "—"}
+                  </td>
+                  <td className="py-2 font-mono text-xs text-gray-400 dark:text-neutral-500">sin SKU</td>
+                  <td className="py-2 text-right">{item.cantidad}</td>
+                  <td className="py-2 text-right">{formatCLP(Number(item.precioUnit))}</td>
+                  <td className="py-2 text-right font-medium">
+                    {formatCLP(item.cantidad * Number(item.precioUnit))}
+                  </td>
+                </tr>
+              )
+            )}
           </tbody>
         </table>
       </Card>

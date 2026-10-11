@@ -30,12 +30,20 @@ export default async function ProduccionPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-black dark:text-neutral-100">Cola de Producción</h1>
-        <Link
-          href="/admin/produccion/nuevo"
-          className="px-4 py-2 rounded-md bg-ajicolor-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity"
-        >
-          + Nuevo lote
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/admin/produccion/calendario"
+            className="px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800"
+          >
+            Ver calendario
+          </Link>
+          <Link
+            href="/admin/produccion/nuevo"
+            className="px-4 py-2 rounded-md bg-ajicolor-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            + Nuevo lote
+          </Link>
+        </div>
       </div>
       <div className="flex gap-2 mb-4 flex-wrap">
         {estados.map((e) => (

@@ -47,6 +47,7 @@ export default async function ProductoDetailPage({
             <p><span className="font-medium">Slug:</span> {product.slug}</p>
             <p><span className="font-medium">Artista:</span> {product.artista}</p>
             <p><span className="font-medium">Temporada:</span> {product.temporada}</p>
+            <p><span className="font-medium">Categoría:</span> {product.categoria}</p>
             <p><span className="font-medium">Descripción:</span> {product.descripcion}</p>
             <p><span className="font-medium">Creado:</span> {product.createdAt.toLocaleDateString()}</p>
           </div>

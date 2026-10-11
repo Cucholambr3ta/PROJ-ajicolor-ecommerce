@@ -12,6 +12,7 @@ interface Product {
   descripcion: string;
   artista: string;
   temporada: string;
+  categoria: "Adulto" | "Kids";
   variants: { id: string; talle: string; color: string; stock: number }[];
 }
 
@@ -20,6 +21,7 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
   const [isPending, startTransition] = useTransition();
   const [deleting, setDeleting] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [categoriaFiltro, setCategoriaFiltro] = useState<"" | "Adulto" | "Kids">("");
 
   async function handleDelete(id: string) {
     if (!confirm("¿Eliminar este producto y todas sus variantes?")) return;
@@ -30,13 +32,13 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
     startTransition(() => router.refresh());
   }
 
-  const filtrados = q.trim()
-    ? productos.filter(
-        (p) =>
-          p.nombre.toLowerCase().includes(q.toLowerCase()) ||
-          p.artista.toLowerCase().includes(q.toLowerCase())
-      )
-    : productos;
+  const filtrados = productos
+    .filter((p) =>
+      q.trim()
+        ? p.nombre.toLowerCase().includes(q.toLowerCase()) || p.artista.toLowerCase().includes(q.toLowerCase())
+        : true
+    )
+    .filter((p) => (categoriaFiltro ? p.categoria === categoriaFiltro : true));
 
   return (
     <div>
@@ -50,13 +52,24 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
         </Link>
       </div>
 
-      <input
-        type="search"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Buscar por nombre o artista..."
-        className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 mb-4"
-      />
+      <div className="flex gap-3 mb-4">
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar por nombre o artista..."
+          className="flex-1 border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900"
+        />
+        <select
+          value={categoriaFiltro}
+          onChange={(e) => setCategoriaFiltro(e.target.value as "" | "Adulto" | "Kids")}
+          className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900"
+        >
+          <option value="">Todas las categorías</option>
+          <option value="Adulto">Adulto</option>
+          <option value="Kids">Kids</option>
+        </select>
+      </div>
 
       <Card>
         {filtrados.length === 0 ? (
@@ -68,6 +81,7 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
                 <th className="p-4 pb-2">Producto</th>
                 <th className="p-4 pb-2">Artista</th>
                 <th className="p-4 pb-2">Temporada</th>
+                <th className="p-4 pb-2">Categoría</th>
                 <th className="p-4 pb-2 text-center">Variantes</th>
                 <th className="p-4 pb-2 text-center">Stock total</th>
                 <th className="p-4 pb-2 text-right">Acciones</th>
@@ -84,6 +98,9 @@ export default function CatalogoPageClient({ productos }: { productos: Product[]
                   </td>
                   <td className="p-4 text-gray-600 dark:text-neutral-300">{p.artista}</td>
                   <td className="p-4 text-gray-600 dark:text-neutral-300">{p.temporada}</td>
+                  <td className="p-4">
+                    <Badge variant={p.categoria === "Kids" ? "default" : "outline"}>{p.categoria}</Badge>
+                  </td>
                   <td className="p-4 text-center">
                     <Badge variant="outline">{p.variants.length}</Badge>
                   </td>

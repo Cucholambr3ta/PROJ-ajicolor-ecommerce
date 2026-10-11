@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
 import { adjustStockSchema, parseOrThrow } from "@/lib/schemas";
+import { sendEmail } from "@/lib/email/send";
+import { stockBajoTemplate } from "@/lib/email/templates";
 
 export async function getStockMovements(variantId: string) {
   await requireAdmin();
@@ -62,6 +64,29 @@ export async function adjustStock(
       },
     }),
   ]);
+
+  // Alerta solo quien cruza el umbral recién ahora (antes estaba por encima
+  // del mínimo), no en cada movimiento mientras ya sigue bajo — evita spam.
+  if (variant.stock > variant.stockMin && nuevoStock <= variant.stockMin) {
+    const { getStoreSettings } = await import("@/lib/actions/settings");
+    const settings = await getStoreSettings();
+    if (settings.emailContacto) {
+      const product = await prisma.product.findUnique({ where: { id: variant.productId } });
+      if (product) {
+        await sendEmail({
+          to: settings.emailContacto,
+          ...stockBajoTemplate({
+            producto: product.nombre,
+            talle: variant.talle,
+            color: variant.color,
+            sku: variant.sku,
+            stock: nuevoStock,
+            stockMin: variant.stockMin,
+          }),
+        });
+      }
+    }
+  }
 
   revalidatePath("/admin/stock");
   revalidatePath("/admin");

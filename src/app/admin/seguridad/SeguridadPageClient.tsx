@@ -92,7 +92,7 @@ export default function SeguridadPageClient({ totpEnabled }: { totpEnabled: bool
                   placeholder="123456"
                   value={disableToken}
                   onChange={(e) => setDisableToken(e.target.value)}
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm text-center tracking-widest"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm text-center tracking-widest dark:bg-neutral-900 dark:text-neutral-100"
                   required
                   autoFocus
                 />
@@ -141,7 +141,7 @@ export default function SeguridadPageClient({ totpEnabled }: { totpEnabled: bool
               placeholder="123456"
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm text-center tracking-widest mb-3"
+              className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm text-center tracking-widest mb-3 dark:bg-neutral-900 dark:text-neutral-100"
               required
             />
             <button

@@ -35,7 +35,7 @@ export default function ClientesPageClient({
           name="q"
           defaultValue={q}
           placeholder="Buscar por nombre o email..."
-          className="flex-1 border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900"
+          className="flex-1 border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
         />
         <button type="submit" className="px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800">
           Buscar

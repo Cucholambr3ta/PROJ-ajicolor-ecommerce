@@ -21,15 +21,24 @@ interface Movement {
   tipo: string;
   origen: string;
   descripcion: string | null;
+  costoTotal: number | null;
   createdAt: Date;
+}
+
+interface GastoProveedor {
+  proveedor: string;
+  total: number;
+  compras: number;
 }
 
 export default function InsumosPageClient({
   materials,
   suppliers,
+  gastoPorProveedor,
 }: {
   materials: Material[];
   suppliers: { id: string; nombre: string }[];
+  gastoPorProveedor: { porProveedor: GastoProveedor[]; totalGeneral: number };
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -45,6 +54,7 @@ export default function InsumosPageClient({
   const [movTipo, setMovTipo] = useState<"Entrada" | "Salida" | "Ajuste">("Entrada");
   const [movCantidad, setMovCantidad] = useState(1);
   const [movOrigen, setMovOrigen] = useState("");
+  const [movCostoTotal, setMovCostoTotal] = useState<number | "">("");
   const [movError, setMovError] = useState("");
 
   const [historyFor, setHistoryFor] = useState<string | null>(null);
@@ -90,10 +100,12 @@ export default function InsumosPageClient({
         cantidad: movCantidad,
         tipo: movTipo,
         origen: movOrigen,
+        costoTotal: movTipo === "Entrada" && movCostoTotal !== "" ? movCostoTotal : undefined,
       });
       setMovModal({ open: false });
       setMovCantidad(1);
       setMovOrigen("");
+      setMovCostoTotal("");
       startTransition(() => router.refresh());
     } catch (err: unknown) {
       setMovError(err instanceof Error ? err.message : "Error al registrar el movimiento");
@@ -124,6 +136,32 @@ export default function InsumosPageClient({
           {showForm ? "Cancelar" : "+ Nuevo insumo"}
         </button>
       </div>
+
+      <Card className="p-6 mb-6">
+        <h2 className="font-bold mb-4">Gasto en compras por proveedor</h2>
+        {gastoPorProveedor.porProveedor.length === 0 ? (
+          <p className="text-sm text-gray-500 dark:text-neutral-400">
+            Todavía no hay compras registradas con costo (DTF, tintas, poleras, etc.). Registra el costo al crear un movimiento de Entrada para que aparezca acá.
+          </p>
+        ) : (
+          <>
+            <div className="space-y-2 mb-4">
+              {gastoPorProveedor.porProveedor.map((p) => (
+                <div key={p.proveedor} className="flex items-center justify-between text-sm">
+                  <span>
+                    {p.proveedor} <span className="text-gray-400 dark:text-neutral-500">({p.compras} compra{p.compras !== 1 ? "s" : ""})</span>
+                  </span>
+                  <span className="font-bold">${p.total.toLocaleString("es-CL")}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-between text-sm font-black border-t border-gray-200 dark:border-neutral-700 pt-3">
+              <span>Total general</span>
+              <span>${gastoPorProveedor.totalGeneral.toLocaleString("es-CL")}</span>
+            </div>
+          </>
+        )}
+      </Card>
 
       {showForm && (
         <Card className="p-6 mb-6">
@@ -238,6 +276,7 @@ export default function InsumosPageClient({
                             <th className="p-2">Tipo</th>
                             <th className="p-2 text-right">Cantidad</th>
                             <th className="p-2">Origen</th>
+                            <th className="p-2 text-right">Costo</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -247,6 +286,7 @@ export default function InsumosPageClient({
                               <td className="p-2">{mv.tipo}</td>
                               <td className="p-2 text-right font-mono">{mv.cantidad > 0 ? `+${mv.cantidad}` : mv.cantidad}</td>
                               <td className="p-2">{mv.origen}</td>
+                              <td className="p-2 text-right">{mv.costoTotal != null ? `$${mv.costoTotal.toLocaleString("es-CL")}` : "—"}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -270,7 +310,7 @@ export default function InsumosPageClient({
                 <select
                   value={movTipo}
                   onChange={(e) => setMovTipo(e.target.value as typeof movTipo)}
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 >
                   <option value="Entrada">Entrada</option>
                   <option value="Salida">Salida</option>
@@ -284,7 +324,7 @@ export default function InsumosPageClient({
                   min={1}
                   value={movCantidad}
                   onChange={(e) => setMovCantidad(Number(e.target.value) || 1)}
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 />
               </div>
               <div>
@@ -294,9 +334,25 @@ export default function InsumosPageClient({
                   onChange={(e) => setMovOrigen(e.target.value)}
                   required
                   placeholder="Ej: Compra a proveedor, Consumo en lote..."
-                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
                 />
               </div>
+              {movTipo === "Entrada" && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">Costo total pagado (opcional)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={movCostoTotal}
+                    onChange={(e) => setMovCostoTotal(e.target.value === "" ? "" : Number(e.target.value))}
+                    placeholder="Ej: 45000"
+                    className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-900 dark:text-neutral-100"
+                  />
+                  <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
+                    Para llevar el control de gasto por proveedor. Déjalo vacío si no corresponde a una compra.
+                  </p>
+                </div>
+              )}
               {movError && <p className="text-red-500 text-sm">{movError}</p>}
               <div className="flex gap-3 justify-end">
                 <button

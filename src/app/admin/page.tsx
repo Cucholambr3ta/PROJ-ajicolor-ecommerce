@@ -19,6 +19,7 @@ export default async function AdminDashboard() {
     produccionActiva,
     ventas30d,
     pedidosAtrasados,
+    cotizacionesPendientes,
   ] = await Promise.all([
     prisma.order.aggregate({
       where: { pagadoAt: { gte: firstDayOfMonth } },
@@ -39,6 +40,7 @@ export default async function AdminDashboard() {
       orderBy: { fechaCompromiso: "asc" },
       take: 5,
     }),
+    prisma.cotizacionPersonalizada.count({ where: { estado: { in: ["Pendiente", "EnRevision"] } } }),
   ]);
 
   const stockBajo = variantesStockBajo.filter((v) => v.stock <= v.stockMin).length;
@@ -47,7 +49,8 @@ export default async function AdminDashboard() {
     { label: "Ventas del mes (pagadas)", value: formatCLP(Number(ventasMes._sum.total ?? 0)), bg: "bg-ajicolor-yellow" },
     { label: "Pagos por revisar", value: String(pagosPorRevisar), bg: pagosPorRevisar > 0 ? "bg-ajicolor-magenta text-white" : "bg-white dark:bg-neutral-900" },
     { label: "En producción", value: String(produccionActiva), bg: "bg-ajicolor-purple text-white" },
-    { label: "Piezas ya impresas (stock)", value: String(stockBajo), bg: "bg-white dark:bg-neutral-900" },
+    { label: "Cotizaciones sin revisar", value: String(cotizacionesPendientes), bg: cotizacionesPendientes > 0 ? "bg-ajicolor-green text-white" : "bg-white dark:bg-neutral-900" },
+    { label: "Variantes con stock bajo", value: String(stockBajo), bg: stockBajo > 0 ? "bg-ajicolor-magenta text-white" : "bg-white dark:bg-neutral-900" },
   ];
 
   return (
@@ -56,7 +59,7 @@ export default async function AdminDashboard() {
         <h1 className="text-3xl font-black dark:text-neutral-100">Centro de Comandos</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {kpis.map((kpi) => (
           <div key={kpi.label} className={`${kpi.bg} thick-border pop-shadow p-6`}>
             <p className="text-xs font-bold uppercase tracking-wide mb-2 opacity-70">{kpi.label}</p>

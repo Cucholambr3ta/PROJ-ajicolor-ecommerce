@@ -73,6 +73,9 @@ export async function updateOrderStatus(id: string, nuevoEstado: EstadoPedido) {
         });
       }
       for (const item of order.items) {
+        // Los ítems "libres" (de una cotización personalizada) nunca
+        // reservan stock de catálogo — nada que devolver.
+        if (!item.variantId) continue;
         const movimiento = await tx.stockMovement.findFirst({
           where: { descripcion: { contains: order.id } },
         });

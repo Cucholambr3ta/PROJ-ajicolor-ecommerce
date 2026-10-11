@@ -1,26 +1,20 @@
 "use client";
 
-import { useMemo, useState, FormEvent } from "react";
-import Image from "next/image";
+import { useEffect, useMemo, useState, FormEvent } from "react";
+import PreviewSwitcher from "./PreviewSwitcher";
+import SideToggle from "./SideToggle";
+import DesignControls from "./DesignControls";
+import DebugZonePanel from "./DebugZonePanel";
+import { type Lado, type PrendaCotizador, ladosDisponibles, zonaDeLado } from "./config";
 
-interface Color {
-  id: string;
-  nombre: string;
-  hex: string;
-}
-
-interface Prenda {
-  id: string;
-  nombre: string;
-  slug: string;
-  descripcion: string | null;
-  precioBase: number;
-  zonaAnchoCm: number | null;
-  zonaAltoCm: number | null;
-  tallasDisponibles: string[];
-  mockupFrenteUrl: string | null;
-  colores: Color[];
-}
+/** Un diseño elegido localmente (sin subir) para un lado — spec §7.3. */
+export type DisenoLocal = {
+  file: File;
+  objectUrl: string;
+  anchoPx: number;
+  altoPx: number;
+  escalaPct: number;
+};
 
 const CONSEJOS = [
   {
@@ -33,8 +27,8 @@ const CONSEJOS = [
     detalle: "O que contengan mucha información en el fondo.",
   },
   {
-    titulo: "Usa el botón vista previa",
-    detalle: "Así podrás asegurarte de obtener una mejor visualización de cómo quedará tu producto.",
+    titulo: "Gira el modelo 3D",
+    detalle: "Usa los botones Frente/Espalda o arrastra para ver cómo queda tu diseño desde todos los ángulos.",
   },
   {
     titulo: "No imprimimos con tinta blanca en prendas de color claro",
@@ -43,7 +37,7 @@ const CONSEJOS = [
   },
 ];
 
-export default function CotizadorClient({ prendas }: { prendas: Prenda[] }) {
+export default function CotizadorClient({ prendas }: { prendas: PrendaCotizador[] }) {
   const [prendaId, setPrendaId] = useState(prendas[0]?.id ?? "");
   const prenda = useMemo(() => prendas.find((p) => p.id === prendaId), [prendas, prendaId]);
 
@@ -57,76 +51,65 @@ export default function CotizadorClient({ prendas }: { prendas: Prenda[] }) {
   const [telefonoContacto, setTelefonoContacto] = useState("");
   const [notas, setNotas] = useState("");
 
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  // Estado central del cotizador (spec §7.3) — Preview2D y Preview3D leen de
+  // aquí exactamente las mismas props, nunca se desincronizan.
+  const [lados, setLados] = useState<Partial<Record<Lado, DisenoLocal>>>({});
+  const [ladoActivo, setLadoActivo] = useState<Lado>("Frente");
 
-  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
-  function handleSelectPrenda(p: Prenda) {
+  const ladosConZona = useMemo(() => (prenda ? ladosDisponibles(prenda) : []), [prenda]);
+  const zonaActiva = prenda ? zonaDeLado(prenda, ladoActivo) : undefined;
+
+  // Si el lado activo deja de tener zona (p.ej. al cambiar de prenda), cae al primero disponible.
+  useEffect(() => {
+    if (ladosConZona.length > 0 && !ladosConZona.includes(ladoActivo)) {
+      setLadoActivo(ladosConZona[0]);
+    }
+  }, [ladosConZona, ladoActivo]);
+
+  // Libera los object URLs al desmontar o reemplazar un diseño — evita memory leaks.
+  useEffect(() => {
+    return () => {
+      Object.values(lados).forEach((d) => d && URL.revokeObjectURL(d.objectUrl));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleSelectPrenda(p: PrendaCotizador) {
     setPrendaId(p.id);
     setColorNombre(p.colores[0]?.nombre ?? "");
     setTalla(p.tallasDisponibles[0] ?? "");
-    setShowPreview(false);
+    const primerLado = ladosDisponibles(p)[0];
+    if (primerLado) setLadoActivo(primerLado);
   }
 
-  function handleFileChange(f: File | null) {
-    setFile(f);
-    setShowPreview(false);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(f ? URL.createObjectURL(f) : null);
+  function handleDisenoChange(lado: Lado, diseno: DisenoLocal | null) {
+    setLados((prev) => {
+      const anterior = prev[lado];
+      if (anterior) URL.revokeObjectURL(anterior.objectUrl);
+      const next = { ...prev };
+      if (diseno) next[lado] = diseno;
+      else delete next[lado];
+      return next;
+    });
+  }
+
+  function handleEscalaChange(lado: Lado, escalaPct: number) {
+    setLados((prev) => {
+      const actual = prev[lado];
+      if (!actual) return prev;
+      return { ...prev, [lado]: { ...actual, escalaPct } };
+    });
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!prenda || !color) return;
-    if (!file) {
-      setError("Sube tu diseño antes de enviar la cotización");
-      return;
-    }
-
-    setError("");
-    setSubmitting(true);
-    setUploading(true);
-    try {
-      const { uploadDisenoCotizador, crearCotizacion } = await import("@/lib/actions/cotizador");
-
-      const formData = new FormData();
-      formData.append("file", file);
-      const uploadResult = await uploadDisenoCotizador(formData);
-      setUploading(false);
-      if (!uploadResult.ok) {
-        setError(uploadResult.error);
-        return;
-      }
-
-      const result = await crearCotizacion({
-        nombreContacto,
-        emailContacto,
-        telefonoContacto: telefonoContacto || undefined,
-        prendaBaseId: prenda.id,
-        colorNombre: color.nombre,
-        talla: talla || undefined,
-        cantidad,
-        disenoUrl: uploadResult.data,
-        notas: notas || undefined,
-      });
-
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
-
-      setDone(true);
-    } catch {
-      setError("Error al enviar la cotización. Intenta de nuevo.");
-    } finally {
-      setSubmitting(false);
-      setUploading(false);
-    }
+    // H0: sin envío todavía (CT-11 es H1). Este submit queda deshabilitado
+    // a propósito — se completa en el próximo hito junto con el upload real.
+    e.stopPropagation();
   }
 
   if (prendas.length === 0) {
@@ -157,65 +140,23 @@ export default function CotizadorClient({ prendas }: { prendas: Prenda[] }) {
       {/* Preview */}
       <div>
         <div className="thick-border pop-shadow bg-white dark:bg-neutral-900 p-4 sticky top-24">
-          <p className="text-center font-black text-sm py-2 border-b-2 border-ajicolor-ink mb-3">Vista previa</p>
-          <div
-            className="relative w-full aspect-square overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-neutral-800"
-          >
-            {prenda?.mockupFrenteUrl ? (
-              <>
-                {/* Mockup único en gris/blanco neutro, se tiñe con el color
-                    elegido vía mix-blend-mode — no hace falta una foto por
-                    color, solo una por prenda. */}
-                <Image
-                  src={prenda.mockupFrenteUrl}
-                  alt={`${prenda.nombre} ${color?.nombre ?? ""}`}
-                  fill
-                  className="object-contain"
-                />
-                <div
-                  className="absolute inset-0 mix-blend-multiply"
-                  style={{ backgroundColor: color?.hex ?? "#e5e5e5" }}
-                />
-              </>
-            ) : (
-              <div
-                className="absolute inset-0 flex items-center justify-center"
-                style={{ backgroundColor: color?.hex ?? "#e5e5e5" }}
-              >
-                <p className="text-xs font-bold uppercase tracking-widest text-white/40 mix-blend-difference">
-                  {prenda?.nombre} · {color?.nombre}
-                </p>
-              </div>
-            )}
-            {showPreview && previewUrl && (
-              <div
-                className="absolute flex items-center justify-center overflow-hidden"
-                style={{
-                  width: "45%",
-                  height: "45%",
-                  top: "22%",
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={previewUrl} alt="Tu diseño" className="max-w-full max-h-full object-contain" />
-              </div>
-            )}
+          <div className="flex items-center justify-between border-b-2 border-ajicolor-ink pb-2 mb-3">
+            <p className="font-black text-sm">Vista previa</p>
+            <SideToggle lados={ladosConZona} ladoActivo={ladoActivo} onChange={setLadoActivo} />
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowPreview((v) => !v)}
-            disabled={!file}
-            className="btn-block w-full justify-center bg-ajicolor-purple text-white py-3 mt-4 disabled:opacity-40"
-          >
-            {showPreview ? "Ocultar vista previa" : "Ver vista previa"}
-          </button>
+          {prenda && (
+            <PreviewSwitcher prenda={prenda} color={color} lados={lados} ladoActivo={ladoActivo} />
+          )}
 
-          {prenda?.zonaAnchoCm && prenda?.zonaAltoCm && (
+          {zonaActiva && (
             <p className="text-xs text-gray-400 dark:text-neutral-500 text-center mt-3">
-              Área de impresión máxima: {Number(prenda.zonaAnchoCm)}×{Number(prenda.zonaAltoCm)}cm
+              Área de impresión máxima: {zonaActiva.anchoCm}×{zonaActiva.altoCm}cm · desde $
+              {prenda?.precioBase.toLocaleString("es-CL")}
             </p>
           )}
+
+          {prenda && <DebugZonePanel prenda={prenda} ladoActivo={ladoActivo} />}
         </div>
 
         <div className="mt-6 bg-ajicolor-yellow/20 border-2 border-ajicolor-yellow thick-border p-5 space-y-3">
@@ -268,7 +209,8 @@ export default function CotizadorClient({ prendas }: { prendas: Prenda[] }) {
                   type="button"
                   onClick={() => setColorNombre(c.nombre)}
                   title={c.nombre}
-                  className={`w-10 h-10 rounded-full border-2 transition-transform ${
+                  aria-pressed={c.nombre === colorNombre}
+                  className={`w-10 h-10 rounded-full border-2 transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-ajicolor-magenta ${
                     c.nombre === colorNombre ? "border-ajicolor-magenta scale-110" : "border-gray-300 dark:border-neutral-700"
                   }`}
                   style={{ backgroundColor: c.hex }}
@@ -287,7 +229,8 @@ export default function CotizadorClient({ prendas }: { prendas: Prenda[] }) {
                   key={t}
                   type="button"
                   onClick={() => setTalla(t)}
-                  className={`w-12 h-12 flex items-center justify-center thick-border font-black text-sm ${
+                  aria-pressed={t === talla}
+                  className={`w-12 h-12 flex items-center justify-center thick-border font-black text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-ajicolor-magenta ${
                     t === talla ? "bg-ajicolor-ink text-white" : "bg-white dark:bg-neutral-900 hover:bg-gray-50 dark:hover:bg-neutral-800"
                   }`}
                 >
@@ -311,13 +254,24 @@ export default function CotizadorClient({ prendas }: { prendas: Prenda[] }) {
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase tracking-widest mb-2">Sube tu diseño</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
-            className="w-full text-sm"
-          />
+          <p className="text-xs font-bold uppercase tracking-widest mb-3">4. Elige los lados a estampar</p>
+          {ladosConZona.length === 0 ? (
+            <p className="text-xs text-gray-400 dark:text-neutral-500">
+              Esta prenda todavía no tiene zonas de impresión configuradas.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {ladosConZona.map((lado) => (
+                <DesignControls
+                  key={lado}
+                  lado={lado}
+                  diseno={lados[lado]}
+                  onChange={(d) => handleDisenoChange(lado, d)}
+                  onEscalaChange={(pct) => handleEscalaChange(lado, pct)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
@@ -365,10 +319,11 @@ export default function CotizadorClient({ prendas }: { prendas: Prenda[] }) {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled
+          title="El envío de la cotización llega en el próximo hito"
           className="btn-block w-full justify-center bg-ajicolor-green text-white py-4 text-base disabled:opacity-50"
         >
-          {uploading ? "Subiendo diseño..." : submitting ? "Enviando..." : "Solicitar cotización"}
+          {submitting ? "Enviando..." : "Solicitar cotización (próximamente)"}
         </button>
       </form>
     </div>
