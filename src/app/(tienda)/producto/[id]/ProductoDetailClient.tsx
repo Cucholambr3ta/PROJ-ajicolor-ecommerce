@@ -87,18 +87,22 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
   // Foto por color real: si existe /productos/<slug-del-color>/<archivo>.png
   // con el mismo nombre de archivo que ya usa el producto (detectado desde
   // disenoUrl o cualquier imagen de la galería como ancla), se arma un mapa
-  // color→URL. El selector de abajo solo ofrece los colores que tienen foto.
+  // color→{frente, espalda}. El selector de abajo solo ofrece los colores
+  // que tienen al menos la foto de frente.
   const nombreArchivo = useMemo(() => {
     const ancla = product.disenoUrl || product.images?.[0]?.url || "";
-    return ancla.split("/").pop() ?? null;
+    const base = ancla.split("/").pop() ?? null;
+    return base ? base.replace(/\.png$/, "") : null;
   }, [product.disenoUrl, product.images]);
 
-  const [fotoPorColor, setFotoPorColor] = useState<Record<string, string>>({});
+  const [fotoPorColor, setFotoPorColor] = useState<Record<string, { frente: string; espalda?: string }>>({});
   const [verificando, setVerificando] = useState(true);
 
-  // HEAD a cada carpeta de color para confirmar cuáles tienen el archivo —
-  // así el selector solo muestra swatches con foto real, sin asumir que
-  // todas las carpetas están completas para todos los productos.
+  // HEAD a cada carpeta de color para confirmar qué fotos existen — primero
+  // intenta la convención frente/espalda (<archivo>-frente.png /
+  // <archivo>-espalda.png); si no hay frente, cae a la convención vieja de
+  // una sola foto (<archivo>.png, sin sufijo) para no romper productos que
+  // todavía no tienen par frente/espalda.
   useEffect(() => {
     if (!nombreArchivo) {
       setVerificando(false);
@@ -106,19 +110,30 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
     }
     let cancelado = false;
     setVerificando(true);
-    Promise.all(
-      PALETA.map(async (c) => {
-        const url = `/productos/${c.slug}/${nombreArchivo}`;
-        try {
-          const res = await fetch(url, { method: "HEAD" });
-          return res.ok ? ([c.nombre, url] as const) : null;
-        } catch {
-          return null;
-        }
-      })
-    ).then((resultados) => {
+
+    async function probarColor(c: { nombre: string; slug: string }) {
+      const urlFrente = `/productos/${c.slug}/${nombreArchivo}-frente.png`;
+      const urlEspalda = `/productos/${c.slug}/${nombreArchivo}-espalda.png`;
+      const urlUnica = `/productos/${c.slug}/${nombreArchivo}.png`;
+
+      const [frenteRes, espaldaRes] = await Promise.all([
+        fetch(urlFrente, { method: "HEAD" }).catch(() => null),
+        fetch(urlEspalda, { method: "HEAD" }).catch(() => null),
+      ]);
+
+      if (frenteRes?.ok) {
+        return [c.nombre, { frente: urlFrente, espalda: espaldaRes?.ok ? urlEspalda : undefined }] as const;
+      }
+      const unicaRes = await fetch(urlUnica, { method: "HEAD" }).catch(() => null);
+      if (unicaRes?.ok) {
+        return [c.nombre, { frente: urlUnica }] as const;
+      }
+      return null;
+    }
+
+    Promise.all(PALETA.map(probarColor)).then((resultados) => {
       if (cancelado) return;
-      const mapa: Record<string, string> = {};
+      const mapa: Record<string, { frente: string; espalda?: string }> = {};
       for (const r of resultados) if (r) mapa[r[0]] = r[1];
       setFotoPorColor(mapa);
       setVerificando(false);
@@ -134,6 +149,8 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
   const coloresConFoto = useMemo(() => Object.keys(fotoPorColor), [fotoPorColor]);
   const tieneSelectorColor = !verificando && coloresConFoto.length > 0;
 
+  const [ladoActivo, setLadoActivo] = useState<"frente" | "espalda">("frente");
+
   const coloresDisponibles = useMemo(
     () => Array.from(new Set(product.variants.map((v) => v.color))),
     [product.variants]
@@ -144,6 +161,15 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
   // actualiza la talla disponible — el hover no debe tocar la talla).
   const [colorHover, setColorHover] = useState<string | null>(null);
   const colorEnPreview = colorHover ?? selectedColor;
+
+  // El toggle Frente/Espalda solo aparece si el color en preview tiene
+  // ambas fotos — si solo hay frente (foto única o espalda no subida
+  // todavía), se oculta y se muestra esa única foto sin pedir elegir lado.
+  const tieneEspalda = Boolean(fotoPorColor[colorEnPreview]?.espalda);
+
+  useEffect(() => {
+    if (!tieneEspalda) setLadoActivo("frente");
+  }, [tieneEspalda]);
 
   const tallesDelColor = useMemo(
     () => product.variants.filter((v) => v.color === selectedColor),
@@ -188,19 +214,42 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
       <div className="grid lg:grid-cols-2 gap-12">
         <div>
           <div className="thick-border pop-shadow bg-white dark:bg-neutral-900 p-3">
-            <p className="text-center font-black text-sm py-2 border-b-2 border-ajicolor-ink mb-3">Producto</p>
+            <div className="flex items-center justify-between mb-3 border-b-2 border-ajicolor-ink pb-2">
+              <p className="font-black text-sm">Producto</p>
+              {tieneSelectorColor && tieneEspalda && (
+                <div className="flex gap-1">
+                  {(["frente", "espalda"] as const).map((lado) => (
+                    <button
+                      key={lado}
+                      onClick={() => setLadoActivo(lado)}
+                      className={`px-3 py-1 text-[10px] font-black uppercase tracking-wide thick-border ${
+                        ladoActivo === lado
+                          ? "bg-ajicolor-ink text-white"
+                          : "bg-white dark:bg-neutral-900 text-ajicolor-ink dark:text-neutral-100"
+                      }`}
+                    >
+                      {lado === "frente" ? "Frente" : "Espalda"}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {tieneSelectorColor ? (
               <div className="relative w-full aspect-square overflow-hidden">
-                {coloresConFoto.map((color) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={color}
-                    src={fotoPorColor[color]}
-                    alt={`${product.nombre} — ${color}`}
-                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
-                    style={{ opacity: color === colorEnPreview ? 1 : 0 }}
-                  />
-                ))}
+                {coloresConFoto.map((color) => {
+                  const foto = fotoPorColor[color];
+                  const src = ladoActivo === "espalda" && foto.espalda ? foto.espalda : foto.frente;
+                  return (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={color}
+                      src={src}
+                      alt={`${product.nombre} — ${color} — ${ladoActivo}`}
+                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
+                      style={{ opacity: color === colorEnPreview ? 1 : 0 }}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className="relative">
