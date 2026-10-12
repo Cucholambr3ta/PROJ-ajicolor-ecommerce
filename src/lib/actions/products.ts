@@ -175,6 +175,71 @@ export async function createProduct(data: {
   return product;
 }
 
+/**
+ * Crea el producto, sus variantes y las fotos por color en un solo paso —
+ * reemplaza el flujo viejo de "crear vacío → editar → subir fotos" por un
+ * único formulario. Recibe FormData porque mezcla datos tipados con
+ * archivos: "data" es el JSON de { nombre, slug, ..., variants }, y cada
+ * archivo de foto va como "foto__<color>__<Frente|Espalda>".
+ */
+export async function createProductWithPhotos(formData: FormData) {
+  await requireAdmin();
+
+  const rawData = formData.get("data");
+  if (typeof rawData !== "string") throw new Error("Datos del producto faltantes");
+  const data = JSON.parse(rawData) as {
+    nombre: string;
+    slug: string;
+    descripcion: string;
+    artista: string;
+    temporada: string;
+    categoria?: CategoriaProducto;
+    precio: number;
+    variants?: { talle: string; color: string; sku: string; stock?: number; stockMin?: number }[];
+  };
+
+  const parsed = parseOrThrow(createProductSchema, { ...data, disenoUrl: "" });
+
+  const product = await prisma.product.create({
+    data: {
+      nombre: parsed.nombre,
+      slug: parsed.slug,
+      nombreSlug: parsed.slug,
+      descripcion: parsed.descripcion,
+      disenoUrl: "",
+      artista: parsed.artista,
+      temporada: parsed.temporada,
+      categoria: parsed.categoria,
+      precio: parsed.precio,
+      variants: parsed.variants ? { create: parsed.variants } : undefined,
+    },
+    include: { variants: true },
+  });
+
+  const { uploadProductImage } = await import("@/lib/storage");
+  let disenoUrl = "";
+
+  for (const [key, value] of Array.from(formData.entries())) {
+    if (!key.startsWith("foto__") || !(value instanceof File) || value.size === 0) continue;
+    const [, color, lado] = key.split("__");
+    if (lado !== "Frente" && lado !== "Espalda") continue;
+
+    const url = await uploadProductImage(value, product.id);
+    await prisma.productColorImage.create({
+      data: { productId: product.id, color, lado, url },
+    });
+    if (lado === "Frente" && !disenoUrl) disenoUrl = url;
+  }
+
+  if (disenoUrl) {
+    await prisma.product.update({ where: { id: product.id }, data: { disenoUrl } });
+  }
+
+  revalidatePath("/admin/catalogo");
+  revalidatePath("/");
+  return product;
+}
+
 export async function updateProduct(
   id: string,
   data: {
