@@ -31,6 +31,13 @@ export const checkoutAddressSchema = z.object({
   region: z.string().trim().min(1, "La región es obligatoria").max(100),
 });
 
+/** Checkout como invitado: email obligatorio para identificar/crear el
+ * Customer; password opcional (solo si marcó "crear una cuenta"). */
+export const checkoutGuestSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(200).optional(),
+});
+
 export const registerCustomerSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio").max(200),
   email: emailSchema,

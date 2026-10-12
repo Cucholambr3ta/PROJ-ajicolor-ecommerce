@@ -54,7 +54,7 @@ export default function CheckoutClient({
   costoEnvioCorreos,
   whatsapp,
 }: {
-  customer: { nombre: string; telefono: string; direccion: string };
+  customer: { nombre: string; telefono: string; direccion: string } | null;
   addresses: SavedAddress[];
   items: Item[];
   subtotal: number;
@@ -62,12 +62,17 @@ export default function CheckoutClient({
   whatsapp: string | null;
 }) {
   const router = useRouter();
+  const esInvitado = !customer;
   const [selectedAddressId, setSelectedAddressId] = useState<string>(addresses[0]?.id ?? "nueva");
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
 
-  const [nombre, setNombre] = useState(selectedAddress?.nombre ?? customer.nombre);
-  const [telefono, setTelefono] = useState(selectedAddress?.telefono ?? customer.telefono);
-  const [calle, setCalle] = useState(selectedAddress?.calle ?? customer.direccion);
+  const [email, setEmail] = useState("");
+  const [crearCuenta, setCrearCuenta] = useState(false);
+  const [password, setPassword] = useState("");
+
+  const [nombre, setNombre] = useState(selectedAddress?.nombre ?? customer?.nombre ?? "");
+  const [telefono, setTelefono] = useState(selectedAddress?.telefono ?? customer?.telefono ?? "");
+  const [calle, setCalle] = useState(selectedAddress?.calle ?? customer?.direccion ?? "");
   const [numero, setNumero] = useState(selectedAddress?.numero ?? "");
   const [comuna, setComuna] = useState(selectedAddress?.comuna ?? "");
   const [region, setRegion] = useState(selectedAddress?.region ?? "");
@@ -76,6 +81,7 @@ export default function CheckoutClient({
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailYaRegistrado, setEmailYaRegistrado] = useState(false);
   const [showResumenMobile, setShowResumenMobile] = useState(false);
 
   const [couponInput, setCouponInput] = useState("");
@@ -86,9 +92,9 @@ export default function CheckoutClient({
   function handleSelectAddress(id: string) {
     setSelectedAddressId(id);
     if (id === "nueva") {
-      setNombre(customer.nombre);
-      setTelefono(customer.telefono);
-      setCalle(customer.direccion);
+      setNombre(customer?.nombre ?? "");
+      setTelefono(customer?.telefono ?? "");
+      setCalle(customer?.direccion ?? "");
       setNumero("");
       setComuna("");
       setRegion("");
@@ -130,7 +136,16 @@ export default function CheckoutClient({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setEmailYaRegistrado(false);
 
+    if (esInvitado && !email.trim()) {
+      setError("Ingresá tu email para continuar");
+      return;
+    }
+    if (esInvitado && crearCuenta && password.trim().length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
     if (!nombre.trim() || !telefono.trim() || !calle.trim() || !numero.trim() || !comuna.trim() || !region.trim()) {
       setError("Todos los campos de dirección son obligatorios");
       return;
@@ -141,24 +156,33 @@ export default function CheckoutClient({
     }
 
     setLoading(true);
-    try {
-      const { checkout } = await import("@/lib/actions/cart");
-      const order = await checkout({
-        nombre,
-        telefono,
-        calle,
-        numero,
-        comuna,
-        region,
-        metodoEnvio,
-        couponCode: coupon?.codigo,
-        notas: notas.trim() || undefined,
-      });
-      router.push(`/pedido/${order.numero}`);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al confirmar el pedido");
+    const { checkout } = await import("@/lib/actions/cart");
+    const result = await checkout({
+      nombre,
+      telefono,
+      calle,
+      numero,
+      comuna,
+      region,
+      metodoEnvio,
+      couponCode: coupon?.codigo,
+      notas: notas.trim() || undefined,
+      email: esInvitado ? email.trim() : undefined,
+      password: esInvitado && crearCuenta ? password : undefined,
+    });
+
+    if (!result.ok) {
       setLoading(false);
+      if (result.error === "EMAIL_YA_REGISTRADO") {
+        setEmailYaRegistrado(true);
+        setError("Ya existe una cuenta con ese email.");
+        return;
+      }
+      setError(result.error || "Error al confirmar el pedido");
+      return;
     }
+
+    router.push(`/pedido/${result.data.numero}`);
   }
 
   const resumen = (
@@ -267,9 +291,64 @@ export default function CheckoutClient({
       </div>
 
       <div className="space-y-6 lg:order-1">
+        {esInvitado && (
+          <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6">
+            <h2 className="font-black uppercase text-sm mb-4 flex items-center gap-2">
+              <StepBadge n={1} /> Contacto
+            </h2>
+            <div>
+              <label htmlFor="chk-email" className={LABEL_CLS}>Email</label>
+              <input
+                id="chk-email"
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailYaRegistrado(false);
+                }}
+                placeholder="tu@email.com"
+                className={INPUT_CLS}
+              />
+              {emailYaRegistrado && (
+                <p className="text-xs font-semibold text-ajicolor-magenta mt-2">
+                  Ya existe una cuenta con ese email.{" "}
+                  <Link href="/login-cliente" className="underline">
+                    Iniciá sesión
+                  </Link>{" "}
+                  para continuar — tu carrito se mantiene.
+                </p>
+              )}
+            </div>
+
+            <label className="flex items-center gap-2 text-sm mt-4">
+              <input
+                type="checkbox"
+                checked={crearCuenta}
+                onChange={(e) => setCrearCuenta(e.target.checked)}
+                className="accent-ajicolor-magenta"
+              />
+              Crear una cuenta para seguir mis pedidos más fácil
+            </label>
+
+            {crearCuenta && (
+              <div className="mt-3">
+                <label htmlFor="chk-password" className={LABEL_CLS}>Contraseña</label>
+                <input
+                  id="chk-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  className={INPUT_CLS}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6">
           <h2 className="font-black uppercase text-sm mb-4 flex items-center gap-2">
-            <StepBadge n={1} /> Dirección de envío
+            <StepBadge n={esInvitado ? 2 : 1} /> Dirección de envío
           </h2>
 
           {addresses.length > 0 && (
@@ -348,7 +427,7 @@ export default function CheckoutClient({
 
         <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6">
           <h2 className="font-black uppercase text-sm mb-4 flex items-center gap-2">
-            <StepBadge n={2} /> Método de envío
+            <StepBadge n={esInvitado ? 3 : 2} /> Método de envío
           </h2>
           <div className="space-y-2">
             {METODOS.map((m) => (
@@ -381,7 +460,7 @@ export default function CheckoutClient({
 
         <div className="bg-white dark:bg-neutral-900 thick-border pop-shadow p-6">
           <h2 className="font-black uppercase text-sm mb-4 flex items-center gap-2">
-            <StepBadge n={3} /> Notas del pedido <span className="text-gray-400 font-normal normal-case">(opcional)</span>
+            <StepBadge n={esInvitado ? 4 : 3} /> Notas del pedido <span className="text-gray-400 font-normal normal-case">(opcional)</span>
           </h2>
           <textarea
             value={notas}
