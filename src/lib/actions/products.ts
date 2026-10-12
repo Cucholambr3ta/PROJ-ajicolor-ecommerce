@@ -327,44 +327,59 @@ export async function updateProduct(
     }
   }
 
-  return prisma.$transaction(async (tx) => {
-    if (variants) {
-      const existing = await tx.productVariant.findMany({ where: { productId: id }, select: { id: true } });
-      const keepIds = variants.filter((v) => v.id).map((v) => v.id as string);
-      const toDelete = existing.filter((v) => !keepIds.includes(v.id)).map((v) => v.id);
-      if (toDelete.length > 0) {
-        await tx.productVariant.deleteMany({ where: { id: { in: toDelete } } });
-      }
+  // Las variantes nuevas generan su SKU consultando unicidad contra la
+  // base (generarSku) — con varios colores x tallas eso son muchas queries
+  // secuenciales. Se generan ANTES de abrir la transacción (fuera de ella,
+  // contra prisma directo) para no tener la transacción abierta esperando
+  // al pooler de Supabase y expirar (timeout default de 5s).
+  let slugProducto = data.slug;
+  if (!slugProducto) {
+    const producto = await prisma.product.findUnique({ where: { id }, select: { slug: true } });
+    slugProducto = producto?.slug ?? id;
+  }
+  const variantesConSku = variants
+    ? await Promise.all(
+        variants.map(async (v) => ({
+          ...v,
+          sku: v.id ? undefined : await generarSku(prisma, slugProducto!, v.talle, v.color),
+        }))
+      )
+    : undefined;
 
-      let slugProducto = data.slug;
-      if (!slugProducto) {
-        const producto = await tx.product.findUnique({ where: { id }, select: { slug: true } });
-        slugProducto = producto?.slug ?? id;
-      }
+  return prisma.$transaction(
+    async (tx) => {
+      if (variantesConSku) {
+        const existing = await tx.productVariant.findMany({ where: { productId: id }, select: { id: true } });
+        const keepIds = variantesConSku.filter((v) => v.id).map((v) => v.id as string);
+        const toDelete = existing.filter((v) => !keepIds.includes(v.id)).map((v) => v.id);
+        if (toDelete.length > 0) {
+          await tx.productVariant.deleteMany({ where: { id: { in: toDelete } } });
+        }
 
-      for (const v of variants) {
-        if (v.id) {
-          // Variante ya existente: solo cambian talle/color/stock, el SKU
-          // original se mantiene (no se regenera al editar).
-          await tx.productVariant.update({
-            where: { id: v.id },
-            data: { talle: v.talle, color: v.color, stock: v.stock, stockMin: v.stockMin },
-          });
-        } else {
-          const sku = await generarSku(tx, slugProducto, v.talle, v.color);
-          await tx.productVariant.create({
-            data: { productId: id, talle: v.talle, color: v.color, sku, stock: v.stock, stockMin: v.stockMin },
-          });
+        for (const v of variantesConSku) {
+          if (v.id) {
+            // Variante ya existente: solo cambian talle/color/stock, el SKU
+            // original se mantiene (no se regenera al editar).
+            await tx.productVariant.update({
+              where: { id: v.id },
+              data: { talle: v.talle, color: v.color, stock: v.stock, stockMin: v.stockMin },
+            });
+          } else {
+            await tx.productVariant.create({
+              data: { productId: id, talle: v.talle, color: v.color, sku: v.sku!, stock: v.stock, stockMin: v.stockMin },
+            });
+          }
         }
       }
-    }
 
-    return tx.product.update({
-      where: { id },
-      data: productData,
-      include: { variants: true },
-    });
-  }).then((product) => {
+      return tx.product.update({
+        where: { id },
+        data: productData,
+        include: { variants: true },
+      });
+    },
+    { timeout: 15000 }
+  ).then((product) => {
     revalidatePath("/admin/catalogo");
     revalidatePath(`/admin/catalogo/${id}`);
     revalidatePath(`/producto/${id}`);
