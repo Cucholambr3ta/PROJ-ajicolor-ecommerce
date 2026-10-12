@@ -24,6 +24,15 @@ function usaTalles(tipo: TipoProducto): boolean {
   return tipo === "Polera" || tipo === "Poleron";
 }
 
+/** Reloj y Papelería no tienen color relevante para la compra — en vez del
+ * bloque de colores, se sube una galería libre de fotos (varios ángulos)
+ * y se crea una única variante automática color="Único"/talle="Única". */
+function usaGaleria(tipo: TipoProducto): boolean {
+  return tipo === "Reloj" || tipo === "Papeleria";
+}
+
+const COLOR_UNICO = "Único";
+
 /** Talle fijo interno para productos sin talles reales — ProductVariant.talle
  * es obligatorio en el modelo, así que se usa este valor como "única talla". */
 const TALLE_UNICO = "Única";
@@ -116,6 +125,7 @@ export default function ProductoFormClient({
   const [precio, setPrecio] = useState(initialData ? Number(initialData.precio) : 0);
   const paletaActiva = useMemo(() => colores.filter((c) => c.categoria === categoria), [colores, categoria]);
   const productoUsaTalles = usaTalles(tipo);
+  const productoUsaGaleria = usaGaleria(tipo);
   const tallesActivos: string[] = !productoUsaTalles
     ? [TALLE_UNICO]
     : categoria === "Kids"
@@ -164,21 +174,40 @@ export default function ProductoFormClient({
   const [images, setImages] = useState<ProductImageData[]>(initialData?.images ?? []);
   const [uploading, setUploading] = useState(false);
 
+  // Galería en memoria (modo creación, sin productId todavía) — mismo
+  // patrón que fotosPendientes/previewUrls para color, pero para Reloj y
+  // Papelería (sin color relevante, varios ángulos libres).
+  const [galeriaPendiente, setGaleriaPendiente] = useState<File[]>([]);
+  const [previewsGaleria, setPreviewsGaleria] = useState<string[]>([]);
+
   async function handleUploadImages(files: FileList | null) {
-    if (!files || files.length === 0 || !initialData) return;
+    if (!files || files.length === 0) return;
+
+    if (!isEdit) {
+      const nuevos = Array.from(files);
+      setGaleriaPendiente((prev) => [...prev, ...nuevos]);
+      setPreviewsGaleria((prev) => [...prev, ...nuevos.map((f) => URL.createObjectURL(f))]);
+      return;
+    }
+
     setUploading(true);
     setError("");
     try {
       const { addProductImages } = await import("@/lib/actions/products");
       const formData = new FormData();
       for (const file of Array.from(files)) formData.append("files", file);
-      const created = await addProductImages(initialData.id, formData);
+      const created = await addProductImages(initialData!.id, formData);
       setImages((prev) => [...prev, ...created]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al subir imágenes");
     } finally {
       setUploading(false);
     }
+  }
+
+  function handleRemovePendingGaleria(index: number) {
+    setGaleriaPendiente((prev) => prev.filter((_, i) => i !== index));
+    setPreviewsGaleria((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleRemoveImage(imageId: string) {
@@ -286,15 +315,32 @@ export default function ProductoFormClient({
       return;
     }
 
-    if (bloques.length === 0) {
+    if (!productoUsaGaleria && bloques.length === 0) {
       setError("Agrega al menos un color para poder vender este producto");
       return;
     }
 
+    // Reloj/Papelería: sin colores, una sola variante automática. Si ya
+    // existía (modo edición), se preserva su id/SKU igual que cualquier
+    // otra variante — initialData.variants ya la trae agrupada bajo
+    // color="Único" en el useState inicial de bloques.
+    const bloquesEfectivos: ColorBloque[] = productoUsaGaleria
+      ? bloques.length > 0
+        ? bloques
+        : [
+            {
+              color: COLOR_UNICO,
+              stockPorTalle: { [TALLE_UNICO]: 0 },
+              stockMinPorTalle: { [TALLE_UNICO]: 5 },
+              idPorTalle: {},
+            },
+          ]
+      : bloques;
+
     // El SKU lo genera el server al crear variantes nuevas. Si la variante
     // ya existía (modo edición), se manda su id para que se actualice en
     // vez de borrarse y recrearse con un id/SKU distinto.
-    const variantesConDatos = bloques.flatMap((b) =>
+    const variantesConDatos = bloquesEfectivos.flatMap((b) =>
       tallesActivos.map((talle) => ({
         id: b.idPorTalle[talle],
         talle,
@@ -339,6 +385,7 @@ export default function ProductoFormClient({
         for (const [key, file] of Array.from(fotosPendientes.entries())) {
           formData.append(`foto__${key}`, file);
         }
+        galeriaPendiente.forEach((file, i) => formData.append(`galeria__${i}`, file));
         await createProductWithPhotos(formData);
       }
       startTransition(() => router.push("/admin/catalogo"));
@@ -483,9 +530,18 @@ export default function ProductoFormClient({
           </div>
         </Card>
 
-        {isEdit && (
+        {(isEdit || productoUsaGaleria) && (
           <Card className="p-6 mb-6">
-            <h2 className="font-semibold text-gray-700 mb-4 dark:text-neutral-200">Galería de imágenes</h2>
+            <h2 className="font-semibold text-gray-700 mb-1 dark:text-neutral-200">
+              {productoUsaGaleria ? "Galería de fotos" : "Galería de imágenes"}
+            </h2>
+            {productoUsaGaleria && (
+              <p className="text-xs text-gray-400 mb-4 dark:text-neutral-500">
+                {tipo === "Reloj" ? "Reloj" : "Papelería"} no usa colores — subí todas las fotos que necesites (distintos
+                ángulos del mismo producto).
+                {!isEdit && " Se suben junto con el producto al hacer clic en \"Crear producto\"."}
+              </p>
+            )}
             <div className="flex flex-wrap gap-3 mb-4">
               {images.map((img) => (
                 <div key={img.id} className="relative w-24 h-24 thick-border overflow-hidden group">
@@ -494,6 +550,22 @@ export default function ProductoFormClient({
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(img.id)}
+                    className="absolute top-0 right-0 bg-red-500 text-white w-6 h-6 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              {previewsGaleria.map((url, i) => (
+                <div key={`pending-${i}`} className="relative w-24 h-24 thick-border overflow-hidden group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <span className="absolute bottom-0 left-0 right-0 bg-ajicolor-yellow text-ajicolor-ink text-[8px] font-bold text-center uppercase">
+                    Pendiente
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePendingGaleria(i)}
                     className="absolute top-0 right-0 bg-red-500 text-white w-6 h-6 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100"
                   >
                     ✕
@@ -515,6 +587,7 @@ export default function ProductoFormClient({
           </Card>
         )}
 
+        {!productoUsaGaleria && (
         <Card className="p-6 mb-6">
           <h2 className="font-semibold text-gray-700 mb-1 dark:text-neutral-200">Colores, fotos y tallas</h2>
           <p className="text-xs text-gray-400 mb-4 dark:text-neutral-500">
@@ -624,6 +697,7 @@ export default function ProductoFormClient({
             </p>
           )}
         </Card>
+        )}
 
         {error && <p className="text-red-500 text-sm mb-4 dark:text-red-400">{error}</p>}
 

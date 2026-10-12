@@ -52,6 +52,12 @@ function usaTalles(tipo: TipoProducto): boolean {
   return tipo === "Polera" || tipo === "Poleron";
 }
 
+/** Reloj y Papelería no tienen color relevante para la compra — la ficha
+ * no muestra el selector de color, solo la galería general de fotos. */
+function usaGaleria(tipo: TipoProducto): boolean {
+  return tipo === "Reloj" || tipo === "Papeleria";
+}
+
 const ESPECIFICACION_POR_TIPO: Record<TipoProducto, string> = {
   Polera: "100% Algodón Heavy Weight · 195 Grs",
   Poleron: "100% Algodón Heavy Weight · Frisado interior",
@@ -94,6 +100,7 @@ export default function ProductoDetailClient({ product, colores }: { product: Pr
 
   const esKids = product.categoria === "Kids";
   const productoUsaTalles = usaTalles(product.tipo);
+  const productoUsaGaleria = usaGaleria(product.tipo);
   const TALLES_ORDEN = esKids ? TALLES_KIDS : TALLES_ADULTO;
   const MEDIDAS_POR_TALLE = esKids ? MEDIDAS_POR_TALLE_KIDS : MEDIDAS_POR_TALLE_ADULTO;
   const COLOR_HEX: Record<string, string> = useMemo(
@@ -255,10 +262,12 @@ export default function ProductoDetailClient({ product, colores }: { product: Pr
               </div>
             )}
             <div className="mt-3">
-              <span className="block w-full bg-ajicolor-magenta text-white px-4 py-2 text-xs font-black uppercase text-center mb-3">
-                Dale color!
-              </span>
-              {coloresDisponibles.length > 0 && (
+              {!productoUsaGaleria && (
+                <span className="block w-full bg-ajicolor-magenta text-white px-4 py-2 text-xs font-black uppercase text-center mb-3">
+                  Dale color!
+                </span>
+              )}
+              {!productoUsaGaleria && coloresDisponibles.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto py-3 justify-center">
                   {coloresDisponibles.map((color) => (
                     <motion.button

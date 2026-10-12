@@ -275,17 +275,29 @@ export async function createProductWithPhotos(formData: FormData) {
 
   const { uploadProductImage } = await import("@/lib/storage");
   let disenoUrl = "";
+  let ordenGaleria = 0;
 
   for (const [key, value] of Array.from(formData.entries())) {
-    if (!key.startsWith("foto__") || !(value instanceof File) || value.size === 0) continue;
-    const [, color, lado] = key.split("__");
-    if (lado !== "Frente" && lado !== "Espalda") continue;
+    if (!(value instanceof File) || value.size === 0) continue;
 
-    const url = await uploadProductImage(value, product.id);
-    await prisma.productColorImage.create({
-      data: { productId: product.id, color, lado, url },
-    });
-    if (lado === "Frente" && !disenoUrl) disenoUrl = url;
+    if (key.startsWith("foto__")) {
+      const [, color, lado] = key.split("__");
+      if (lado !== "Frente" && lado !== "Espalda") continue;
+
+      const url = await uploadProductImage(value, product.id);
+      await prisma.productColorImage.create({
+        data: { productId: product.id, color, lado, url },
+      });
+      if (lado === "Frente" && !disenoUrl) disenoUrl = url;
+    } else if (key.startsWith("galeria__")) {
+      // Galería general (Reloj/Papelería) — sin color/lado, varios ángulos
+      // del mismo producto. Usa ProductImage, no ProductColorImage.
+      const url = await uploadProductImage(value, product.id);
+      await prisma.productImage.create({
+        data: { productId: product.id, url, orden: ordenGaleria++ },
+      });
+      if (!disenoUrl) disenoUrl = url;
+    }
   }
 
   if (disenoUrl) {
