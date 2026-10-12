@@ -233,7 +233,7 @@ export default function ProductoDetailClient({ product, colores }: { product: Pr
                 Dale color!
               </span>
               {coloresDisponibles.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-1 justify-center">
+                <div className="flex gap-2 overflow-x-auto py-3 justify-center">
                   {coloresDisponibles.map((color) => (
                     <motion.button
                       key={color}
