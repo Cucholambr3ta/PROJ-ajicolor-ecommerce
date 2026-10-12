@@ -182,7 +182,11 @@ export default function CheckoutClient({
       return;
     }
 
-    router.push(`/pedido/${result.data.numero}`);
+    if (esInvitado) {
+      router.push(`/pedido/${result.data.numero}?email=${encodeURIComponent(email.trim())}`);
+    } else {
+      router.push(`/pedido/${result.data.numero}`);
+    }
   }
 
   const resumen = (

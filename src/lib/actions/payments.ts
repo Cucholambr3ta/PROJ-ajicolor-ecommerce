@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, requireCliente } from "@/lib/auth-guard";
+import { requireAdmin, requireOrderAccess } from "@/lib/auth-guard";
 import { logAudit } from "@/lib/audit";
 import { sumarDiasHabiles } from "@/lib/actions/cart";
 import { getStoreSettings } from "@/lib/actions/settings";
@@ -25,10 +25,8 @@ const reportPaymentSchema = z.object({
 });
 
 /** Sube el comprobante de pago (bucket privado) y devuelve la URL firmada para guardar en el Payment. */
-export async function uploadPaymentReceipt(orderId: string, formData: FormData) {
-  const customerId = await requireCliente();
-  const order = await prisma.order.findUnique({ where: { id: orderId } });
-  if (!order || order.customerId !== customerId) throw new Error("Pedido no encontrado");
+export async function uploadPaymentReceipt(orderId: string, formData: FormData, email?: string) {
+  await requireOrderAccess(orderId, email);
 
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) throw new Error("Selecciona un archivo");
@@ -45,12 +43,14 @@ export async function reportPayment(data: {
   fechaTransferencia?: Date;
   referencia?: string;
   comprobanteUrl?: string;
+  email?: string;
 }) {
-  const customerId = await requireCliente();
-  const parsed = parseOrThrow(reportPaymentSchema, data);
+  const { email, ...rest } = data;
+  await requireOrderAccess(data.orderId, email);
+  const parsed = parseOrThrow(reportPaymentSchema, rest);
 
   const order = await prisma.order.findUnique({ where: { id: parsed.orderId }, include: { customer: true } });
-  if (!order || order.customerId !== customerId) throw new Error("Pedido no encontrado");
+  if (!order) throw new Error("Pedido no encontrado");
   if (order.estadoPago === "Pagado") throw new Error("Este pedido ya fue pagado");
 
   const payment = await prisma.$transaction(async (tx) => {

@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function ReportarPagoForm({ orderId, monto }: { orderId: string; monto: number }) {
+export default function ReportarPagoForm({
+  orderId,
+  monto,
+  email,
+}: {
+  orderId: string;
+  monto: number;
+  email?: string;
+}) {
   const router = useRouter();
   const [banco, setBanco] = useState("");
   const [referencia, setReferencia] = useState("");
@@ -22,7 +30,7 @@ export default function ReportarPagoForm({ orderId, monto }: { orderId: string; 
         const { uploadPaymentReceipt } = await import("@/lib/actions/payments");
         const formData = new FormData();
         formData.append("file", file);
-        comprobanteUrl = await uploadPaymentReceipt(orderId, formData);
+        comprobanteUrl = await uploadPaymentReceipt(orderId, formData, email);
       }
 
       const { reportPayment } = await import("@/lib/actions/payments");
@@ -33,6 +41,7 @@ export default function ReportarPagoForm({ orderId, monto }: { orderId: string; 
         referencia: referencia || undefined,
         fechaTransferencia: new Date(),
         comprobanteUrl,
+        email,
       });
       setEnviado(true);
       router.refresh();

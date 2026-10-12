@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getStoreSettings } from "@/lib/actions/settings";
 import { formatCLP } from "@/lib/format";
 import ReportarPagoForm from "./ReportarPagoForm";
+import VerificarPedidoForm from "./VerificarPedidoForm";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Confirmación de pedido", robots: { index: false, follow: false } };
@@ -27,12 +28,14 @@ const TRACKING_URLS: Record<string, (t: string) => string> = {
 
 export default async function PedidoConfirmacionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ numero: string }>;
+  searchParams: Promise<{ email?: string }>;
 }) {
   const { numero } = await params;
+  const { email: emailQuery } = await searchParams;
   const session = await auth();
-  if (!session?.user?.id) redirect("/login-cliente");
 
   const numeroInt = parseInt(numero, 10);
   if (Number.isNaN(numeroInt)) notFound();
@@ -45,12 +48,33 @@ export default async function PedidoConfirmacionPage({
         payments: { orderBy: { createdAt: "desc" } },
         shipment: true,
         cotizacion: true,
+        customer: true,
       },
     }),
     getStoreSettings(),
   ]);
 
-  if (!order || order.customerId !== session.user.id) notFound();
+  if (!order) notFound();
+
+  const esDueñoPorSesion = session?.user?.rol === "Cliente" && session.user.id === order.customerId;
+  const emailNormalizado = emailQuery?.trim().toLowerCase();
+  const esDueñoPorEmail = !!emailNormalizado && emailNormalizado === order.customer.email.toLowerCase();
+  const tieneAcceso = esDueñoPorSesion || esDueñoPorEmail;
+
+  if (!tieneAcceso) {
+    return (
+      <main className="max-w-md mx-auto py-16 p-8">
+        <h1 className="text-2xl font-black mb-2">Verifica tu pedido</h1>
+        <p className="text-sm text-gray-500 dark:text-neutral-400 mb-8">
+          Orden <span className="font-black text-ajicolor-magenta">#{String(order.numero).padStart(4, "0")}</span>.
+          Ingresa el email con el que hiciste la compra para ver el detalle.
+        </p>
+        <VerificarPedidoForm numero={order.numero} errorEmail={!!emailQuery} />
+      </main>
+    );
+  }
+
+  const emailAcceso = esDueñoPorEmail ? emailNormalizado : undefined;
   const pagoEnRevision = order.payments.some((p) => p.estado === "EnRevision");
   const yaPago = order.estadoPago === "Pagado";
 
@@ -157,7 +181,7 @@ export default async function PedidoConfirmacionPage({
               </p>
             </div>
 
-            <ReportarPagoForm orderId={order.id} monto={Number(order.total)} />
+            <ReportarPagoForm orderId={order.id} monto={Number(order.total)} email={emailAcceso} />
           </>
         )}
 
