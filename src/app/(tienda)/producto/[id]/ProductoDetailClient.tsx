@@ -224,7 +224,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                       onClick={() => setLadoActivo(lado)}
                       className={`px-3 py-1 text-[10px] font-black uppercase tracking-wide thick-border ${
                         ladoActivo === lado
-                          ? "bg-ajicolor-ink text-white"
+                          ? "bg-ajicolor-purple text-white dark:bg-ajicolor-ink"
                           : "bg-white dark:bg-neutral-900 text-ajicolor-ink dark:text-neutral-100"
                       }`}
                     >
@@ -398,7 +398,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
           </div>
 
           <div>
-            <p className="bg-ajicolor-ink text-white px-3 py-1.5 text-xs font-bold uppercase inline-block mb-0">
+            <p className="bg-ajicolor-purple text-white dark:bg-ajicolor-ink px-3 py-1.5 text-xs font-bold uppercase inline-block mb-0">
               Especificación técnica
             </p>
             <div className="thick-border p-4 text-sm italic text-gray-600 dark:text-neutral-300 font-medium">
