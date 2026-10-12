@@ -141,6 +141,10 @@ export default function ProductoFormClient({
       formData.append("file", file);
       const saved = await setProductColorImage(initialData.id, color, lado, formData);
       setColorImages((prev) => [...prev.filter((ci) => !(ci.color === color && ci.lado === lado)), saved]);
+      // El server completa disenoUrl solo si estaba vacío (ver
+      // setProductColorImage) — reflejarlo acá evita que el campo override
+      // de edición muestre un valor viejo/vacío hasta recargar la página.
+      if (lado === "Frente" && !disenoUrl) setDisenoUrl(saved.url);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al subir la foto");
     } finally {
@@ -182,10 +186,15 @@ export default function ProductoFormClient({
       return;
     }
 
-    const hasEmptyVariant = variants.some((v) => !v.talle.trim() || !v.color.trim() || !v.sku.trim());
-    if (hasEmptyVariant) {
-      setError("Todas las variantes deben tener talle, color y SKU");
-      return;
+    // En modo creación no se edita la lista de variantes (se crean después,
+    // en modo edición) — la fila vacía inicial del estado no cuenta como
+    // variante real y no debe bloquear el guardado.
+    if (isEdit) {
+      const hasEmptyVariant = variants.some((v) => !v.talle.trim() || !v.color.trim() || !v.sku.trim());
+      if (hasEmptyVariant) {
+        setError("Todas las variantes deben tener talle, color y SKU");
+        return;
+      }
     }
 
     try {
@@ -213,7 +222,10 @@ export default function ProductoFormClient({
           temporada,
           categoria,
           precio,
-          variants,
+          // La fila inicial vacía (placeholder del estado, nunca editable
+          // en modo creación) no se envía — las variantes reales se crean
+          // después, en modo edición.
+          variants: [],
         });
       }
       startTransition(() => router.push("/admin/catalogo"));
@@ -295,15 +307,20 @@ export default function ProductoFormClient({
                 Determina la paleta de colores de las variantes y en qué sección aparece (/ o /kids).
               </p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">URL del Diseño</label>
-              <input
-                type="text"
-                value={disenoUrl}
-                onChange={(e) => setDisenoUrl(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-              />
-            </div>
+            {isEdit && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">URL del Diseño</label>
+                <input
+                  type="text"
+                  value={disenoUrl}
+                  onChange={(e) => setDisenoUrl(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                />
+                <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
+                  Se completa sola con la primera foto de frente que subas abajo — solo tocar si necesitás forzar otra imagen.
+                </p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Precio</label>
               <input

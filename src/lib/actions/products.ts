@@ -311,6 +311,17 @@ export async function setProductColorImage(
     await deleteProductImage(existing.url);
   }
 
+  // Si el producto todavía no tiene disenoUrl (campo legado, pero usado
+  // como miniatura en catálogo/carrito/OG), la primera foto de frente
+  // subida lo completa sola — ya no hace falta que el admin tipee una URL
+  // a mano al crear el producto.
+  if (lado === "Frente") {
+    const product = await prisma.product.findUnique({ where: { id: productId }, select: { disenoUrl: true } });
+    if (product && !product.disenoUrl) {
+      await prisma.product.update({ where: { id: productId }, data: { disenoUrl: url } });
+    }
+  }
+
   revalidatePath(`/admin/catalogo/${productId}`);
   revalidatePath(`/admin/catalogo/nuevo`);
   revalidatePath("/");
