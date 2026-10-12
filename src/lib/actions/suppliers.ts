@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import type { TipoProducto } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-guard";
 import { createSupplierSchema, parseOrThrow } from "@/lib/schemas";
@@ -28,6 +29,7 @@ export async function createSupplier(data: {
   leadTimeDias: number;
   costoBase: number;
   calificacion: number;
+  tiposProducto?: TipoProducto[];
 }) {
   await requireAdmin();
   const parsed = parseOrThrow(createSupplierSchema, data);
@@ -45,6 +47,7 @@ export async function updateSupplier(
     leadTimeDias?: number;
     costoBase?: number;
     calificacion?: number;
+    tiposProducto?: TipoProducto[];
   }
 ) {
   await requireAdmin();

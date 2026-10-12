@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 
+type TipoProducto = "Polera" | "Poleron" | "Totebag" | "Reloj" | "Papeleria";
+
+const TIPOS_PRODUCTO: { value: TipoProducto; label: string }[] = [
+  { value: "Polera", label: "Poleras" },
+  { value: "Poleron", label: "Polerones" },
+  { value: "Totebag", label: "Totebags" },
+  { value: "Reloj", label: "Relojes" },
+  { value: "Papeleria", label: "Papelería" },
+];
+
 interface SupplierData {
   id: string;
   nombre: string;
@@ -13,6 +23,7 @@ interface SupplierData {
   leadTimeDias: number;
   costoBase: number;
   calificacion: number;
+  tiposProducto: TipoProducto[];
 }
 
 export default function ProveedorFormClient({ initialData }: { initialData?: SupplierData }) {
@@ -26,7 +37,14 @@ export default function ProveedorFormClient({ initialData }: { initialData?: Sup
   const [leadTimeDias, setLeadTimeDias] = useState(initialData?.leadTimeDias ?? 15);
   const [costoBase, setCostoBase] = useState(initialData?.costoBase ?? 0);
   const [calificacion, setCalificacion] = useState(initialData?.calificacion ?? 3);
+  const [tiposProducto, setTiposProducto] = useState<TipoProducto[]>(initialData?.tiposProducto ?? []);
   const [error, setError] = useState("");
+
+  function toggleTipo(tipo: TipoProducto) {
+    setTiposProducto((prev) =>
+      prev.includes(tipo) ? prev.filter((t) => t !== tipo) : [...prev, tipo]
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,9 +58,9 @@ export default function ProveedorFormClient({ initialData }: { initialData?: Sup
     try {
       const { createSupplier, updateSupplier } = await import("@/lib/actions/suppliers");
       if (isEdit) {
-        await updateSupplier(initialData.id, { nombre, contacto, telefono, leadTimeDias, costoBase, calificacion });
+        await updateSupplier(initialData.id, { nombre, contacto, telefono, leadTimeDias, costoBase, calificacion, tiposProducto });
       } else {
-        await createSupplier({ nombre, contacto, telefono, leadTimeDias, costoBase, calificacion });
+        await createSupplier({ nombre, contacto, telefono, leadTimeDias, costoBase, calificacion, tiposProducto });
       }
       startTransition(() => router.push("/admin/proveedores"));
     } catch (err: unknown) {
@@ -128,6 +146,29 @@ export default function ProveedorFormClient({ initialData }: { initialData?: Sup
                   <option key={n} value={n}>{n}</option>
                 ))}
               </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-1">
+                Tipo de producto que provee
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {TIPOS_PRODUCTO.map((t) => (
+                  <label
+                    key={t.value}
+                    className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm cursor-pointer dark:bg-neutral-900 dark:text-neutral-100"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={tiposProducto.includes(t.value)}
+                      onChange={() => toggleTipo(t.value)}
+                    />
+                    {t.label}
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
+                Se usa para sugerir este proveedor al armar un lote de producción de ese tipo de producto.
+              </p>
             </div>
           </div>
         </Card>

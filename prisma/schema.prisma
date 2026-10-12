@@ -449,6 +449,7 @@ model Supplier {
   telefono     String?
   rut          String?
   tipo         String? // "taller" | "insumos" | "otro"
+  tiposProducto TipoProducto[] // qué tipos de producto fabrica/provee (Polera, Poleron, ...) — usado para sugerir proveedor al armar un lote de producción
   leadTimeDias Int
   costoBase    Decimal
   calificacion Int               @default(3)

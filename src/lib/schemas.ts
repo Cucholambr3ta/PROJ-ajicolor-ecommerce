@@ -110,6 +110,8 @@ export const addressSchema = z.object({
   esPrincipal: z.boolean().optional(),
 });
 
+export const tipoProductoSchema = z.enum(["Polera", "Poleron", "Totebag", "Reloj", "Papeleria"]);
+
 export const createSupplierSchema = z.object({
   nombre: z.string().trim().min(1).max(200),
   contacto: z.string().trim().min(1).max(200),
@@ -117,6 +119,7 @@ export const createSupplierSchema = z.object({
   leadTimeDias: z.number().int().nonnegative(),
   costoBase: z.number().nonnegative(),
   calificacion: z.number().int().min(1).max(5),
+  tiposProducto: z.array(tipoProductoSchema).optional(),
 });
 
 export const adjustStockSchema = z.object({

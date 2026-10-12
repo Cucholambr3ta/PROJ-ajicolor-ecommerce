@@ -24,6 +24,7 @@ export default async function NuevoProveedorPage({
           leadTimeDias: supplier.leadTimeDias,
           costoBase: Number(supplier.costoBase),
           calificacion: supplier.calificacion,
+          tiposProducto: supplier.tiposProducto,
         }}
       />
     );
