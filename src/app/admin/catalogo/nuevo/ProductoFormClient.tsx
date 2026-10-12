@@ -250,16 +250,6 @@ export default function ProductoFormClient({
     setBloques((prev) => prev.map((b, i) => (i === index ? { ...b, color: nuevoColor } : b)));
   }
 
-  function updateStock(bloqueIndex: number, talle: string, campo: "stock" | "stockMin", valor: number) {
-    setBloques((prev) =>
-      prev.map((b, i) => {
-        if (i !== bloqueIndex) return b;
-        const destino = campo === "stock" ? "stockPorTalle" : "stockMinPorTalle";
-        return { ...b, [destino]: { ...b[destino], [talle]: valor } };
-      })
-    );
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -557,32 +547,10 @@ export default function ProductoFormClient({
                     )}
                   </div>
 
-                  <p className="text-xs font-medium text-gray-600 dark:text-neutral-300 mb-2">
-                    Stock por talla — todas las tallas de {categoria} se crean automáticamente
+                  <p className="text-xs text-gray-400 dark:text-neutral-500">
+                    Tallas de {categoria} ({tallesActivos.join(", ")}) — se crean automáticamente, bajo pedido (sin
+                    límite de stock).
                   </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                    {tallesActivos.map((talle) => (
-                      <div key={talle} className="border border-gray-200 dark:border-neutral-700 rounded-md p-2">
-                        <p className="text-xs font-bold text-center mb-1 dark:text-neutral-100">{talle}</p>
-                        <label className="block text-[9px] text-gray-500 dark:text-neutral-400">Stock</label>
-                        <input
-                          type="number"
-                          min={0}
-                          value={bloque.stockPorTalle[talle] ?? 0}
-                          onChange={(e) => updateStock(bi, talle, "stock", parseInt(e.target.value) || 0)}
-                          className="w-full border border-gray-300 rounded-md px-1.5 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                        />
-                        <label className="block text-[9px] text-gray-500 dark:text-neutral-400 mt-1">Mín.</label>
-                        <input
-                          type="number"
-                          min={0}
-                          value={bloque.stockMinPorTalle[talle] ?? 5}
-                          onChange={(e) => updateStock(bi, talle, "stockMin", parseInt(e.target.value) || 0)}
-                          className="w-full border border-gray-300 rounded-md px-1.5 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                        />
-                      </div>
-                    ))}
-                  </div>
                 </div>
               );
             })}
