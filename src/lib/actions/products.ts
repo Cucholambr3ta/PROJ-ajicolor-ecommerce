@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
 import { revalidatePath } from "next/cache";
 import { createProductSchema, parseOrThrow } from "@/lib/schemas";
-import type { CategoriaProducto, Prisma } from "@prisma/client";
+import type { CategoriaProducto, TipoProducto, Prisma } from "@prisma/client";
 
 /**
  * Genera un SKU único <SLUG-TALLE-COLOR[-N]> — el admin ya no lo escribe a
@@ -27,6 +27,7 @@ export interface ProductFilters {
   q?: string;
   collectionSlug?: string;
   categoria?: CategoriaProducto;
+  tipo?: TipoProducto;
   color?: string;
   talle?: string;
   precioMin?: number;
@@ -56,6 +57,7 @@ export async function getProducts(filtros: ProductFilters = {}) {
       : {}),
     ...(filtros.collectionSlug ? { collection: { slug: filtros.collectionSlug } } : {}),
     ...(filtros.categoria ? { categoria: filtros.categoria } : {}),
+    ...(filtros.tipo ? { tipo: filtros.tipo } : {}),
     ...(filtros.precioMin != null || filtros.precioMax != null
       ? {
           precio: {
@@ -163,6 +165,7 @@ export async function createProduct(data: {
   artista: string;
   temporada: string;
   categoria?: CategoriaProducto;
+  tipo?: TipoProducto;
   precio: number;
   costoUnitario?: number;
   collectionId?: string;
@@ -197,6 +200,7 @@ export async function createProduct(data: {
       artista: parsed.artista,
       temporada: parsed.temporada,
       categoria: parsed.categoria,
+      tipo: parsed.tipo,
       precio: parsed.precio,
       costoUnitario: parsed.costoUnitario,
       collectionId: parsed.collectionId,
@@ -228,6 +232,7 @@ export async function createProductWithPhotos(formData: FormData) {
     artista: string;
     temporada: string;
     categoria?: CategoriaProducto;
+    tipo?: TipoProducto;
     precio: number;
     variants?: { talle: string; color: string; stock?: number; stockMin?: number }[];
   };
@@ -261,6 +266,7 @@ export async function createProductWithPhotos(formData: FormData) {
       artista: parsed.artista,
       temporada: parsed.temporada,
       categoria: parsed.categoria,
+      tipo: parsed.tipo,
       precio: parsed.precio,
       variants: variantsConSku ? { create: variantsConSku } : undefined,
     },
@@ -301,6 +307,7 @@ export async function updateProduct(
     artista?: string;
     temporada?: string;
     categoria?: CategoriaProducto;
+    tipo?: TipoProducto;
     precio?: number;
     costoUnitario?: number;
     activo?: boolean;

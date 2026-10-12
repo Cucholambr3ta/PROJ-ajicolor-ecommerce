@@ -29,6 +29,8 @@ interface ColorInfo {
   hex: string;
 }
 
+type TipoProducto = "Polera" | "Poleron" | "Totebag" | "Reloj" | "Papeleria";
+
 interface Product {
   id: string;
   nombre: string;
@@ -37,11 +39,34 @@ interface Product {
   artista: string;
   temporada: string;
   categoria: "Adulto" | "Kids";
+  tipo: TipoProducto;
   precio: number | any;
   variants: Variant[];
   images?: ProductImage[];
   colorImages: ColorImage[];
 }
+
+/** Solo Polera y Polerón usan talles de ropa — ver mismo criterio en el
+ * formulario admin (ProductoFormClient.tsx). */
+function usaTalles(tipo: TipoProducto): boolean {
+  return tipo === "Polera" || tipo === "Poleron";
+}
+
+const ESPECIFICACION_POR_TIPO: Record<TipoProducto, string> = {
+  Polera: "100% Algodón Heavy Weight · 195 Grs",
+  Poleron: "100% Algodón Heavy Weight · Frisado interior",
+  Totebag: "Tela resistente · Asas reforzadas",
+  Reloj: "Correa ajustable · Resistente al agua",
+  Papeleria: "Papel couché · Impresión de alta calidad",
+};
+
+const LABEL_TIPO: Record<TipoProducto, string> = {
+  Polera: "Polera",
+  Poleron: "Polerón",
+  Totebag: "Totebag",
+  Reloj: "Reloj",
+  Papeleria: "Papelería",
+};
 
 const CANTIDAD_MAXIMA = 10;
 
@@ -68,6 +93,7 @@ export default function ProductoDetailClient({ product, colores }: { product: Pr
   const router = useRouter();
 
   const esKids = product.categoria === "Kids";
+  const productoUsaTalles = usaTalles(product.tipo);
   const TALLES_ORDEN = esKids ? TALLES_KIDS : TALLES_ADULTO;
   const MEDIDAS_POR_TALLE = esKids ? MEDIDAS_POR_TALLE_KIDS : MEDIDAS_POR_TALLE_ADULTO;
   const COLOR_HEX: Record<string, string> = useMemo(
@@ -272,54 +298,58 @@ export default function ProductoDetailClient({ product, colores }: { product: Pr
           </p>
 
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold uppercase tracking-widest">Selecciona tu talla</p>
-              <button
-                onClick={() => setShowGuia((v) => !v)}
-                className="text-xs font-bold text-ajicolor-purple dark:text-neutral-100 hover:underline"
-              >
-                Guía de tallas
-              </button>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {TALLES_ORDEN.map((talle) => {
-                const variant = tallesDelColor.find((v) => v.talle === talle);
-                if (!variant) return null;
-                return (
+            {productoUsaTalles && (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-bold uppercase tracking-widest">Selecciona tu talla</p>
                   <button
-                    key={talle}
-                    onClick={() => setSelectedTalle(talle)}
-                    className={`w-12 h-12 flex items-center justify-center thick-border font-black text-sm ${
-                      talle === selectedTalle
-                        ? "bg-ajicolor-purple text-white dark:bg-ajicolor-ink"
-                        : "bg-white dark:bg-neutral-900 hover:bg-gray-50 dark:hover:bg-neutral-800"
-                    }`}
+                    onClick={() => setShowGuia((v) => !v)}
+                    className="text-xs font-bold text-ajicolor-purple dark:text-neutral-100 hover:underline"
                   >
-                    {talle}
+                    Guía de tallas
                   </button>
-                );
-              })}
-            </div>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {TALLES_ORDEN.map((talle) => {
+                    const variant = tallesDelColor.find((v) => v.talle === talle);
+                    if (!variant) return null;
+                    return (
+                      <button
+                        key={talle}
+                        onClick={() => setSelectedTalle(talle)}
+                        className={`w-12 h-12 flex items-center justify-center thick-border font-black text-sm ${
+                          talle === selectedTalle
+                            ? "bg-ajicolor-purple text-white dark:bg-ajicolor-ink"
+                            : "bg-white dark:bg-neutral-900 hover:bg-gray-50 dark:hover:bg-neutral-800"
+                        }`}
+                      >
+                        {talle}
+                      </button>
+                    );
+                  })}
+                </div>
 
-            {showGuia && (
-              <table className="w-full text-xs mt-4 border-collapse">
-                <thead>
-                  <tr className="border-b-2 border-ajicolor-ink text-left">
-                    <th className="py-1">Talla</th>
-                    <th className="py-1">Ancho (cm)</th>
-                    <th className="py-1">Largo (cm)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {TALLES_ORDEN.map((talle) => (
-                    <tr key={talle} className="border-b border-gray-200 dark:border-neutral-700">
-                      <td className="py-1 font-bold">{talle}</td>
-                      <td className="py-1">{MEDIDAS_POR_TALLE[talle].ancho}</td>
-                      <td className="py-1">{MEDIDAS_POR_TALLE[talle].largo}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                {showGuia && (
+                  <table className="w-full text-xs mt-4 border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-ajicolor-ink text-left">
+                        <th className="py-1">Talla</th>
+                        <th className="py-1">Ancho (cm)</th>
+                        <th className="py-1">Largo (cm)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {TALLES_ORDEN.map((talle) => (
+                        <tr key={talle} className="border-b border-gray-200 dark:border-neutral-700">
+                          <td className="py-1 font-bold">{talle}</td>
+                          <td className="py-1">{MEDIDAS_POR_TALLE[talle].ancho}</td>
+                          <td className="py-1">{MEDIDAS_POR_TALLE[talle].largo}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </>
             )}
 
             {selectedVariant && (
@@ -355,9 +385,9 @@ export default function ProductoDetailClient({ product, colores }: { product: Pr
               Especificación técnica
             </p>
             <div className="thick-border p-4 text-sm italic text-gray-600 dark:text-neutral-300 font-medium">
-              Polera {product.artista} {esKids ? "Kids" : "Hombre"} MC
+              {LABEL_TIPO[product.tipo]} {product.artista} {productoUsaTalles ? (esKids ? "Kids" : "Hombre MC") : ""}
               <br />
-              100% Algodón Heavy Weight · 195 Grs
+              {ESPECIFICACION_POR_TIPO[product.tipo]}
             </div>
           </div>
 

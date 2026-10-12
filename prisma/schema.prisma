@@ -76,6 +76,17 @@ enum CategoriaProducto {
   Kids
 }
 
+/// Tipo de producto — qué es físicamente (no confundir con CategoriaProducto,
+/// que es la audiencia Adulto/Kids). Determina si usa talles de ropa o una
+/// sola variante por color (ver Product.usaTalles derivado en código).
+enum TipoProducto {
+  Polera
+  Poleron
+  Totebag
+  Reloj
+  Papeleria
+}
+
 enum EstadoCotizacion {
   Pendiente     // recién enviada por el cliente, sin revisar
   EnRevision    // el dueño la está evaluando
@@ -226,6 +237,7 @@ model Product {
   artista       String
   temporada     String
   categoria     CategoriaProducto @default(Adulto)
+  tipo          TipoProducto     @default(Polera)
   precio        Decimal          @default(0)
   costoUnitario Decimal          @default(0)
   activo        Boolean          @default(true)

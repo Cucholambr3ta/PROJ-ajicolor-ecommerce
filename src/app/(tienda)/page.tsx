@@ -13,9 +13,18 @@ interface SearchParams {
   color?: string;
   talle?: string;
   coleccion?: string;
+  tipo?: string;
   orden?: "recientes" | "precio-asc" | "precio-desc";
   page?: string;
 }
+
+const TIPO_POR_SLUG: Record<string, "Polera" | "Poleron" | "Totebag" | "Reloj" | "Papeleria"> = {
+  poleras: "Polera",
+  polerones: "Poleron",
+  totebag: "Totebag",
+  relojes: "Reloj",
+  papeleria: "Papeleria",
+};
 
 export default async function TiendaPage({
   searchParams,
@@ -25,12 +34,15 @@ export default async function TiendaPage({
   const sp = await searchParams;
   const page = sp.page ? parseInt(sp.page, 10) || 1 : 1;
 
+  const tipo = sp.tipo ? TIPO_POR_SLUG[sp.tipo] : undefined;
+
   const [{ items: products, total, totalPages }, { colores, talles }, collections] = await Promise.all([
     getProducts({
       q: sp.q,
       color: sp.color,
       talle: sp.talle,
       collectionSlug: sp.coleccion,
+      tipo,
       orden: sp.orden,
       page,
     }),
@@ -38,7 +50,7 @@ export default async function TiendaPage({
     getActiveCollections(),
   ]);
 
-  const hasFilters = !!(sp.q || sp.color || sp.talle || sp.coleccion);
+  const hasFilters = !!(sp.q || sp.color || sp.talle || sp.coleccion || sp.tipo);
 
   return (
     <>

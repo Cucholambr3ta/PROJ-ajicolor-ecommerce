@@ -8,6 +8,26 @@ import { TALLES_KIDS } from "@/lib/kids";
 
 const TALLES_ADULTO = ["S", "M", "L", "XL", "2XL"];
 
+type TipoProducto = "Polera" | "Poleron" | "Totebag" | "Reloj" | "Papeleria";
+
+const TIPOS_PRODUCTO: { value: TipoProducto; label: string }[] = [
+  { value: "Polera", label: "Polera" },
+  { value: "Poleron", label: "Polerón" },
+  { value: "Totebag", label: "Totebag" },
+  { value: "Reloj", label: "Reloj" },
+  { value: "Papeleria", label: "Papelería" },
+];
+
+/** Solo Polera y Polerón usan talles de ropa — el resto (Totebag, Reloj,
+ * Papelería) es una sola variante por color, sin selector de talle. */
+function usaTalles(tipo: TipoProducto): boolean {
+  return tipo === "Polera" || tipo === "Poleron";
+}
+
+/** Talle fijo interno para productos sin talles reales — ProductVariant.talle
+ * es obligatorio en el modelo, así que se usa este valor como "única talla". */
+const TALLE_UNICO = "Única";
+
 interface ProductImageData {
   id: string;
   url: string;
@@ -62,6 +82,7 @@ export default function ProductoFormClient({
     artista: string;
     temporada: string;
     categoria: "Adulto" | "Kids";
+    tipo: TipoProducto;
     precio: number | any;
     variants: { id: string; talle: string; color: string; sku: string; stock: number; stockMin: number }[];
     images?: ProductImageData[];
@@ -91,9 +112,15 @@ export default function ProductoFormClient({
   const [artista, setArtista] = useState(initialData?.artista ?? "");
   const [temporada, setTemporada] = useState(initialData?.temporada ?? "");
   const [categoria, setCategoria] = useState<"Adulto" | "Kids">(initialData?.categoria ?? "Adulto");
+  const [tipo, setTipo] = useState<TipoProducto>(initialData?.tipo ?? "Polera");
   const [precio, setPrecio] = useState(initialData ? Number(initialData.precio) : 0);
   const paletaActiva = useMemo(() => colores.filter((c) => c.categoria === categoria), [colores, categoria]);
-  const tallesActivos: string[] = categoria === "Kids" ? [...TALLES_KIDS] : TALLES_ADULTO;
+  const productoUsaTalles = usaTalles(tipo);
+  const tallesActivos: string[] = !productoUsaTalles
+    ? [TALLE_UNICO]
+    : categoria === "Kids"
+      ? [...TALLES_KIDS]
+      : TALLES_ADULTO;
   const [tieneFrenteEspalda, setTieneFrenteEspalda] = useState(false);
 
   // Fotos ya subidas (modo edición, llegan del server) — se suben una por
@@ -288,6 +315,7 @@ export default function ProductoFormClient({
           artista,
           temporada,
           categoria,
+          tipo,
           precio,
           variants: variantesConDatos,
         });
@@ -303,6 +331,7 @@ export default function ProductoFormClient({
             artista,
             temporada,
             categoria,
+            tipo,
             precio,
             variants: variantesConDatos,
           })
@@ -379,6 +408,26 @@ export default function ProductoFormClient({
               />
               <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
                 Etiqueta del drop/colección — se muestra bajo el nombre en la tienda. Opcional.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Tipo de producto</label>
+              <select
+                value={tipo}
+                onChange={(e) => {
+                  setTipo(e.target.value as TipoProducto);
+                  setBloques([]);
+                }}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+              >
+                {TIPOS_PRODUCTO.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
+                Qué es físicamente (para catalogar en /categorias). Polera y Polerón usan tallas; el resto, una sola variante por color.
               </p>
             </div>
             <div>
@@ -548,8 +597,9 @@ export default function ProductoFormClient({
                   </div>
 
                   <p className="text-xs text-gray-400 dark:text-neutral-500">
-                    Tallas de {categoria} ({tallesActivos.join(", ")}) — se crean automáticamente, bajo pedido (sin
-                    límite de stock).
+                    {productoUsaTalles
+                      ? `Tallas de ${categoria} (${tallesActivos.join(", ")}) — se crean automáticamente, bajo pedido (sin límite de stock).`
+                      : "Este tipo de producto no usa tallas — una sola variante por color, bajo pedido."}
                   </p>
                 </div>
               );

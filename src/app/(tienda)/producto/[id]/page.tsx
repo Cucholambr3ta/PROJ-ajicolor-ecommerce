@@ -102,6 +102,7 @@ export default async function ProductoPage({
           artista: product.artista,
           temporada: product.temporada,
           categoria: product.categoria,
+          tipo: product.tipo,
           precio: Number(product.precio),
           variants: variantesComprables.map((v) => ({
             id: v.id,

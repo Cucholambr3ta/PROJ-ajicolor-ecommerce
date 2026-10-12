@@ -60,6 +60,7 @@ export const createProductSchema = z.object({
   artista: z.string().trim().max(200),
   temporada: z.string().trim().max(100),
   categoria: z.enum(["Adulto", "Kids"]).optional(),
+  tipo: z.enum(["Polera", "Poleron", "Totebag", "Reloj", "Papeleria"]).optional(),
   precio: z.number().nonnegative(),
   costoUnitario: z.number().nonnegative().optional(),
   collectionId: z.string().trim().min(1).optional(),
