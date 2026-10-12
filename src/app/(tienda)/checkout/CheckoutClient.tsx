@@ -230,18 +230,18 @@ export default function CheckoutClient({
           </button>
         </div>
       ) : (
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-4 mr-1">
           <input
             value={couponInput}
             onChange={(e) => setCouponInput(e.target.value)}
             placeholder="Código de cupón"
-            className="flex-1 border-2 border-gray-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-sm uppercase bg-white dark:bg-neutral-900 focus:outline-none focus:border-ajicolor-magenta"
+            className="flex-1 min-w-0 border-2 border-gray-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-sm uppercase bg-white dark:bg-neutral-900 focus:outline-none focus:border-ajicolor-magenta"
           />
           <button
             type="button"
             onClick={handleApplyCoupon}
             disabled={couponLoading}
-            className="btn-block bg-ajicolor-purple text-white px-4 text-xs disabled:opacity-50"
+            className="btn-block shrink-0 bg-ajicolor-purple text-white px-4 text-xs disabled:opacity-50"
           >
             {couponLoading ? "..." : "Aplicar"}
           </button>
