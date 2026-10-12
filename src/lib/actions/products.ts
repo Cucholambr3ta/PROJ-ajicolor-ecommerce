@@ -102,14 +102,14 @@ export async function getActiveCollections() {
 export async function getProductById(id: string) {
   return prisma.product.findUnique({
     where: { id },
-    include: { variants: true, images: { orderBy: { orden: "asc" } } },
+    include: { variants: true, images: { orderBy: { orden: "asc" } }, colorImages: true },
   });
 }
 
 export async function getProductBySlug(slug: string) {
   return prisma.product.findUnique({
     where: { slug },
-    include: { variants: true, images: { orderBy: { orden: "asc" } } },
+    include: { variants: true, images: { orderBy: { orden: "asc" } }, colorImages: true },
   });
 }
 
@@ -274,6 +274,53 @@ export async function removeProductImage(imageId: string) {
   await requireAdmin();
   const { deleteProductImage } = await import("@/lib/storage");
   const image = await prisma.productImage.delete({ where: { id: imageId } });
+  await deleteProductImage(image.url);
+  revalidatePath(`/admin/catalogo/${image.productId}`);
+  revalidatePath("/");
+  return image;
+}
+
+/** Foto real por color (y lado) para el selector de color de la ficha
+ * pública — reemplaza una foto existente del mismo color+lado si ya había
+ * una subida (upsert), para que resubir no deje huérfanos en Storage. */
+export async function setProductColorImage(
+  productId: string,
+  color: string,
+  lado: "Frente" | "Espalda",
+  formData: FormData
+) {
+  await requireAdmin();
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("No se seleccionó un archivo");
+
+  const { uploadProductImage, deleteProductImage } = await import("@/lib/storage");
+
+  const existing = await prisma.productColorImage.findUnique({
+    where: { productId_color_lado: { productId, color, lado } },
+  });
+
+  const url = await uploadProductImage(file, productId);
+
+  const saved = await prisma.productColorImage.upsert({
+    where: { productId_color_lado: { productId, color, lado } },
+    update: { url },
+    create: { productId, color, lado, url },
+  });
+
+  if (existing && existing.url !== url) {
+    await deleteProductImage(existing.url);
+  }
+
+  revalidatePath(`/admin/catalogo/${productId}`);
+  revalidatePath(`/admin/catalogo/nuevo`);
+  revalidatePath("/");
+  return saved;
+}
+
+export async function removeProductColorImage(id: string) {
+  await requireAdmin();
+  const { deleteProductImage } = await import("@/lib/storage");
+  const image = await prisma.productColorImage.delete({ where: { id } });
   await deleteProductImage(image.url);
   revalidatePath(`/admin/catalogo/${image.productId}`);
   revalidatePath("/");

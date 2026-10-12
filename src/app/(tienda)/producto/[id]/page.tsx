@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { getProductById, getProductBySlug, getRelatedProducts } from "@/lib/actions/products";
 import { getApprovedReviews } from "@/lib/actions/reviews";
+import { getColorsPublic } from "@/lib/actions/colors";
 import ProductoDetailClient from "./ProductoDetailClient";
 import RelatedProducts from "./RelatedProducts";
 import ProductReviews from "./ProductReviews";
@@ -59,10 +60,19 @@ export default async function ProductoPage({
   if (!product) notFound();
   if (!matchedBySlug) redirect(`/producto/${product.slug}`);
 
-  const [related, reviews] = await Promise.all([
+  const [related, reviews, colores] = await Promise.all([
     getRelatedProducts({ id: product.id, artista: product.artista, collectionId: product.collectionId }),
     getApprovedReviews(product.id),
+    getColorsPublic(product.categoria),
   ]);
+
+  // Solo se puede comprar un color si tiene al menos la foto de frente
+  // subida — evita vender una variante que el cliente nunca puede ver
+  // (pedido explícito: nada en blanco / "no disponible" en el selector).
+  const coloresConFoto = new Set(
+    product.colorImages.filter((ci) => ci.lado === "Frente").map((ci) => ci.color)
+  );
+  const variantesComprables = product.variants.filter((v) => coloresConFoto.has(v.color));
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -93,14 +103,16 @@ export default async function ProductoPage({
           temporada: product.temporada,
           categoria: product.categoria,
           precio: Number(product.precio),
-          variants: product.variants.map((v) => ({
+          variants: variantesComprables.map((v) => ({
             id: v.id,
             talle: v.talle,
             color: v.color,
             stock: v.stock,
           })),
           images: product.images.map((img) => ({ id: img.id, url: img.url, alt: img.alt })),
+          colorImages: product.colorImages.map((ci) => ({ color: ci.color, lado: ci.lado, url: ci.url })),
         }}
+        colores={colores.map((c) => ({ nombre: c.nombre, hex: c.hex }))}
       />
 
       <ProductReviews reviews={reviews} />

@@ -186,6 +186,22 @@ model CartItem {
 // Catálogo
 // ============================================================
 
+/// Paleta de colores de tela administrable desde /admin/colores — antes
+/// vivía hardcodeada en el código (src/lib/kids.ts y ProductoDetailClient),
+/// ahora el admin puede agregar colores nuevos sin deploy cuando el taller
+/// consigue una tela nueva. ProductVariant.color sigue siendo texto libre
+/// (match por nombre), esta tabla solo alimenta el selector del formulario
+/// y el hex de los swatches.
+model Color {
+  id        String            @id @default(cuid())
+  nombre    String
+  hex       String
+  categoria CategoriaProducto
+  createdAt DateTime          @default(now())
+
+  @@unique([nombre, categoria])
+}
+
 /// Drop / colección mensual (4-6 modelos, vigencia limitada).
 model Collection {
   id               String    @id @default(cuid())
@@ -233,6 +249,7 @@ model Product {
   updatedAt     DateTime         @updatedAt
   variants      ProductVariant[]
   images        ProductImage[]
+  colorImages   ProductColorImage[]
   favorites     Favorite[]
   reviews       Review[]
 }
@@ -245,6 +262,24 @@ model ProductImage {
   alt       String?
   orden     Int      @default(0)
   createdAt DateTime @default(now())
+}
+
+/// Foto real por color (y lado, si el producto tiene frente y espalda) para
+/// el selector de color de la ficha de producto — reemplaza la convención
+/// vieja de archivos estáticos en public/productos/<color>/, que no se
+/// puede subir desde el panel admin en producción (Vercel es read-only en
+/// runtime). Subida real: bucket Supabase Storage "productos", igual que
+/// ProductImage.
+model ProductColorImage {
+  id        String     @id @default(cuid())
+  productId String
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color     String
+  lado      LadoPrenda @default(Frente)
+  url       String
+  createdAt DateTime   @default(now())
+
+  @@unique([productId, color, lado])
 }
 
 model ProductVariant {

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { PALETA_KIDS, TALLES_KIDS, COLOR_HEX_KIDS } from "@/lib/kids";
+import { TALLES_KIDS } from "@/lib/kids";
 
 interface Variant {
   id: string;
@@ -18,6 +18,17 @@ interface ProductImage {
   alt: string | null;
 }
 
+interface ColorImage {
+  color: string;
+  lado: "Frente" | "Espalda";
+  url: string;
+}
+
+interface ColorInfo {
+  nombre: string;
+  hex: string;
+}
+
 interface Product {
   id: string;
   nombre: string;
@@ -29,6 +40,7 @@ interface Product {
   precio: number | any;
   variants: Variant[];
   images?: ProductImage[];
+  colorImages: ColorImage[];
 }
 
 const CANTIDAD_MAXIMA = 10;
@@ -52,105 +64,46 @@ const MEDIDAS_POR_TALLE_KIDS: Record<string, { ancho: number; largo: number }> =
   "14-16": { ancho: 42, largo: 58 },
 };
 
-/** Paleta real de la marca (línea adulto) — 12 colores de tela, con el hex
- * exacto entregado por el dueño y la carpeta donde se sube la foto real de
- * cada color (el mismo nombre de archivo en cada carpeta, igual convención
- * que ya usaba negras/claras — ver public/productos/<slug>/). */
-const PALETA_ADULTO: { nombre: string; hex: string; slug: string }[] = [
-  { nombre: "Negro", hex: "#000000", slug: "negro" },
-  { nombre: "Chocolate", hex: "#3F280F", slug: "chocolate" },
-  { nombre: "Azul Marino", hex: "#00104F", slug: "azul-marino" },
-  { nombre: "Gris Carbón", hex: "#403E41", slug: "gris-carbon" },
-  { nombre: "Verde Bosque", hex: "#085231", slug: "verde-bosque" },
-  { nombre: "Burdeo", hex: "#963548", slug: "burdeo" },
-  { nombre: "Morado", hex: "#473D84", slug: "morado" },
-  { nombre: "Gris Melange", hex: "#7C7C7C", slug: "gris-melange" },
-  { nombre: "Azul Royal", hex: "#2757BD", slug: "azul-royal" },
-  { nombre: "Mostaza", hex: "#E8B600", slug: "mostaza" },
-  { nombre: "Arena", hex: "#EBE5CB", slug: "arena" },
-  { nombre: "Blanco", hex: "#FFFFFF", slug: "blanco" },
-];
-const COLOR_HEX_ADULTO: Record<string, string> = Object.fromEntries(PALETA_ADULTO.map((c) => [c.nombre, c.hex]));
-
-export default function ProductoDetailClient({ product }: { product: Product }) {
+export default function ProductoDetailClient({ product, colores }: { product: Product; colores: ColorInfo[] }) {
   const router = useRouter();
 
   const esKids = product.categoria === "Kids";
   const TALLES_ORDEN = esKids ? TALLES_KIDS : TALLES_ADULTO;
   const MEDIDAS_POR_TALLE = esKids ? MEDIDAS_POR_TALLE_KIDS : MEDIDAS_POR_TALLE_ADULTO;
-  const PALETA = esKids ? PALETA_KIDS : PALETA_ADULTO;
-  const COLOR_HEX = esKids ? COLOR_HEX_KIDS : COLOR_HEX_ADULTO;
+  const COLOR_HEX: Record<string, string> = useMemo(
+    () => Object.fromEntries(colores.map((c) => [c.nombre, c.hex])),
+    [colores]
+  );
 
   const gallery = product.images && product.images.length > 0 ? product.images : [{ id: "main", url: product.disenoUrl, alt: product.nombre }];
   const [activeImage, setActiveImage] = useState(0);
 
-  // Foto por color real: si existe /productos/<slug-del-color>/<archivo>.png
-  // con el mismo nombre de archivo que ya usa el producto (detectado desde
-  // disenoUrl o cualquier imagen de la galería como ancla), se arma un mapa
-  // color→{frente, espalda}. El selector de abajo solo ofrece los colores
-  // que tienen al menos la foto de frente.
-  const nombreArchivo = useMemo(() => {
-    const ancla = product.disenoUrl || product.images?.[0]?.url || "";
-    const base = ancla.split("/").pop() ?? null;
-    return base ? base.replace(/\.png$/, "") : null;
-  }, [product.disenoUrl, product.images]);
-
-  const [fotoPorColor, setFotoPorColor] = useState<Record<string, { frente: string; espalda?: string }>>({});
-  const [verificando, setVerificando] = useState(true);
-
-  // HEAD a cada carpeta de color para confirmar qué fotos existen — primero
-  // intenta la convención frente/espalda (<archivo>-frente.png /
-  // <archivo>-espalda.png); si no hay frente, cae a la convención vieja de
-  // una sola foto (<archivo>.png, sin sufijo) para no romper productos que
-  // todavía no tienen par frente/espalda.
-  useEffect(() => {
-    if (!nombreArchivo) {
-      setVerificando(false);
-      return;
+  // Foto por color real: viene de ProductColorImage (subida desde el panel
+  // admin a Supabase Storage) — ya llega filtrada y lista desde el server,
+  // sin necesidad de probar archivos estáticos en el cliente. Cada color
+  // puede tener frente y/o espalda.
+  const fotoPorColor = useMemo(() => {
+    const mapa: Record<string, { frente?: string; espalda?: string }> = {};
+    for (const ci of product.colorImages) {
+      const entry = mapa[ci.color] ?? {};
+      if (ci.lado === "Frente") entry.frente = ci.url;
+      else entry.espalda = ci.url;
+      mapa[ci.color] = entry;
     }
-    let cancelado = false;
-    setVerificando(true);
+    return mapa;
+  }, [product.colorImages]);
 
-    async function probarColor(c: { nombre: string; slug: string }) {
-      const urlFrente = `/productos/${c.slug}/${nombreArchivo}-frente.png`;
-      const urlEspalda = `/productos/${c.slug}/${nombreArchivo}-espalda.png`;
-      const urlUnica = `/productos/${c.slug}/${nombreArchivo}.png`;
-
-      const [frenteRes, espaldaRes] = await Promise.all([
-        fetch(urlFrente, { method: "HEAD" }).catch(() => null),
-        fetch(urlEspalda, { method: "HEAD" }).catch(() => null),
-      ]);
-
-      if (frenteRes?.ok) {
-        return [c.nombre, { frente: urlFrente, espalda: espaldaRes?.ok ? urlEspalda : undefined }] as const;
-      }
-      const unicaRes = await fetch(urlUnica, { method: "HEAD" }).catch(() => null);
-      if (unicaRes?.ok) {
-        return [c.nombre, { frente: urlUnica }] as const;
-      }
-      return null;
-    }
-
-    Promise.all(PALETA.map(probarColor)).then((resultados) => {
-      if (cancelado) return;
-      const mapa: Record<string, { frente: string; espalda?: string }> = {};
-      for (const r of resultados) if (r) mapa[r[0]] = r[1];
-      setFotoPorColor(mapa);
-      setVerificando(false);
-    });
-    return () => {
-      cancelado = true;
-    };
-    // PALETA apunta a una de dos constantes de módulo (misma referencia
-    // mientras esKids no cambie), así que entra en deps sin re-disparar el
-    // efecto en cada render.
-  }, [nombreArchivo, PALETA]);
-
-  const coloresConFoto = useMemo(() => Object.keys(fotoPorColor), [fotoPorColor]);
-  const tieneSelectorColor = !verificando && coloresConFoto.length > 0;
+  const coloresConFoto = useMemo(
+    () => Object.keys(fotoPorColor).filter((c) => fotoPorColor[c].frente),
+    [fotoPorColor]
+  );
+  const tieneSelectorColor = coloresConFoto.length > 0;
 
   const [ladoActivo, setLadoActivo] = useState<"frente" | "espalda">("frente");
 
+  // El back-end (page.tsx) ya filtra product.variants para incluir solo
+  // colores con foto de frente subida — ningún color "sin foto" llega acá
+  // como opción comprable.
   const coloresDisponibles = useMemo(
     () => Array.from(new Set(product.variants.map((v) => v.color))),
     [product.variants]
@@ -163,8 +116,8 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
   const colorEnPreview = colorHover ?? selectedColor;
 
   // El toggle Frente/Espalda solo aparece si el color en preview tiene
-  // ambas fotos — si solo hay frente (foto única o espalda no subida
-  // todavía), se oculta y se muestra esa única foto sin pedir elegir lado.
+  // ambas fotos — si solo hay frente (espalda no subida todavía), se
+  // oculta y se muestra esa única foto sin pedir elegir lado.
   const tieneEspalda = Boolean(fotoPorColor[colorEnPreview]?.espalda);
 
   useEffect(() => {
@@ -285,9 +238,9 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                     <motion.button
                       key={color}
                       onClick={() => handleSelectColor(color)}
-                      onMouseEnter={() => tieneSelectorColor && fotoPorColor[color] && setColorHover(color)}
+                      onMouseEnter={() => fotoPorColor[color]?.frente && setColorHover(color)}
                       onMouseLeave={() => setColorHover(null)}
-                      onFocus={() => tieneSelectorColor && fotoPorColor[color] && setColorHover(color)}
+                      onFocus={() => fotoPorColor[color]?.frente && setColorHover(color)}
                       onBlur={() => setColorHover(null)}
                       title={color}
                       aria-label={color}
