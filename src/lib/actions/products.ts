@@ -11,15 +11,28 @@ import type { CategoriaProducto, TipoProducto, Prisma } from "@prisma/client";
  * mano (pedido explícito). Colisiona solo si ya existe exactamente ese SKU
  * (mismo producto+talle+color repetido, o dos productos con slug/color muy
  * parecidos); en ese caso agrega un sufijo numérico incremental.
+ *
+ * `reservados` trackea los SKUs ya asignados dentro del mismo lote de
+ * variantes que se está creando (p.ej. "Verde" y "Verde Oscuro" truncan al
+ * mismo prefijo "VERD"): sin este set, dos variantes nuevas del mismo
+ * producto podían generar el mismo SKU porque ninguna existe aún en la DB
+ * al momento de chequear, y el create en lote fallaba por unique constraint.
  */
-async function generarSku(tx: Prisma.TransactionClient | typeof prisma, slug: string, talle: string, color: string) {
+async function generarSku(
+  tx: Prisma.TransactionClient | typeof prisma,
+  slug: string,
+  talle: string,
+  color: string,
+  reservados: Set<string>
+) {
   const base = `${slug.toUpperCase().replace(/-/g, "")}-${talle}-${color.replace(/\s+/g, "").slice(0, 4).toUpperCase()}`;
   let sku = base;
   let intento = 1;
-  while (await tx.productVariant.findUnique({ where: { sku } })) {
+  while (reservados.has(sku) || (await tx.productVariant.findUnique({ where: { sku } }))) {
     intento++;
     sku = `${base}-${intento}`;
   }
+  reservados.add(sku);
   return sku;
 }
 
@@ -179,16 +192,21 @@ export async function createProduct(data: {
     throw new Error(`Ya existe un producto con el slug "${parsed.slug}" — cambiá el nombre o el slug e intentá de nuevo`);
   }
 
+  const skusReservados = new Set<string>();
   const variantsConSku = data.variants
-    ? await Promise.all(
-        data.variants.map(async (v) => ({
-          talle: v.talle,
-          color: v.color,
-          sku: v.sku && v.sku.trim() ? v.sku : await generarSku(prisma, parsed.slug, v.talle, v.color),
-          stock: v.stock,
-          stockMin: v.stockMin,
-        }))
-      )
+    ? await (async () => {
+        const result = [];
+        for (const v of data.variants!) {
+          result.push({
+            talle: v.talle,
+            color: v.color,
+            sku: v.sku && v.sku.trim() ? v.sku : await generarSku(prisma, parsed.slug, v.talle, v.color, skusReservados),
+            stock: v.stock,
+            stockMin: v.stockMin,
+          });
+        }
+        return result;
+      })()
     : undefined;
   const product = await prisma.product.create({
     data: {
@@ -244,16 +262,21 @@ export async function createProductWithPhotos(formData: FormData) {
     throw new Error(`Ya existe un producto con el slug "${parsed.slug}" — cambiá el nombre o el slug e intentá de nuevo`);
   }
 
+  const skusReservados = new Set<string>();
   const variantsConSku = data.variants
-    ? await Promise.all(
-        data.variants.map(async (v) => ({
-          talle: v.talle,
-          color: v.color,
-          sku: await generarSku(prisma, parsed.slug, v.talle, v.color),
-          stock: v.stock,
-          stockMin: v.stockMin,
-        }))
-      )
+    ? await (async () => {
+        const result = [];
+        for (const v of data.variants!) {
+          result.push({
+            talle: v.talle,
+            color: v.color,
+            sku: await generarSku(prisma, parsed.slug, v.talle, v.color, skusReservados),
+            stock: v.stock,
+            stockMin: v.stockMin,
+          });
+        }
+        return result;
+      })()
     : undefined;
 
   const product = await prisma.product.create({
@@ -356,13 +379,18 @@ export async function updateProduct(
     const producto = await prisma.product.findUnique({ where: { id }, select: { slug: true } });
     slugProducto = producto?.slug ?? id;
   }
+  const skusReservados = new Set<string>();
   const variantesConSku = variants
-    ? await Promise.all(
-        variants.map(async (v) => ({
-          ...v,
-          sku: v.id ? undefined : await generarSku(prisma, slugProducto!, v.talle, v.color),
-        }))
-      )
+    ? await (async () => {
+        const result = [];
+        for (const v of variants) {
+          result.push({
+            ...v,
+            sku: v.id ? undefined : await generarSku(prisma, slugProducto!, v.talle, v.color, skusReservados),
+          });
+        }
+        return result;
+      })()
     : undefined;
 
   return prisma.$transaction(
