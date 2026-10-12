@@ -6,6 +6,23 @@ import { revalidatePath } from "next/cache";
 import { createProductSchema, parseOrThrow } from "@/lib/schemas";
 import type { CategoriaProducto, Prisma } from "@prisma/client";
 
+/**
+ * Genera un SKU único <SLUG-TALLE-COLOR[-N]> — el admin ya no lo escribe a
+ * mano (pedido explícito). Colisiona solo si ya existe exactamente ese SKU
+ * (mismo producto+talle+color repetido, o dos productos con slug/color muy
+ * parecidos); en ese caso agrega un sufijo numérico incremental.
+ */
+async function generarSku(tx: Prisma.TransactionClient | typeof prisma, slug: string, talle: string, color: string) {
+  const base = `${slug.toUpperCase().replace(/-/g, "")}-${talle}-${color.replace(/\s+/g, "").slice(0, 4).toUpperCase()}`;
+  let sku = base;
+  let intento = 1;
+  while (await tx.productVariant.findUnique({ where: { sku } })) {
+    intento++;
+    sku = `${base}-${intento}`;
+  }
+  return sku;
+}
+
 export interface ProductFilters {
   q?: string;
   collectionSlug?: string;
@@ -149,10 +166,21 @@ export async function createProduct(data: {
   precio: number;
   costoUnitario?: number;
   collectionId?: string;
-  variants?: { talle: string; color: string; sku: string; stock?: number; stockMin?: number }[];
+  variants?: { talle: string; color: string; sku?: string; stock?: number; stockMin?: number }[];
 }) {
   await requireAdmin();
   const parsed = parseOrThrow(createProductSchema, data);
+  const variantsConSku = data.variants
+    ? await Promise.all(
+        data.variants.map(async (v) => ({
+          talle: v.talle,
+          color: v.color,
+          sku: v.sku && v.sku.trim() ? v.sku : await generarSku(prisma, parsed.slug, v.talle, v.color),
+          stock: v.stock,
+          stockMin: v.stockMin,
+        }))
+      )
+    : undefined;
   const product = await prisma.product.create({
     data: {
       nombre: parsed.nombre,
@@ -166,7 +194,7 @@ export async function createProduct(data: {
       precio: parsed.precio,
       costoUnitario: parsed.costoUnitario,
       collectionId: parsed.collectionId,
-      variants: parsed.variants ? { create: parsed.variants } : undefined,
+      variants: variantsConSku ? { create: variantsConSku } : undefined,
     },
     include: { variants: true },
   });
@@ -195,10 +223,22 @@ export async function createProductWithPhotos(formData: FormData) {
     temporada: string;
     categoria?: CategoriaProducto;
     precio: number;
-    variants?: { talle: string; color: string; sku: string; stock?: number; stockMin?: number }[];
+    variants?: { talle: string; color: string; stock?: number; stockMin?: number }[];
   };
 
   const parsed = parseOrThrow(createProductSchema, { ...data, disenoUrl: "" });
+
+  const variantsConSku = data.variants
+    ? await Promise.all(
+        data.variants.map(async (v) => ({
+          talle: v.talle,
+          color: v.color,
+          sku: await generarSku(prisma, parsed.slug, v.talle, v.color),
+          stock: v.stock,
+          stockMin: v.stockMin,
+        }))
+      )
+    : undefined;
 
   const product = await prisma.product.create({
     data: {
@@ -211,7 +251,7 @@ export async function createProductWithPhotos(formData: FormData) {
       temporada: parsed.temporada,
       categoria: parsed.categoria,
       precio: parsed.precio,
-      variants: parsed.variants ? { create: parsed.variants } : undefined,
+      variants: variantsConSku ? { create: variantsConSku } : undefined,
     },
     include: { variants: true },
   });
@@ -258,7 +298,6 @@ export async function updateProduct(
       id?: string;
       talle: string;
       color: string;
-      sku: string;
       stock: number;
       stockMin: number;
     }[];
@@ -275,15 +314,25 @@ export async function updateProduct(
       if (toDelete.length > 0) {
         await tx.productVariant.deleteMany({ where: { id: { in: toDelete } } });
       }
+
+      let slugProducto = data.slug;
+      if (!slugProducto) {
+        const producto = await tx.product.findUnique({ where: { id }, select: { slug: true } });
+        slugProducto = producto?.slug ?? id;
+      }
+
       for (const v of variants) {
         if (v.id) {
+          // Variante ya existente: solo cambian talle/color/stock, el SKU
+          // original se mantiene (no se regenera al editar).
           await tx.productVariant.update({
             where: { id: v.id },
-            data: { talle: v.talle, color: v.color, sku: v.sku, stock: v.stock, stockMin: v.stockMin },
+            data: { talle: v.talle, color: v.color, stock: v.stock, stockMin: v.stockMin },
           });
         } else {
+          const sku = await generarSku(tx, slugProducto, v.talle, v.color);
           await tx.productVariant.create({
-            data: { productId: id, talle: v.talle, color: v.color, sku: v.sku, stock: v.stock, stockMin: v.stockMin },
+            data: { productId: id, talle: v.talle, color: v.color, sku, stock: v.stock, stockMin: v.stockMin },
           });
         }
       }

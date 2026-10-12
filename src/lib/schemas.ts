@@ -68,7 +68,9 @@ export const createProductSchema = z.object({
       z.object({
         talle: z.string().trim().min(1),
         color: z.string().trim().min(1),
-        sku: z.string().trim().min(1),
+        // El SKU ya no lo escribe el admin — si no viene, el server lo
+        // genera (ver generarSku en actions/products.ts).
+        sku: z.string().trim().min(1).optional(),
         stock: z.number().int().nonnegative().optional(),
         stockMin: z.number().int().nonnegative().optional(),
       })
