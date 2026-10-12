@@ -338,7 +338,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                     onClick={() => setSelectedTalle(talle)}
                     className={`w-12 h-12 flex items-center justify-center thick-border font-black text-sm ${
                       talle === selectedTalle
-                        ? "bg-ajicolor-ink text-white"
+                        ? "bg-ajicolor-purple text-white dark:bg-ajicolor-ink"
                         : "bg-white dark:bg-neutral-900 hover:bg-gray-50 dark:hover:bg-neutral-800"
                     }`}
                   >

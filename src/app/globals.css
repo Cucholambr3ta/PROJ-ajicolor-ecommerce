@@ -8,11 +8,11 @@
     --purple: #4f266a;
     --yellow: #ffd141;
     --green: #1ea96a;
-    /* Tipografía en tema claro: morado de marca en vez de negro neutro
-       (pedido explícito) — --border-ink se mantiene negro a propósito,
-       los bordes/sombras "pop" son un estilo gráfico aparte del texto. */
+    /* Tipografía y bordes en tema claro: morado de marca en vez de negro
+       neutro (pedido explícito) — cubre texto (--ink) y los bordes/sombras
+       "pop" (--border-ink, thick-border/pop-shadow en todo el sitio). */
     --ink: #4f266a;
-    --border-ink: #1a1a1a;
+    --border-ink: #4f266a;
     --bg-light: #fafafa;
     --card-bg: #ffffff;
     --border-width: 2px;
@@ -61,6 +61,14 @@
    y el badge amarillo (ui/badge.tsx) — ambos quedan como están. */
 .text-ajicolor-ink:not(.auth-drawer-input):not(.badge-on-yellow) {
   color: var(--purple);
+}
+
+/* Mismo criterio para border-ajicolor-ink en tema claro — el token
+   ajicolor.ink sigue en #1a1a1a a propósito (también lo usa bg-ajicolor-ink,
+   que es gráfico, no borde), así que el borde se corrige acá en vez de
+   cambiar el token completo. Solo tema claro — en .dark queda como está. */
+html:not(.dark) .border-ajicolor-ink {
+  border-color: var(--purple);
 }
 
 @layer components {
