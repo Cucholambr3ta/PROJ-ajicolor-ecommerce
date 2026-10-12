@@ -38,6 +38,7 @@ export default async function CheckoutPage() {
       product: {
         nombre: item.variant.product.nombre,
         precio: Number(item.variant.product.precio),
+        disenoUrl: item.variant.product.disenoUrl,
       },
     },
   }));
@@ -46,7 +47,7 @@ export default async function CheckoutPage() {
   return (
     <>
 
-      <main className="max-w-3xl mx-auto py-12 p-8">
+      <main className="max-w-6xl mx-auto py-12 p-8">
         <Link href="/carrito" className="inline-block font-bold text-xs uppercase hover:underline mb-4">
           ← Volver al carrito
         </Link>
