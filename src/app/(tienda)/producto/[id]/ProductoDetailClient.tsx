@@ -210,8 +210,8 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
   }
 
   return (
-    <main className="max-w-5xl mx-auto py-12 p-8">
-      <div className="grid lg:grid-cols-2 gap-12">
+    <main className="max-w-6xl mx-auto py-12 p-8">
+      <div className="grid lg:grid-cols-[3fr_2fr] gap-12">
         <div>
           <div className="thick-border pop-shadow bg-white dark:bg-neutral-900 p-3">
             <div className="flex items-center justify-between mb-3 border-b-2 border-ajicolor-ink pb-2">
@@ -275,12 +275,12 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                 ))}
               </div>
             )}
-            <div className="flex items-center justify-between mt-3 gap-3">
-              <span className="bg-ajicolor-magenta text-white px-4 py-2 text-xs font-black uppercase flex-1 text-center">
+            <div className="mt-3">
+              <span className="block w-full bg-ajicolor-magenta text-white px-4 py-2 text-xs font-black uppercase text-center mb-3">
                 Dale color!
               </span>
               {coloresDisponibles.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap justify-end">
+                <div className="flex gap-2 overflow-x-auto pb-1 justify-center">
                   {coloresDisponibles.map((color) => (
                     <motion.button
                       key={color}
@@ -295,7 +295,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                       whileHover={{ scale: 1.35 }}
                       whileTap={{ scale: 1.1 }}
                       transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                      className={`w-6 h-6 rounded-full border-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ajicolor-magenta ${
+                      className={`w-7 h-7 shrink-0 rounded-full border-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ajicolor-magenta ${
                         color === selectedColor ? "border-ajicolor-magenta" : "border-gray-300 dark:border-neutral-700"
                       }`}
                       style={{ backgroundColor: COLOR_HEX[color] ?? "#ccc" }}

@@ -8,7 +8,10 @@
     --purple: #4f266a;
     --yellow: #ffd141;
     --green: #1ea96a;
-    --ink: #1a1a1a;
+    /* Tipografía en tema claro: morado de marca en vez de negro neutro
+       (pedido explícito) — --border-ink se mantiene negro a propósito,
+       los bordes/sombras "pop" son un estilo gráfico aparte del texto. */
+    --ink: #4f266a;
     --border-ink: #1a1a1a;
     --bg-light: #fafafa;
     --card-bg: #ffffff;
@@ -31,6 +34,33 @@
     color: var(--ink);
     min-height: 100vh;
   }
+}
+
+/* Texto gris (text-gray-300..800) en tema claro pasa a morado de marca —
+   pedido explícito, igual criterio que --ink. Solo texto: bg-gray-* y
+   border-gray-* (inputs, hovers) quedan sin tocar, no son tipografía. En
+   modo oscuro estos grises no se usan (todo lo oscuro ya usa la paleta
+   neutral, ver tailwind.config.ts). Declarado fuera de @layer a propósito:
+   una regla sin layer siempre gana sobre la utility de Tailwind (layer
+   utilities), que si no tendría la misma especificidad y ganaría por
+   orden de capa. */
+.text-gray-300,
+.text-gray-400,
+.text-gray-500,
+.text-gray-600,
+.text-gray-700,
+.text-gray-800 {
+  color: var(--purple);
+}
+
+/* Idem para text-ajicolor-ink en tema claro — el token ajicolor.ink sigue
+   en #1a1a1a a propósito (lo usan border-ajicolor-ink/bg-ajicolor-ink,
+   que son gráficos, no tipografía), así que el texto se corrige acá en
+   vez de cambiar el token completo. Excluye los inputs del drawer de
+   login (fijados a negro sobre blanco por legibilidad, ver AuthDrawer.tsx)
+   y el badge amarillo (ui/badge.tsx) — ambos quedan como están. */
+.text-ajicolor-ink:not(.auth-drawer-input):not(.badge-on-yellow) {
+  color: var(--purple);
 }
 
 @layer components {

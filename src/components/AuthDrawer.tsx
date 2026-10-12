@@ -158,7 +158,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="auth-drawer-input w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
         </div>
 
@@ -172,7 +172,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="auth-drawer-input w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
           <a
             href="/recuperar"
@@ -196,7 +196,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
               maxLength={6}
               value={totpToken}
               onChange={(e) => setTotpToken(e.target.value)}
-              className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+              className="auth-drawer-input w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
             />
           </div>
         )}
@@ -279,7 +279,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
             required
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="auth-drawer-input w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
         </div>
 
@@ -293,7 +293,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="auth-drawer-input w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
         </div>
 
@@ -308,7 +308,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="auth-drawer-input w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
           <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">Mínimo 8 caracteres.</p>
         </div>
@@ -323,7 +323,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
             required
             value={telefono}
             onChange={(e) => setTelefono(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="auth-drawer-input w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
         </div>
 
@@ -337,7 +337,7 @@ function RegistroForm({ onClose }: { onClose: () => void }) {
             required
             value={direccion}
             onChange={(e) => setDireccion(e.target.value)}
-            className="w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
+            className="auth-drawer-input w-full border-2 border-ajicolor-ink px-3 py-2 text-sm bg-white text-ajicolor-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ajicolor-magenta"
           />
         </div>
 
