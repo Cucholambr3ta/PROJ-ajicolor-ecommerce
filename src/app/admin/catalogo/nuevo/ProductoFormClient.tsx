@@ -468,7 +468,7 @@ export default function ProductoFormClient({
                 min={0}
                 value={precio}
                 onChange={(e) => setPrecio(parseFloat(e.target.value) || 0)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                className="no-spinner w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div className="md:col-span-2">
