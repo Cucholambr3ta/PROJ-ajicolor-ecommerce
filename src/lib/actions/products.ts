@@ -170,6 +170,12 @@ export async function createProduct(data: {
 }) {
   await requireAdmin();
   const parsed = parseOrThrow(createProductSchema, data);
+
+  const slugExistente = await prisma.product.findUnique({ where: { slug: parsed.slug }, select: { id: true } });
+  if (slugExistente) {
+    throw new Error(`Ya existe un producto con el slug "${parsed.slug}" — cambiá el nombre o el slug e intentá de nuevo`);
+  }
+
   const variantsConSku = data.variants
     ? await Promise.all(
         data.variants.map(async (v) => ({
@@ -227,6 +233,11 @@ export async function createProductWithPhotos(formData: FormData) {
   };
 
   const parsed = parseOrThrow(createProductSchema, { ...data, disenoUrl: "" });
+
+  const slugExistente = await prisma.product.findUnique({ where: { slug: parsed.slug }, select: { id: true } });
+  if (slugExistente) {
+    throw new Error(`Ya existe un producto con el slug "${parsed.slug}" — cambiá el nombre o el slug e intentá de nuevo`);
+  }
 
   const variantsConSku = data.variants
     ? await Promise.all(
@@ -305,6 +316,16 @@ export async function updateProduct(
 ) {
   await requireAdmin();
   const { variants, ...productData } = data;
+
+  if (data.slug) {
+    const slugExistente = await prisma.product.findFirst({
+      where: { slug: data.slug, id: { not: id } },
+      select: { id: true },
+    });
+    if (slugExistente) {
+      throw new Error(`Ya existe otro producto con el slug "${data.slug}" — elegí uno distinto`);
+    }
+  }
 
   return prisma.$transaction(async (tx) => {
     if (variants) {
