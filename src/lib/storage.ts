@@ -10,6 +10,7 @@ export const STORAGE_CONFIGURED = !!client;
 const PRODUCTOS_BUCKET = "productos";
 const COMPROBANTES_BUCKET = "comprobantes";
 const DISENOS_BUCKET = "disenos-personalizados";
+const BANNERS_BUCKET = "banners";
 
 /**
  * Sube una imagen de producto al bucket público `productos`. Requiere
@@ -97,4 +98,33 @@ export async function uploadDisenoPersonalizado(file: File): Promise<string> {
 
   const { data } = client.storage.from(DISENOS_BUCKET).getPublicUrl(path);
   return data.publicUrl;
+}
+
+/** Sube una imagen de banner del carrusel del home al bucket público `banners`. */
+export async function uploadBannerImage(file: File): Promise<string> {
+  if (!client) {
+    throw new Error("Supabase Storage no está configurado (falta SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY)");
+  }
+
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await client.storage.from(BANNERS_BUCKET).upload(path, buffer, {
+    contentType: file.type,
+    upsert: false,
+  });
+  if (error) throw new Error(`Error al subir el banner: ${error.message}`);
+
+  const { data } = client.storage.from(BANNERS_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+export async function deleteBannerImage(url: string): Promise<void> {
+  if (!client) return;
+  const marker = `/${BANNERS_BUCKET}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return;
+  const path = url.slice(idx + marker.length);
+  await client.storage.from(BANNERS_BUCKET).remove([path]);
 }

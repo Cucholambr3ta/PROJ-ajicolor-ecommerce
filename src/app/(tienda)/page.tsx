@@ -1,10 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getProducts, getFilterOptions, getActiveCollections } from "@/lib/actions/products";
+import { getActiveBanners } from "@/lib/actions/banners";
 import { CatalogFilters } from "@/components/CatalogFilters";
 import { Pagination } from "@/components/Pagination";
-import { HeroCards } from "@/components/HeroCards";
-import { ProductCarousel } from "@/components/ProductCarousel";
+import { BannerCarousel } from "@/components/BannerCarousel";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +36,7 @@ export default async function TiendaPage({
 
   const tipo = sp.tipo ? TIPO_POR_SLUG[sp.tipo] : undefined;
 
-  const [{ items: products, total, totalPages }, { colores, talles }, collections] = await Promise.all([
+  const [{ items: products, total, totalPages }, { colores, talles }, collections, banners] = await Promise.all([
     getProducts({
       q: sp.q,
       color: sp.color,
@@ -48,6 +48,7 @@ export default async function TiendaPage({
     }),
     getFilterOptions(),
     getActiveCollections(),
+    getActiveBanners(),
   ]);
 
   const hasFilters = !!(sp.q || sp.color || sp.talle || sp.coleccion || sp.tipo);
@@ -55,62 +56,7 @@ export default async function TiendaPage({
   return (
     <>
       <section className="max-w-7xl mx-auto p-8 pt-10">
-        {!hasFilters && page === 1 && (
-          <HeroCards
-            cards={[
-              {
-                href: "/categorias",
-                bg: "bg-ajicolor-magenta p-10",
-                content: (
-                  <div className="hero-card-text hero-card-text-left relative">
-                    <span className="hero-card-text-compact hero-card-text-compact-sm font-black text-white leading-tight">
-                      PRODUCTO AJI COLOR
-                    </span>
-                    <div className="hero-card-text-expanded hero-card-text-expanded-flex items-center gap-6 w-full">
-                      <h1 className="text-3xl lg:text-5xl font-black text-white leading-tight shrink-0">
-                        PRODUCTO
-                        <br />
-                        AJI COLOR
-                      </h1>
-                      <div className="flex-1 min-w-0 h-40 lg:h-56">
-                        <ProductCarousel />
-                      </div>
-                    </div>
-                  </div>
-                ),
-              },
-              {
-                href: "/cotizador",
-                bg: "bg-ajicolor-purple p-6",
-                image: "/hero/le-ponemos-color.jpg",
-                imagePosition: "95% center",
-                content: (
-                  <p className="hero-card-text hero-card-text-left relative z-10 text-white text-2xl lg:text-4xl font-black text-left leading-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.7)]">
-                    <span className="hero-card-text-compact">
-                      Le ponemos <span className="text-ajicolor-yellow">color</span>
-                    </span>
-                    <span className="hero-card-text-expanded">
-                      Le
-                      <br />
-                      Ponemos
-                      <br />
-                      <span className="text-ajicolor-yellow">Color</span>
-                    </span>
-                  </p>
-                ),
-              },
-              {
-                href: "/drops",
-                bg: "bg-ajicolor-green p-6",
-                content: (
-                  <p className="hero-card-text relative text-white text-5xl font-black uppercase tracking-wide text-center">
-                    Drops
-                  </p>
-                ),
-              },
-            ]}
-          />
-        )}
+        {!hasFilters && page === 1 && banners.length > 0 && <BannerCarousel banners={banners} />}
 
         <div className="flex justify-between items-end mb-6 border-b-2 border-ajicolor-ink pb-4">
           <h2 className="text-3xl font-black">{hasFilters ? "Resultados" : "Novedades"}</h2>
