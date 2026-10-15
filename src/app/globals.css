@@ -214,17 +214,6 @@ body[data-tema="kids"] .tienda-shell {
   background-image: url('/fondo/fondo-kids-oscuro.png') !important;
 }
 
-/* El logo en /kids se queda fijo en la variante de letras amarillas
-   (logo-oscuro.png) sin importar el tema claro/oscuro — pedido explícito:
-   mismo ají, mismas letras amarillas, en ambos temas dentro de Kids. */
-body[data-tema="kids"] .logo-claro {
-  display: none !important;
-}
-
-body[data-tema="kids"] .logo-oscuro {
-  display: block !important;
-}
-
 /* Comprobante de venta: imprime solo el documento, sin header/sidebar/fondo
    estampado ni el botón de imprimir. */
 @media print {

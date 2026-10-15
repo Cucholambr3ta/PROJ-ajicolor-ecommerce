@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 interface BannerData {
   id: string;
   imageUrl: string;
+  tipo: "Imagen" | "Video";
   linkUrl: string;
   orden: number;
   activo: boolean;
@@ -28,7 +29,7 @@ export default function BannersPageClient({ banners }: { banners: BannerData[] }
     e.preventDefault();
     setError("");
     if (!file) {
-      setError("Seleccioná una imagen");
+      setError("Seleccioná una imagen o video");
       return;
     }
     setUploading(true);
@@ -94,8 +95,8 @@ export default function BannersPageClient({ banners }: { banners: BannerData[] }
       <div className="mb-6">
         <h1 className="text-2xl font-black">Banners del home</h1>
         <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
-          Carrusel en movimiento que reemplaza las tarjetas del hero. Cada imagen enlaza a la página
-          que elijas. Se muestran en el orden de la lista; apagá uno para sacarlo sin borrarlo.
+          Carrusel en movimiento que reemplaza las tarjetas del hero. Cada imagen o video enlaza a la
+          página que elijas. Se muestran en el orden de la lista; apagá uno para sacarlo sin borrarlo.
         </p>
       </div>
 
@@ -103,15 +104,20 @@ export default function BannersPageClient({ banners }: { banners: BannerData[] }
         <h2 className="font-semibold text-gray-700 dark:text-neutral-200 mb-4">Agregar banner nuevo</h2>
         <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 dark:text-neutral-300">Imagen *</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 dark:text-neutral-300">
+              Imagen o video *
+            </label>
             <input
               key={fileInputKey}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               className="w-full text-sm"
               required
             />
+            <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-1">
+              Imagen: JPG, PNG, WEBP o GIF. Video: MP4 o WEBM, sin sonido (se reproduce muteado en loop).
+            </p>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1 dark:text-neutral-300">
@@ -152,12 +158,16 @@ export default function BannersPageClient({ banners }: { banners: BannerData[] }
                 className="flex items-center gap-4 border border-gray-200 dark:border-neutral-700 rounded-md p-3"
               >
                 <div className="relative w-40 h-16 shrink-0 rounded overflow-hidden bg-gray-100 dark:bg-neutral-800">
-                  <Image src={b.imageUrl} alt="" fill className="object-cover" sizes="160px" />
+                  {b.tipo === "Video" ? (
+                    <video src={b.imageUrl} className="w-full h-full object-cover" muted playsInline />
+                  ) : (
+                    <Image src={b.imageUrl} alt="" fill className="object-cover" sizes="160px" />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate dark:text-neutral-100">{b.linkUrl}</p>
                   <p className="text-[10px] text-gray-400 dark:text-neutral-500">
-                    {b.activo ? "Visible en el carrusel" : "Oculto"}
+                    {b.tipo === "Video" ? "Video" : "Imagen"} · {b.activo ? "Visible en el carrusel" : "Oculto"}
                   </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">

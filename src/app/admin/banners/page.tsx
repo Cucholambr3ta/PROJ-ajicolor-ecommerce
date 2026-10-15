@@ -11,6 +11,7 @@ export default async function BannersPage() {
       banners={banners.map((b) => ({
         id: b.id,
         imageUrl: b.imageUrl,
+        tipo: b.tipo,
         linkUrl: b.linkUrl,
         orden: b.orden,
         activo: b.activo,

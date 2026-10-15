@@ -9,6 +9,7 @@ import { parseOrThrow } from "@/lib/schemas";
 const createBannerSchema = z.object({
   imageUrl: z.string().trim().min(1).max(500),
   linkUrl: z.string().trim().min(1).max(500),
+  tipo: z.enum(["Imagen", "Video"]),
 });
 
 export async function getBanners() {
@@ -24,6 +25,9 @@ export async function getActiveBanners() {
   });
 }
 
+const FORMATOS_IMAGEN = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const FORMATOS_VIDEO = ["video/mp4", "video/webm"];
+
 export async function createBanner(formData: FormData) {
   await requireAdmin();
 
@@ -33,13 +37,29 @@ export async function createBanner(formData: FormData) {
     throw new Error("Falta la imagen o el enlace del banner");
   }
 
-  const { uploadBannerImage } = await import("@/lib/storage");
-  const imageUrl = await uploadBannerImage(file);
-  const parsed = parseOrThrow(createBannerSchema, { imageUrl, linkUrl });
+  let tipo: "Imagen" | "Video";
+  if (FORMATOS_IMAGEN.includes(file.type)) {
+    tipo = "Imagen";
+  } else if (FORMATOS_VIDEO.includes(file.type)) {
+    tipo = "Video";
+  } else {
+    throw new Error(
+      "Formato no soportado. Imágenes: JPG, PNG, WEBP o GIF. Videos: MP4 o WEBM."
+    );
+  }
+
+  const { uploadBannerMedia } = await import("@/lib/storage");
+  const imageUrl = await uploadBannerMedia(file);
+  const parsed = parseOrThrow(createBannerSchema, { imageUrl, linkUrl, tipo });
 
   const ultimo = await prisma.banner.findFirst({ orderBy: { orden: "desc" }, select: { orden: true } });
   const banner = await prisma.banner.create({
-    data: { imageUrl: parsed.imageUrl, linkUrl: parsed.linkUrl, orden: (ultimo?.orden ?? -1) + 1 },
+    data: {
+      imageUrl: parsed.imageUrl,
+      linkUrl: parsed.linkUrl,
+      tipo: parsed.tipo,
+      orden: (ultimo?.orden ?? -1) + 1,
+    },
   });
 
   revalidatePath("/admin/banners");

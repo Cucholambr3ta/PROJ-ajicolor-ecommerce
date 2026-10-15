@@ -100,8 +100,8 @@ export async function uploadDisenoPersonalizado(file: File): Promise<string> {
   return data.publicUrl;
 }
 
-/** Sube una imagen de banner del carrusel del home al bucket público `banners`. */
-export async function uploadBannerImage(file: File): Promise<string> {
+/** Sube una imagen o video de banner del carrusel del home al bucket público `banners`. */
+export async function uploadBannerMedia(file: File): Promise<string> {
   if (!client) {
     throw new Error("Supabase Storage no está configurado (falta SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY)");
   }

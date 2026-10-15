@@ -8,15 +8,7 @@ export function Logo({ className = "h-10 w-auto" }: { className?: string }) {
         alt="Ajicolor"
         width={250}
         height={100}
-        className="logo-claro h-full w-auto dark:hidden"
-        priority
-      />
-      <Image
-        src="/logo/logo-oscuro.png"
-        alt="Ajicolor"
-        width={250}
-        height={100}
-        className="logo-oscuro hidden h-full w-auto dark:block"
+        className="h-full w-auto"
         priority
       />
     </span>

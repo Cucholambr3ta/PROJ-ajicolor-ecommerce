@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 interface Banner {
   id: string;
   imageUrl: string;
+  tipo: "Imagen" | "Video";
   linkUrl: string;
 }
 
@@ -37,14 +38,25 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
             href={banner.linkUrl}
             className="relative shrink-0 w-full h-full"
           >
-            <Image
-              src={banner.imageUrl}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="100vw"
-              priority={banners[0].id === banner.id}
-            />
+            {banner.tipo === "Video" ? (
+              <video
+                src={banner.imageUrl}
+                className="absolute inset-0 w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+            ) : (
+              <Image
+                src={banner.imageUrl}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="100vw"
+                priority={banners[0].id === banner.id}
+              />
+            )}
           </Link>
         ))}
       </div>
