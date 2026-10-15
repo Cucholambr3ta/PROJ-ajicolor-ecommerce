@@ -610,9 +610,9 @@ model StoreSettings {
   bancoEmail          String?
   costoEnvioCorreos   Decimal  @default(3000)
   plazoProduccionDias Int      @default(7)
-  // Segundos que tarda el carrusel de banners del home en recorrer una
-  // vuelta completa (movimiento continuo tipo marquee) — más alto = más lento.
-  bannerVelocidadSeg  Int      @default(30)
+  // Segundos que cada banner permanece visible antes de avanzar al
+  // siguiente en el carrusel del home (autoplay de Splide).
+  bannerVelocidadSeg  Int      @default(5)
   updatedAt           DateTime @updatedAt
 }
 

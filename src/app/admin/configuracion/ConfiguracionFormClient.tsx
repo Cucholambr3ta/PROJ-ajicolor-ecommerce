@@ -154,12 +154,12 @@ export default function ConfiguracionFormClient({ settings }: { settings: Settin
           <h2 className="font-semibold text-gray-700 dark:text-neutral-300 mb-4">
             Carrusel de banners
             <span className="block text-xs font-normal text-gray-400 dark:text-neutral-500 mt-1">
-              El carrusel del home se mueve de forma continua, sin pausas entre banners.
+              Avanza solo, en loop, y se pausa al pasar el mouse por encima.
             </span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field
-              label="Velocidad: segundos por vuelta completa"
+              label="Segundos entre cada banner"
               type="number"
               value={data.bannerVelocidadSeg}
               onChange={(v) => set("bannerVelocidadSeg", v)}

@@ -269,15 +269,50 @@ body[data-tema="kids"] .tienda-shell {
   }
 }
 
-/* Carrusel de banners del home: movimiento continuo sin pausas. El track
-   trae la lista de banners duplicada una vez (ver BannerCarousel.tsx), así
-   que recorrer el 50% del ancho total es recorrer exactamente un set
-   completo — el salto de -50% de vuelta a 0% es invisible. */
-@keyframes banner-marquee {
-  from {
-    transform: translateX(0);
+/* Carrusel de banners del home (Splide, ver BannerCarousel.tsx): un banner
+   a la vez, ancho completo, esquinas redondeadas, sin sombra de tarjeta —
+   las flechas y los puntos no trae estilo propio desde splide/css/core,
+   así que se pintan acá siguiendo la spec entregada por el cliente. */
+.banner-carousel .splide__track {
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+@media (max-width: 620px) {
+  .banner-carousel .splide__track {
+    border-radius: 20px;
   }
-  to {
-    transform: translateX(-50%);
-  }
+}
+
+.banner-carousel .splide__arrow {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  opacity: 1;
+}
+
+.banner-carousel .splide__arrow svg {
+  width: 10px;
+  height: 10px;
+  fill: #0a0a0a;
+}
+
+.banner-carousel .splide__arrow--prev {
+  left: 16px;
+}
+
+.banner-carousel .splide__arrow--next {
+  right: 16px;
+}
+
+.banner-carousel .splide__pagination__page {
+  background: rgba(255, 255, 255, 0.6);
+  opacity: 1;
+}
+
+.banner-carousel .splide__pagination__page.is-active {
+  background: #ffffff;
+  transform: scale(1.2);
 }

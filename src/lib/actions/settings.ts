@@ -9,7 +9,7 @@ const DEFAULTS = {
   id: "default" as const,
   costoEnvioCorreos: 3000,
   plazoProduccionDias: 7,
-  bannerVelocidadSeg: 30,
+  bannerVelocidadSeg: 5,
 };
 
 /**

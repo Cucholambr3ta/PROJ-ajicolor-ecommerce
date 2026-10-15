@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Splide, SplideSlide } from "@splidejs/react-splide";
+import "@splidejs/splide/css/core";
 
 interface Banner {
   id: string;
@@ -10,69 +12,77 @@ interface Banner {
   linkUrl: string;
 }
 
-function BannerItem({ banner, priority }: { banner: Banner; priority: boolean }) {
-  return (
-    <Link
-      href={banner.linkUrl}
-      className="relative shrink-0 h-full w-[88vw] sm:w-[640px] thick-border pop-shadow rounded-lg overflow-hidden"
-    >
-      {banner.tipo === "Video" ? (
-        <video
-          src={banner.imageUrl}
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
-      ) : (
-        <Image
-          src={banner.imageUrl}
-          alt=""
-          fill
-          className="object-cover"
-          sizes="(min-width: 640px) 640px, 88vw"
-          priority={priority}
-        />
-      )}
-    </Link>
-  );
-}
-
 /**
- * Carrusel de movimiento continuo (marquee), sin pausas entre banners — el
- * track se arma con la lista duplicada una vez y se anima de 0% a -50% en
- * loop infinito, así el salto al reiniciar es invisible (el final del
- * primer set calza con el principio del segundo). `velocidadSeg` es
- * configurable desde /admin/configuracion.
- *
- * Full-bleed (ocupa todo el ancho de la pantalla, no el max-w del resto del
- * contenido). Cada banner es una tarjeta separada (ancho fijo, borde y
- * sombra "pop", con gap entre tarjetas) en vez de una sola imagen corrida
- * de punta a punta — así se nota dónde termina un banner y empieza el
- * siguiente mientras se desplazan.
+ * Carrusel full-width, un banner a la vez, loop infinito sin saltos,
+ * deslizamiento 400ms, autoplay cada 5s, pausa al pasar el mouse,
+ * arrastrable (mouse/touch) y navegable con teclado (flechas) — Splide
+ * ya resuelve bien todo eso en vez de reimplementarlo a mano.
+ * `velocidadSeg` (configurable desde /admin/configuracion) controla el
+ * intervalo de autoplay.
  */
 export function BannerCarousel({
   banners,
-  velocidadSeg = 30,
+  velocidadSeg = 5,
 }: {
   banners: Banner[];
   velocidadSeg?: number;
 }) {
+  const router = useRouter();
+
   if (banners.length === 0) return null;
 
-  const track = [...banners, ...banners];
-
   return (
-    <div className="relative w-screen left-1/2 -translate-x-1/2 h-[160px] sm:h-[200px] lg:h-[260px] mb-6 overflow-hidden group">
-      <div
-        className="flex h-full w-max gap-4 px-4 [animation:banner-marquee_var(--banner-speed)_linear_infinite] group-hover:[animation-play-state:paused]"
-        style={{ "--banner-speed": `${velocidadSeg}s` } as React.CSSProperties}
+    <div className="banner-carousel w-screen relative left-1/2 -translate-x-1/2 mb-6">
+      <Splide
+        options={{
+          type: "loop",
+          perPage: 1,
+          perMove: 1,
+          gap: 0,
+          arrows: banners.length > 1,
+          pagination: banners.length > 1,
+          autoplay: banners.length > 1,
+          interval: velocidadSeg * 1000,
+          pauseOnHover: true,
+          pauseOnFocus: false,
+          drag: true,
+          speed: 400,
+          keyboard: "global",
+          height: "min(50vw, 420px)",
+          waitForTransition: false,
+        }}
+        aria-label="Banners destacados"
       >
-        {track.map((banner, i) => (
-          <BannerItem key={`${banner.id}-${i}`} banner={banner} priority={i === 0} />
+        {banners.map((banner) => (
+          <SplideSlide key={banner.id}>
+            <button
+              type="button"
+              onClick={() => router.push(banner.linkUrl)}
+              className="relative block w-full h-full cursor-pointer"
+              aria-label="Ver más"
+            >
+              {banner.tipo === "Video" ? (
+                <video
+                  src={banner.imageUrl}
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              ) : (
+                <Image
+                  src={banner.imageUrl}
+                  alt=""
+                  fill
+                  className="object-cover object-center"
+                  sizes="100vw"
+                />
+              )}
+            </button>
+          </SplideSlide>
         ))}
-      </div>
+      </Splide>
     </div>
   );
 }
