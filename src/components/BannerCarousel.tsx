@@ -12,7 +12,10 @@ interface Banner {
 
 function BannerItem({ banner, priority }: { banner: Banner; priority: boolean }) {
   return (
-    <Link href={banner.linkUrl} className="relative shrink-0 h-full w-screen">
+    <Link
+      href={banner.linkUrl}
+      className="relative shrink-0 h-full w-[88vw] sm:w-[640px] thick-border pop-shadow rounded-lg overflow-hidden"
+    >
       {banner.tipo === "Video" ? (
         <video
           src={banner.imageUrl}
@@ -28,7 +31,7 @@ function BannerItem({ banner, priority }: { banner: Banner; priority: boolean })
           alt=""
           fill
           className="object-cover"
-          sizes="100vw"
+          sizes="(min-width: 640px) 640px, 88vw"
           priority={priority}
         />
       )}
@@ -44,8 +47,10 @@ function BannerItem({ banner, priority }: { banner: Banner; priority: boolean })
  * configurable desde /admin/configuracion.
  *
  * Full-bleed (ocupa todo el ancho de la pantalla, no el max-w del resto del
- * contenido) y con el aspect-ratio real de las imágenes entregadas
- * (1920×420 ≈ 4.57:1) para que no se recorten de arriba/abajo.
+ * contenido). Cada banner es una tarjeta separada (ancho fijo, borde y
+ * sombra "pop", con gap entre tarjetas) en vez de una sola imagen corrida
+ * de punta a punta — así se nota dónde termina un banner y empieza el
+ * siguiente mientras se desplazan.
  */
 export function BannerCarousel({
   banners,
@@ -59,9 +64,9 @@ export function BannerCarousel({
   const track = [...banners, ...banners];
 
   return (
-    <div className="relative w-screen left-1/2 -translate-x-1/2 aspect-[1920/420] mb-6 border-y-2 border-ajicolor-ink overflow-hidden group">
+    <div className="relative w-screen left-1/2 -translate-x-1/2 h-[160px] sm:h-[200px] lg:h-[260px] mb-6 overflow-hidden group">
       <div
-        className="flex h-full w-max [animation:banner-marquee_var(--banner-speed)_linear_infinite] group-hover:[animation-play-state:paused]"
+        className="flex h-full w-max gap-4 px-4 [animation:banner-marquee_var(--banner-speed)_linear_infinite] group-hover:[animation-play-state:paused]"
         style={{ "--banner-speed": `${velocidadSeg}s` } as React.CSSProperties}
       >
         {track.map((banner, i) => (
