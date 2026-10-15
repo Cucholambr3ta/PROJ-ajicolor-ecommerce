@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
 
 interface Banner {
   id: string;
@@ -11,70 +10,60 @@ interface Banner {
   linkUrl: string;
 }
 
-export function BannerCarousel({ banners }: { banners: Banner[] }) {
-  const [index, setIndex] = useState(0);
+function BannerItem({ banner, priority }: { banner: Banner; priority: boolean }) {
+  return (
+    <Link href={banner.linkUrl} className="relative shrink-0 h-full w-[85vw] sm:w-[520px]">
+      {banner.tipo === "Video" ? (
+        <video
+          src={banner.imageUrl}
+          className="absolute inset-0 w-full h-full object-cover"
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+      ) : (
+        <Image
+          src={banner.imageUrl}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="(min-width: 640px) 520px, 85vw"
+          priority={priority}
+        />
+      )}
+    </Link>
+  );
+}
 
-  const next = useCallback(() => {
-    setIndex((i) => (i + 1) % banners.length);
-  }, [banners.length]);
-
-  useEffect(() => {
-    if (banners.length <= 1) return;
-    const id = setInterval(next, 4500);
-    return () => clearInterval(id);
-  }, [next, banners.length]);
-
+/**
+ * Carrusel de movimiento continuo (marquee), sin pausas entre banners — el
+ * track se arma con la lista duplicada una vez y se anima de 0% a -50% en
+ * loop infinito, así el salto al reiniciar es invisible (el final del
+ * primer set calza con el principio del segundo). `velocidadSeg` es
+ * configurable desde /admin/configuracion.
+ */
+export function BannerCarousel({
+  banners,
+  velocidadSeg = 30,
+}: {
+  banners: Banner[];
+  velocidadSeg?: number;
+}) {
   if (banners.length === 0) return null;
 
+  const track = [...banners, ...banners];
+
   return (
-    <div className="relative w-full h-[160px] lg:h-[220px] mb-6 thick-border overflow-hidden">
+    <div className="relative w-full h-[160px] lg:h-[220px] mb-6 thick-border overflow-hidden group">
       <div
-        className="flex h-full transition-transform duration-700 ease-out"
-        style={{ transform: `translateX(-${index * 100}%)` }}
+        className="flex h-full w-max gap-4 [animation:banner-marquee_var(--banner-speed)_linear_infinite] group-hover:[animation-play-state:paused]"
+        style={{ "--banner-speed": `${velocidadSeg}s` } as React.CSSProperties}
       >
-        {banners.map((banner) => (
-          <Link
-            key={banner.id}
-            href={banner.linkUrl}
-            className="relative shrink-0 w-full h-full"
-          >
-            {banner.tipo === "Video" ? (
-              <video
-                src={banner.imageUrl}
-                className="absolute inset-0 w-full h-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
-            ) : (
-              <Image
-                src={banner.imageUrl}
-                alt=""
-                fill
-                className="object-cover"
-                sizes="100vw"
-                priority={banners[0].id === banner.id}
-              />
-            )}
-          </Link>
+        {track.map((banner, i) => (
+          <BannerItem key={`${banner.id}-${i}`} banner={banner} priority={i === 0} />
         ))}
       </div>
-
-      {banners.length > 1 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-          {banners.map((banner, i) => (
-            <button
-              key={banner.id}
-              onClick={() => setIndex(i)}
-              aria-label={`Ir al banner ${i + 1}`}
-              className={`h-2 rounded-full transition-all ${
-                i === index ? "w-6 bg-white" : "w-2 bg-white/50"
-              }`}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

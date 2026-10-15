@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getProducts, getFilterOptions, getActiveCollections } from "@/lib/actions/products";
 import { getActiveBanners } from "@/lib/actions/banners";
+import { getStoreSettings } from "@/lib/actions/settings";
 import { CatalogFilters } from "@/components/CatalogFilters";
 import { Pagination } from "@/components/Pagination";
 import { BannerCarousel } from "@/components/BannerCarousel";
@@ -36,27 +37,31 @@ export default async function TiendaPage({
 
   const tipo = sp.tipo ? TIPO_POR_SLUG[sp.tipo] : undefined;
 
-  const [{ items: products, total, totalPages }, { colores, talles }, collections, banners] = await Promise.all([
-    getProducts({
-      q: sp.q,
-      color: sp.color,
-      talle: sp.talle,
-      collectionSlug: sp.coleccion,
-      tipo,
-      orden: sp.orden,
-      page,
-    }),
-    getFilterOptions(),
-    getActiveCollections(),
-    getActiveBanners(),
-  ]);
+  const [{ items: products, total, totalPages }, { colores, talles }, collections, banners, settings] =
+    await Promise.all([
+      getProducts({
+        q: sp.q,
+        color: sp.color,
+        talle: sp.talle,
+        collectionSlug: sp.coleccion,
+        tipo,
+        orden: sp.orden,
+        page,
+      }),
+      getFilterOptions(),
+      getActiveCollections(),
+      getActiveBanners(),
+      getStoreSettings(),
+    ]);
 
   const hasFilters = !!(sp.q || sp.color || sp.talle || sp.coleccion || sp.tipo);
 
   return (
     <>
       <section className="max-w-7xl mx-auto p-8 pt-10">
-        {!hasFilters && page === 1 && banners.length > 0 && <BannerCarousel banners={banners} />}
+        {!hasFilters && page === 1 && banners.length > 0 && (
+          <BannerCarousel banners={banners} velocidadSeg={settings.bannerVelocidadSeg} />
+        )}
 
         <div className="flex justify-between items-end mb-6 border-b-2 border-ajicolor-ink pb-4">
           <h2 className="text-3xl font-black">{hasFilters ? "Resultados" : "Novedades"}</h2>

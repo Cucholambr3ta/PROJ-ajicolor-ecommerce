@@ -9,6 +9,7 @@ const DEFAULTS = {
   id: "default" as const,
   costoEnvioCorreos: 3000,
   plazoProduccionDias: 7,
+  bannerVelocidadSeg: 30,
 };
 
 /**
@@ -46,6 +47,7 @@ export async function updateStoreSettings(data: {
   bancoEmail?: string;
   costoEnvioCorreos?: number;
   plazoProduccionDias?: number;
+  bannerVelocidadSeg?: number;
 }) {
   await requireAdmin();
   const updated = await prisma.storeSettings.upsert({
@@ -57,5 +59,6 @@ export async function updateStoreSettings(data: {
   revalidatePath("/contacto");
   revalidatePath("/terminos");
   revalidatePath("/pedido", "layout");
+  revalidatePath("/");
   return updated;
 }
