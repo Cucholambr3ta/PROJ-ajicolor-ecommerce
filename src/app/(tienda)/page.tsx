@@ -58,11 +58,11 @@ export default async function TiendaPage({
 
   return (
     <>
-      <section className="max-w-7xl mx-auto p-8 pt-10">
-        {!hasFilters && page === 1 && banners.length > 0 && (
-          <BannerCarousel banners={banners} velocidadSeg={settings.bannerVelocidadSeg} />
-        )}
+      {!hasFilters && page === 1 && banners.length > 0 && (
+        <BannerCarousel banners={banners} velocidadSeg={settings.bannerVelocidadSeg} />
+      )}
 
+      <section className="max-w-7xl mx-auto p-8 pt-10">
         <div className="flex justify-between items-end mb-6 border-b-2 border-ajicolor-ink pb-4">
           <h2 className="text-3xl font-black">{hasFilters ? "Resultados" : "Novedades"}</h2>
           <span className="text-xs font-bold text-gray-400 dark:text-neutral-500 uppercase">

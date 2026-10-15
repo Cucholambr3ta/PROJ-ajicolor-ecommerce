@@ -12,7 +12,7 @@ interface Banner {
 
 function BannerItem({ banner, priority }: { banner: Banner; priority: boolean }) {
   return (
-    <Link href={banner.linkUrl} className="relative shrink-0 h-full w-[85vw] sm:w-[520px]">
+    <Link href={banner.linkUrl} className="relative shrink-0 h-full w-screen">
       {banner.tipo === "Video" ? (
         <video
           src={banner.imageUrl}
@@ -28,7 +28,7 @@ function BannerItem({ banner, priority }: { banner: Banner; priority: boolean })
           alt=""
           fill
           className="object-cover"
-          sizes="(min-width: 640px) 520px, 85vw"
+          sizes="100vw"
           priority={priority}
         />
       )}
@@ -42,6 +42,10 @@ function BannerItem({ banner, priority }: { banner: Banner; priority: boolean })
  * loop infinito, así el salto al reiniciar es invisible (el final del
  * primer set calza con el principio del segundo). `velocidadSeg` es
  * configurable desde /admin/configuracion.
+ *
+ * Full-bleed (ocupa todo el ancho de la pantalla, no el max-w del resto del
+ * contenido) y con el aspect-ratio real de las imágenes entregadas
+ * (1920×420 ≈ 4.57:1) para que no se recorten de arriba/abajo.
  */
 export function BannerCarousel({
   banners,
@@ -55,9 +59,9 @@ export function BannerCarousel({
   const track = [...banners, ...banners];
 
   return (
-    <div className="relative w-full h-[160px] lg:h-[220px] mb-6 thick-border overflow-hidden group">
+    <div className="relative w-screen left-1/2 -translate-x-1/2 aspect-[1920/420] mb-6 border-y-2 border-ajicolor-ink overflow-hidden group">
       <div
-        className="flex h-full w-max gap-4 [animation:banner-marquee_var(--banner-speed)_linear_infinite] group-hover:[animation-play-state:paused]"
+        className="flex h-full w-max [animation:banner-marquee_var(--banner-speed)_linear_infinite] group-hover:[animation-play-state:paused]"
         style={{ "--banner-speed": `${velocidadSeg}s` } as React.CSSProperties}
       >
         {track.map((banner, i) => (
