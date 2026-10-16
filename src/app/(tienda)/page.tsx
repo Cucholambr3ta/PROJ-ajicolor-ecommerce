@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getProducts, getFilterOptions, getActiveCollections } from "@/lib/actions/products";
+import { getProducts, getFilterOptions, getActiveCollections, getFeaturedProductsByTipo } from "@/lib/actions/products";
 import { getActiveBanners } from "@/lib/actions/banners";
 import { getStoreSettings } from "@/lib/actions/settings";
 import { CatalogFilters } from "@/components/CatalogFilters";
@@ -37,7 +37,7 @@ export default async function TiendaPage({
 
   const tipo = sp.tipo ? TIPO_POR_SLUG[sp.tipo] : undefined;
 
-  const [{ items: products, total, totalPages }, { colores, talles }, collections, banners, settings] =
+  const [{ items: products, total, totalPages }, { colores, talles }, collections, banners, settings, productosPorTipo] =
     await Promise.all([
       getProducts({
         q: sp.q,
@@ -52,14 +52,19 @@ export default async function TiendaPage({
       getActiveCollections(),
       getActiveBanners(),
       getStoreSettings(),
+      getFeaturedProductsByTipo(),
     ]);
 
   const hasFilters = !!(sp.q || sp.color || sp.talle || sp.coleccion || sp.tipo);
 
   return (
     <>
-      {!hasFilters && page === 1 && banners.length > 0 && (
-        <BannerCarousel banners={banners} velocidadSeg={settings.bannerVelocidadSeg} />
+      {!hasFilters && page === 1 && (
+        <BannerCarousel
+          banners={banners}
+          velocidadSeg={settings.bannerVelocidadSeg}
+          productosPorTipo={productosPorTipo}
+        />
       )}
 
       <section className="max-w-7xl mx-auto p-8 pt-10">
