@@ -32,7 +32,7 @@ export function BannerCarousel({
   if (banners.length === 0) return null;
 
   return (
-    <div className="banner-carousel w-screen relative left-1/2 -translate-x-1/2 mb-6">
+    <div className="banner-carousel w-screen relative left-1/2 -translate-x-1/2 mb-6 px-8 sm:px-12 lg:px-16">
       <Splide
         options={{
           type: "loop",
