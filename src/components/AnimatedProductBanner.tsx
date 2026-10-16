@@ -66,31 +66,27 @@ const REL_BR = 65.691;
 const REL_BL = 0;
 
 /**
- * Capa "de atrás": el triángulo TL-TR-BL del paralelogramo, pero con la
+ * Capa "de atrás": el triángulo TL-TR-BL del paralelogramo, con la
  * esquina TL empujada hacia afuera (arriba e izquierda) — pedido
  * explícito: el borde superior e izquierdo de la foto se sale del
  * cuadro y el marco morado (por encima, z-10) la tapa ahí, dando la
  * sensación de que está "metida" debajo. TR y BL quedan fijos en su
- * posición real porque son los extremos de la diagonal TR-BL, el mismo
- * borde exacto que usa FRONT_CLIP — así las dos capas calzan sin
- * superponerse ni dejar hueco.
+ * posición real (son los extremos de la diagonal TR-BL, el mismo borde
+ * exacto que usa FRONT_CLIP) — así las dos capas calzan sin superponerse
+ * ni dejar hueco.
  *
- * El contenedor de esta capa (backBoxStyle, en ProductSlot) es más
- * grande que el cuadro real — crece hacia arriba/izquierda en
- * OVERHANG% — así object-cover tiene de dónde sacar esa parte "de más"
- * en vez de mostrar solo el fondo morado de respaldo. Como el
- * contenedor cambió de tamaño, TR/BL hay que reexpresarlos en el
- * sistema de coordenadas de ESE contenedor más grande (0-100% ya no es
- * el cuadro original, sino el cuadro + el overhang).
+ * El contenedor es EL MISMO tamaño/posición que la capa de encima (no
+ * uno más grande) — si el contenedor fuera distinto, object-cover
+ * recalcula un encuadre distinto y la foto se ve "duplicada" (dos
+ * recortes distintos de la misma imagen, uno de cada capa). En cambio
+ * la <Image> de ADENTRO se escala con transform: scale() anclada en la
+ * esquina inferior-derecha (transform-origin 100% 100%) — mismo
+ * encuadre de object-cover, solo agrandado, así los píxeles de más
+ * hacia arriba/izquierda son continuación real de la misma foto.
  */
-const OVERHANG = 18; // cuánto crece el contenedor hacia arriba/izquierda, en % del cuadro original
-const BACK_BOX_SCALE = 1 + OVERHANG / 100;
-function toBackBoxPct(xOrY: number) {
-  return (OVERHANG + xOrY) / BACK_BOX_SCALE;
-}
-const BACK_TR = { x: toBackBoxPct(REL_TR), y: toBackBoxPct(0) };
-const BACK_BL = { x: toBackBoxPct(REL_BL), y: toBackBoxPct(100) };
-const BACK_CLIP = `polygon(0% 0%, ${BACK_TR.x}% ${BACK_TR.y}%, ${BACK_BL.x}% ${BACK_BL.y}%)`;
+const OVERHANG = 18; // cuánto se agranda la imagen hacia arriba/izquierda, en % del cuadro
+const BACK_SCALE = 1 + OVERHANG / 100;
+const BACK_CLIP = `polygon(${-OVERHANG}% ${-OVERHANG}%, ${REL_TR}% 0%, ${REL_BL}% 100%)`;
 
 /**
  * Capa "de encima" del efecto 3D: el triángulo TR→BR→BL del MISMO
@@ -146,22 +142,6 @@ function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: num
     height: `${box.height}%`,
   };
 
-  /**
-   * La capa de atrás necesita un contenedor más grande que el cuadro real
-   * (crece hacia arriba/izquierda) para que object-cover tenga de dónde
-   * sacar la parte "de más" que se sale del marco — si solo se corriera
-   * el clip-path sin agrandar el contenedor, ahí no habría imagen
-   * (solo el fondo morado de respaldo).
-   */
-  const overhangX = (box.width * OVERHANG) / 100;
-  const overhangY = (box.height * OVERHANG) / 100;
-  const backBoxStyle = {
-    left: `${box.left - overhangX}%`,
-    top: `${box.top - overhangY}%`,
-    width: `${box.width + overhangX}%`,
-    height: `${box.height + overhangY}%`,
-  };
-
   return (
     <>
       {/* Capa de atrás: el cuadro, por debajo del marco (pedido: borde
@@ -169,15 +149,25 @@ function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: num
           morado (#4F266A, el mismo del marco) detrás de cada foto: los
           PNG de producto tienen fondo transparente y no siempre llenan
           todo el paralelogramo, así que sin esto se vería el fondo de la
-          página (amarillo) en los huecos en vez de fundirse con el marco. */}
-      <div className="absolute z-0" style={backBoxStyle}>
+          página (amarillo) en los huecos en vez de fundirse con el marco.
+          La <Image> se agranda con scale() anclada abajo-a-la-derecha
+          para que la parte "de más" (arriba/izquierda) sea continuación
+          real de la misma foto, no un recorte distinto (ver BACK_CLIP). */}
+      <div className="absolute z-0" style={boxStyle}>
         {imagenes.map((src, i) => (
           <div
             key={src}
             className="absolute inset-0 transition-opacity duration-700"
             style={{ opacity: i === active ? 1 : 0, clipPath: BACK_CLIP, backgroundColor: "#4F266A" }}
           >
-            <Image src={src} alt="" fill className="object-cover" sizes="20vw" />
+            <Image
+              src={src}
+              alt=""
+              fill
+              className="object-cover"
+              style={{ transform: `scale(${BACK_SCALE})`, transformOrigin: "100% 100%" }}
+              sizes="20vw"
+            />
           </div>
         ))}
       </div>
