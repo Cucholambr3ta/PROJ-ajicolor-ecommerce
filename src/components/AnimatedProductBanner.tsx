@@ -73,7 +73,7 @@ const REL_BL = 0;
  * las coordenadas de TR/BR/BL hay que reexpresarlas en el sistema de
  * esa caja más grande (0-100% ya no es el cuadro, es cuadro + margen).
  */
-const GROW_PCT = 25; // cuánto crece la caja hacia cada lado, en % del cuadro original
+const GROW_PCT = 10; // cuánto crece la caja hacia cada lado, en % del cuadro original
 const GROW_SCALE = 1 + (2 * GROW_PCT) / 100;
 function toGrownBoxPct(originalPct: number) {
   return (GROW_PCT + originalPct) / GROW_SCALE;
