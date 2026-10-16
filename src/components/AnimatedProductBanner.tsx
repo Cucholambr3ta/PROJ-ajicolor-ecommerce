@@ -51,57 +51,9 @@ function shapeBoundingBox(index: number) {
 }
 
 /**
- * Las 5 cajas tienen el mismo ancho/alto (solo cambia su posición
- * horizontal), así que el paralelogramo relativo a SU PROPIA caja es
- * idéntico para las 5 — estas constantes son fijas, no por índice.
- * Antes el clip-path usaba % del banner COMPLETO sobre una imagen que
- * ocupaba todo el ancho del banner (object-cover la hacía angosta y
- * centrada): el recorte caía fuera de donde realmente estaba la foto.
- * Ahora cada <Image> vive en un contenedor del tamaño real del cuadro,
- * así que object-cover encuadra sobre ESE rectángulo chico.
- */
-const REL_TL = 34.309;
-const REL_TR = 100;
-const REL_BR = 65.691;
-const REL_BL = 0;
-
-/**
- * Capa "de atrás": el triángulo TL-TR-BL del paralelogramo, con la
- * esquina TL empujada hacia afuera (arriba e izquierda) — pedido
- * explícito: el borde superior e izquierdo de la foto se sale del
- * cuadro y el marco morado (por encima, z-10) la tapa ahí, dando la
- * sensación de que está "metida" debajo. TR y BL quedan fijos en su
- * posición real (son los extremos de la diagonal TR-BL, el mismo borde
- * exacto que usa FRONT_CLIP) — así las dos capas calzan sin superponerse
- * ni dejar hueco.
- *
- * El contenedor es EL MISMO tamaño/posición que la capa de encima (no
- * uno más grande) — si el contenedor fuera distinto, object-cover
- * recalcula un encuadre distinto y la foto se ve "duplicada" (dos
- * recortes distintos de la misma imagen, uno de cada capa). En cambio
- * la <Image> de ADENTRO se escala con transform: scale() anclada en la
- * esquina inferior-derecha (transform-origin 100% 100%) — mismo
- * encuadre de object-cover, solo agrandado, así los píxeles de más
- * hacia arriba/izquierda son continuación real de la misma foto.
- */
-const OVERHANG = 18; // cuánto se agranda la imagen hacia arriba/izquierda, en % del cuadro
-const BACK_SCALE = 1 + OVERHANG / 100;
-const BACK_CLIP = `polygon(${-OVERHANG}% ${-OVERHANG}%, ${REL_TR}% 0%, ${REL_BL}% 100%)`;
-
-/**
- * Capa "de encima" del efecto 3D: el triángulo TR→BR→BL del MISMO
- * paralelogramo (mismo borde exacto, sin agrandarlo ni correrlo) —
- * contiene el borde DERECHO (TR-BR) y el borde INFERIOR (BR-BL), que
- * quedan por ENCIMA del marco morado, fijos en el borde real del cuadro.
- * El corte es la diagonal TR→BL del paralelogramo, igual que en
- * BACK_CLIP, para que ambas capas empalmen exacto.
- */
-const FRONT_CLIP = `polygon(${REL_TR}% 0%, ${REL_BR}% 100%, ${REL_BL}% 100%)`;
-
-/**
  * El PNG del marco tiene blanco SÓLIDO en los 5 cuadros (no transparente),
  * así que puesto encima de los productos los tapa por completo sin importar
- * el clip-path de las capas de abajo. Se le recorta un "agujero" exacto por
+ * dónde esté la foto de abajo. Se le recorta un "agujero" exacto por
  * cuadro con un <clipPath> SVG (evenodd: rectángulo completo menos los 5
  * paralelogramos) — clip-path de CSS no soporta agujeros con polygon()
  * solo, pero sí referenciando un clipPath SVG por id.
@@ -124,6 +76,18 @@ function FrameHolesClipDef() {
   );
 }
 
+/**
+ * Una sola foto por cuadro, SIN recortes ni duplicados — más grande que
+ * el hueco del marco (crece hacia arriba/izquierda/derecha/abajo por
+ * igual, EXTRA_PCT% del cuadro) y detrás del marco (z-0 vs z-10). El
+ * marco morado, que es opaco en todos lados menos en el hueco exacto
+ * del paralelogramo, tapa solo la parte de la foto que le sobresale por
+ * ENCIMA de su propio dibujo — como el marco en sí ya tiene el recorte
+ * diagonal hacia abajo-derecha (ver la imagen de fondo), esa esquina de
+ * la foto queda visible sin que nada la tape.
+ */
+const EXTRA_PCT = 35;
+
 function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: number; products: SlotProduct[] }) {
   const [active, setActive] = useState(0);
   const imagenes = products.length > 0 ? products.map((p) => p.disenoUrl) : [ICONO_POR_TIPO[tipo]];
@@ -135,55 +99,23 @@ function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: num
     return () => clearInterval(id);
   }, [imagenes.length, index]);
 
+  const extraX = (box.width * EXTRA_PCT) / 100;
+  const extraY = (box.height * EXTRA_PCT) / 100;
   const boxStyle = {
-    left: `${box.left}%`,
-    top: `${box.top}%`,
-    width: `${box.width}%`,
-    height: `${box.height}%`,
+    left: `${box.left - extraX / 2}%`,
+    top: `${box.top - extraY / 2}%`,
+    width: `${box.width + extraX}%`,
+    height: `${box.height + extraY}%`,
   };
 
   return (
-    <>
-      {/* Capa de atrás: el cuadro, por debajo del marco (pedido: borde
-          superior/izquierdo deben quedar detrás de la imagen). Fondo
-          morado (#4F266A, el mismo del marco) detrás de cada foto: los
-          PNG de producto tienen fondo transparente y no siempre llenan
-          todo el paralelogramo, así que sin esto se vería el fondo de la
-          página (amarillo) en los huecos en vez de fundirse con el marco.
-          La <Image> se agranda con scale() anclada abajo-a-la-derecha
-          para que la parte "de más" (arriba/izquierda) sea continuación
-          real de la misma foto, no un recorte distinto (ver BACK_CLIP). */}
-      <div className="absolute z-0" style={boxStyle}>
-        {imagenes.map((src, i) => (
-          <div
-            key={src}
-            className="absolute inset-0 transition-opacity duration-700"
-            style={{ opacity: i === active ? 1 : 0, clipPath: BACK_CLIP, backgroundColor: "#4F266A" }}
-          >
-            <Image
-              src={src}
-              alt=""
-              fill
-              className="object-cover"
-              style={{ transform: `scale(${BACK_SCALE})`, transformOrigin: "100% 100%" }}
-              sizes="20vw"
-            />
-          </div>
-        ))}
-      </div>
-      {/* Capa de adelante: franja inferior/derecha, por encima del marco. */}
-      <div className="absolute z-20" style={boxStyle}>
-        {imagenes.map((src, i) => (
-          <div
-            key={src}
-            className="absolute inset-0 transition-opacity duration-700"
-            style={{ opacity: i === active ? 1 : 0, clipPath: FRONT_CLIP }}
-          >
-            <Image src={src} alt="" fill className="object-cover" sizes="20vw" />
-          </div>
-        ))}
-      </div>
-    </>
+    <div className="absolute z-0" style={{ ...boxStyle, backgroundColor: "#4F266A" }}>
+      {imagenes.map((src, i) => (
+        <div key={src} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === active ? 1 : 0 }}>
+          <Image src={src} alt="" fill className="object-contain" sizes="20vw" />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -202,11 +134,12 @@ export function AnimatedProductBanner({
       {tipos.map((tipo, i) => (
         <ProductSlot key={tipo} tipo={tipo} index={i} products={productosPorTipo[tipo]} />
       ))}
-      {/* El marco (morado con el texto "PRODUCTOS DEL AJÍ") va al medio,
-          con los 5 cuadros recortados vía SVG clip-path (ver arriba) para
-          que no tapen el producto de abajo con su blanco sólido: tapa el
-          borde superior/izquierdo de cada producto (capa de atrás) y queda
-          tapado por la franja inferior/derecha (capa de adelante, z-20). */}
+      {/* El marco (morado con el texto "PRODUCTOS DEL AJÍ") va encima de
+          las fotos, con los 5 cuadros recortados vía SVG clip-path (ver
+          arriba) para no taparlas con su blanco sólido. Como cada foto es
+          más grande que el hueco, el marco tapa naturalmente la parte que
+          sobresale hacia arriba/izquierda; el recorte diagonal propio del
+          marco (hacia abajo-derecha) deja ver esa esquina sin tapar. */}
       <Image
         src="/banners/FONDO BANNER PRODUCTOS ANIMACION_.png"
         alt=""
