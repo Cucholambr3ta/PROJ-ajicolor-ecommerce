@@ -89,7 +89,7 @@ const GROW_Y_PCT = 40; // cuánto crece el alto hacia arriba, en % del cuadro or
 // productos del título "PRODUCTOS DEL AJÍ" — pedido explícito: "bajar los
 // productos, no achicarlos" (GROW_Y_PCT chico los achicaba porque recortaba
 // la caja completa, no solo los corría para abajo).
-const SHIFT_DOWN_PCT = 14;
+const SHIFT_DOWN_PCT = 10;
 const GROW_X_SCALE = 1 + (2 * GROW_X_PCT) / 100;
 const GROW_Y_SCALE = 1 + GROW_Y_PCT / 100; // solo crece hacia ARRIBA, no hacia abajo
 function toGrownBoxPctX(originalPct: number) {
@@ -128,34 +128,38 @@ function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: num
    */
   const growX = (box.width * GROW_X_PCT) / 100;
   const growY = (box.height * GROW_Y_PCT) / 100;
-  const shiftDown = (box.height * SHIFT_DOWN_PCT) / 100;
   /**
-   * El fondo (bottom) de la caja es lo que define dónde "toca" la foto
-   * con object-bottom, y también dónde recorta el clip-path (sus puntos
-   * BR/BL están en y=100%, el borde inferior de ESTA caja) — por eso
-   * hay que fijarlo explícito en vez de derivarlo de top+height: si
-   * crece también por bottom (como hacía antes, implícito), el punto
-   * y=100% del clip-path deja de coincidir con el borde real recortado
-   * y el producto deja de tocar ese borde (se ve "flotando" adentro,
-   * sin recorte visible abajo/derecha).
+   * Caja de recorte: SIEMPRE anclada al borde real del cuadro (sin
+   * shiftDown) — su borde inferior (bottom: 0 relativo a esta caja,
+   * y=100% del clip-path) coincide exactamente con SHAPE_BOTTOM_PCT.
+   * Mover esta caja para "bajar" el producto desalinea el clip-path del
+   * borde real dibujado en el PNG (bug ya visto: el recorte cae en
+   * espacio vacío, bajo el rombo, y el producto se ve sin recortar).
+   * El desplazamiento hacia abajo (SHIFT_DOWN_PCT) se aplica en cambio
+   * con `transform: translateY` en la capa de adentro (la imagen),
+   * DESPUÉS de que el clip-path ya recortó esta caja — así el recorte
+   * queda fijo en el borde real y el contenido visual se corre debajo
+   * sin cambiar de tamaño.
    */
-  const boxBottom = 100 - SHAPE_BOTTOM_PCT - shiftDown; // distancia desde el borde inferior del banner
   const boxStyle = {
     left: `${box.left - growX}%`,
-    top: `${box.top - growY + shiftDown}%`,
+    top: `${box.top - growY}%`,
     width: `${box.width + growX * 2}%`,
-    bottom: `${boxBottom}%`,
+    height: `${box.height + growY}%`,
   };
+  const shiftDownPx = `${SHIFT_DOWN_PCT}%`;
 
   return (
-    <div className="absolute z-20" style={boxStyle}>
+    <div className="absolute z-20 overflow-visible" style={boxStyle}>
       {imagenes.map((src, i) => (
         <div
           key={src}
           className="absolute inset-0 transition-opacity duration-700"
           style={{ opacity: i === active ? 1 : 0, clipPath: productClipForGrownBox() }}
         >
-          <Image src={src} alt="" fill className="object-contain object-bottom" sizes="20vw" />
+          <div className="absolute inset-0" style={{ transform: `translateY(${shiftDownPx})` }}>
+            <Image src={src} alt="" fill className="object-contain object-bottom" sizes="20vw" />
+          </div>
         </div>
       ))}
     </div>
