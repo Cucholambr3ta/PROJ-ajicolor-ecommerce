@@ -322,6 +322,12 @@ body[data-tema="kids"] .tienda-shell {
   fill: #0a0a0a;
 }
 
+/* El SVG de Splide es un único ">" — sin el tema por defecto (no usado
+   acá, ver splide/css/core), nada lo espeja para el botón "anterior". */
+.banner-carousel .splide__arrow--prev svg {
+  transform: scaleX(-1);
+}
+
 .banner-carousel .splide__arrow--prev {
   left: 12px;
 }
