@@ -139,7 +139,7 @@ function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: num
           className="absolute inset-0 transition-opacity duration-700"
           style={{ opacity: i === active ? 1 : 0, clipPath: productClipForGrownBox() }}
         >
-          <Image src={src} alt="" fill className="object-cover object-bottom" sizes="20vw" />
+          <Image src={src} alt="" fill className="object-contain object-bottom" sizes="20vw" />
         </div>
       ))}
     </div>
