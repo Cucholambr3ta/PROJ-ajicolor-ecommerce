@@ -4,6 +4,15 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/splide/css/core";
+import { AnimatedProductBanner } from "@/components/AnimatedProductBanner";
+
+type TipoProducto = "Polera" | "Poleron" | "Totebag" | "Reloj" | "Papeleria";
+
+interface SlotProduct {
+  id: string;
+  nombre: string;
+  disenoUrl: string;
+}
 
 interface Banner {
   id: string;
@@ -23,13 +32,16 @@ interface Banner {
 export function BannerCarousel({
   banners,
   velocidadSeg = 5,
+  productosPorTipo,
 }: {
   banners: Banner[];
   velocidadSeg?: number;
+  productosPorTipo?: Record<TipoProducto, SlotProduct[]>;
 }) {
   const router = useRouter();
 
-  if (banners.length === 0) return null;
+  const totalSlides = banners.length + (productosPorTipo ? 1 : 0);
+  if (totalSlides === 0) return null;
 
   return (
     <div className="banner-carousel w-screen relative left-1/2 -translate-x-1/2 mb-6 px-4 sm:px-8 lg:px-10">
@@ -40,9 +52,9 @@ export function BannerCarousel({
           perPage: 1,
           perMove: 1,
           gap: 0,
-          arrows: banners.length > 1,
-          pagination: banners.length > 1,
-          autoplay: banners.length > 1,
+          arrows: totalSlides > 1,
+          pagination: totalSlides > 1,
+          autoplay: totalSlides > 1,
           interval: velocidadSeg * 1000,
           pauseOnHover: true,
           pauseOnFocus: false,
@@ -53,6 +65,11 @@ export function BannerCarousel({
         }}
         aria-label="Banners destacados"
       >
+        {productosPorTipo && (
+          <SplideSlide>
+            <AnimatedProductBanner linkUrl="/categorias" productosPorTipo={productosPorTipo} />
+          </SplideSlide>
+        )}
         {banners.map((banner) => (
           <SplideSlide key={banner.id}>
             <button

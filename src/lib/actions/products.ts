@@ -131,6 +131,38 @@ export async function getActiveCollections() {
   });
 }
 
+const TIPOS_PRODUCTO: TipoProducto[] = ["Polera", "Poleron", "Totebag", "Reloj", "Papeleria"];
+
+/**
+ * Hasta 4 fotos por tipo de producto, para el banner animado del home
+ * (AnimatedProductBanner) — un tipo sin productos todavía devuelve []
+ * y el banner cae al ícono estático de /carousel hasta que se cargue
+ * el primer producto de esa categoría.
+ */
+export async function getFeaturedProductsByTipo() {
+  const productos = await prisma.product.findMany({
+    where: { activo: true, tipo: { in: TIPOS_PRODUCTO }, disenoUrl: { not: "" } },
+    select: { id: true, nombre: true, tipo: true, disenoUrl: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const porTipo: Record<TipoProducto, { id: string; nombre: string; disenoUrl: string }[]> = {
+    Polera: [],
+    Poleron: [],
+    Totebag: [],
+    Reloj: [],
+    Papeleria: [],
+  };
+
+  for (const p of productos) {
+    if (porTipo[p.tipo].length < 4) {
+      porTipo[p.tipo].push({ id: p.id, nombre: p.nombre, disenoUrl: p.disenoUrl });
+    }
+  }
+
+  return porTipo;
+}
+
 export async function getProductById(id: string) {
   return prisma.product.findUnique({
     where: { id },
