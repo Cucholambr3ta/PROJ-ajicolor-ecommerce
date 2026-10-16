@@ -129,11 +129,22 @@ function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: num
   const growX = (box.width * GROW_X_PCT) / 100;
   const growY = (box.height * GROW_Y_PCT) / 100;
   const shiftDown = (box.height * SHIFT_DOWN_PCT) / 100;
+  /**
+   * El fondo (bottom) de la caja es lo que define dónde "toca" la foto
+   * con object-bottom, y también dónde recorta el clip-path (sus puntos
+   * BR/BL están en y=100%, el borde inferior de ESTA caja) — por eso
+   * hay que fijarlo explícito en vez de derivarlo de top+height: si
+   * crece también por bottom (como hacía antes, implícito), el punto
+   * y=100% del clip-path deja de coincidir con el borde real recortado
+   * y el producto deja de tocar ese borde (se ve "flotando" adentro,
+   * sin recorte visible abajo/derecha).
+   */
+  const boxBottom = 100 - SHAPE_BOTTOM_PCT - shiftDown; // distancia desde el borde inferior del banner
   const boxStyle = {
     left: `${box.left - growX}%`,
     top: `${box.top - growY + shiftDown}%`,
     width: `${box.width + growX * 2}%`,
-    height: `${box.height + growY}%`,
+    bottom: `${boxBottom}%`,
   };
 
   return (
