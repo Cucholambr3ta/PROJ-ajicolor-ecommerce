@@ -44,7 +44,10 @@ export function BannerCarousel({
   if (totalSlides === 0) return null;
 
   return (
-    <div className="banner-carousel w-screen relative left-1/2 -translate-x-1/2 mb-6 px-4 sm:px-8 lg:px-10">
+    <div
+      className="banner-carousel relative mb-6"
+      style={{ marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}
+    >
       <Splide
         className="aspect-[1920/420] h-auto"
         options={{

@@ -27,11 +27,11 @@ const ICONO_POR_TIPO: Record<TipoProducto, string> = {
  * Cada cuadro es un paralelogramo idéntico (mismo ancho, inclinado hacia
  * la izquierda de arriba a abajo), solo trasladado horizontalmente.
  */
-const SHAPE_TOP_PCT = 26.905;
-const SHAPE_BOTTOM_PCT = 91.429;
+const SHAPE_TOP_PCT = 26.667;
+const SHAPE_BOTTOM_PCT = 91.905;
 const SHAPE_WIDTH_PCT = 12.865;
 const SHAPE_SHEAR_PCT = 6.719; // cuánto más a la derecha está el borde superior que el inferior
-const SHAPE_PERIOD_PCT = 17.474;
+const SHAPE_PERIOD_PCT = 17.5;
 const SHAPE0_BOTTOM_LEFT_PCT = 6.615;
 
 function shapeCorners(index: number) {
@@ -122,7 +122,7 @@ function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: num
           className="absolute inset-0 transition-opacity duration-700"
           style={{ opacity: i === active ? 1 : 0, clipPath: productClipForGrownBox() }}
         >
-          <Image src={src} alt="" fill className="object-contain" sizes="20vw" />
+          <Image src={src} alt="" fill className="object-cover" sizes="20vw" />
         </div>
       ))}
     </div>

@@ -270,11 +270,13 @@ body[data-tema="kids"] .tienda-shell {
 }
 
 /* Carrusel de banners del home (Splide, ver BannerCarousel.tsx): un banner
-   a la vez, esquinas redondeadas, sin sombra de tarjeta — las flechas y
-   los puntos no traen estilo propio desde splide/css/core, así que se
-   pintan acá. Las flechas van DENTRO de la tarjeta, superpuestas a la
-   imagen cerca de cada borde (patrón de carrusel estándar) — pedido
-   explícito, no afuera en el margen del wrapper.
+   a la vez, pegado al borde de la pantalla (full-bleed, sin esquinas
+   redondeadas ni margen lateral — pedido explícito), sin sombra de
+   tarjeta. Las flechas y los puntos no traen estilo propio desde
+   splide/css/core, así que se pintan acá. Las flechas van DENTRO de la
+   tarjeta, superpuestas a la imagen cerca de cada borde (patrón de
+   carrusel estándar) — pedido explícito, no afuera en el margen del
+   wrapper (que ya no existe).
    splide/css/core no da altura a .splide__track (solo a .splide__list,
    al 100% de un padre que de por sí no mide nada) — normalmente ese alto
    lo pone el option `height` de Splide como inline style. Como acá el
@@ -288,14 +290,7 @@ body[data-tema="kids"] .tienda-shell {
 }
 
 .banner-carousel .splide__track {
-  border-radius: 28px;
   overflow: hidden;
-}
-
-@media (max-width: 620px) {
-  .banner-carousel .splide__track {
-    border-radius: 20px;
-  }
 }
 
 .banner-carousel .splide__arrow {
