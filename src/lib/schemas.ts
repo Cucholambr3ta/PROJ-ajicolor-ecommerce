@@ -31,6 +31,13 @@ export const checkoutAddressSchema = z.object({
   region: z.string().trim().min(1, "La región es obligatoria").max(100),
 });
 
+/** Checkout como invitado: email obligatorio para identificar/crear el
+ * Customer; password opcional (solo si marcó "crear una cuenta"). */
+export const checkoutGuestSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(200).optional(),
+});
+
 export const registerCustomerSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio").max(200),
   email: emailSchema,
@@ -60,6 +67,7 @@ export const createProductSchema = z.object({
   artista: z.string().trim().max(200),
   temporada: z.string().trim().max(100),
   categoria: z.enum(["Adulto", "Kids"]).optional(),
+  tipo: z.enum(["Polera", "Poleron", "Totebag", "Reloj", "Papeleria"]).optional(),
   precio: z.number().nonnegative(),
   costoUnitario: z.number().nonnegative().optional(),
   collectionId: z.string().trim().min(1).optional(),
@@ -68,7 +76,9 @@ export const createProductSchema = z.object({
       z.object({
         talle: z.string().trim().min(1),
         color: z.string().trim().min(1),
-        sku: z.string().trim().min(1),
+        // El SKU ya no lo escribe el admin — si no viene, el server lo
+        // genera (ver generarSku en actions/products.ts).
+        sku: z.string().trim().min(1).optional(),
         stock: z.number().int().nonnegative().optional(),
         stockMin: z.number().int().nonnegative().optional(),
       })
@@ -100,6 +110,8 @@ export const addressSchema = z.object({
   esPrincipal: z.boolean().optional(),
 });
 
+export const tipoProductoSchema = z.enum(["Polera", "Poleron", "Totebag", "Reloj", "Papeleria"]);
+
 export const createSupplierSchema = z.object({
   nombre: z.string().trim().min(1).max(200),
   contacto: z.string().trim().min(1).max(200),
@@ -107,6 +119,7 @@ export const createSupplierSchema = z.object({
   leadTimeDias: z.number().int().nonnegative(),
   costoBase: z.number().nonnegative(),
   calificacion: z.number().int().min(1).max(5),
+  tiposProducto: z.array(tipoProductoSchema).optional(),
 });
 
 export const adjustStockSchema = z.object({

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { formatCLP } from "@/lib/format";
 
+type TipoProducto = "Polera" | "Poleron" | "Totebag" | "Reloj" | "Papeleria";
+
 interface ItemInput {
   variantId: string;
   cantidad: number;
@@ -26,14 +28,22 @@ export default function ProduccionFormClient({
   variants,
   sugeridos,
 }: {
-  suppliers: { id: string; nombre: string }[];
-  variants: { id: string; label: string }[];
+  suppliers: { id: string; nombre: string; tiposProducto: TipoProducto[] }[];
+  variants: { id: string; label: string; tipo: TipoProducto }[];
   sugeridos: Sugerido[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [supplierId, setSupplierId] = useState(suppliers[0]?.id ?? "");
+  // Si hay sugeridos (pedidos pagados pendientes de lote), el tipo de
+  // producto de la primera variante sugerida sirve para preseleccionar un
+  // proveedor que ya declaró que provee ese tipo.
+  const tipoSugerido = sugeridos.length > 0 ? variants.find((v) => v.id === sugeridos[0].variantId)?.tipo : undefined;
+  const supplierSugerido = tipoSugerido
+    ? suppliers.find((s) => s.tiposProducto.includes(tipoSugerido))
+    : undefined;
+
+  const [supplierId, setSupplierId] = useState(supplierSugerido?.id ?? suppliers[0]?.id ?? "");
   const [fechaEstimada, setFechaEstimada] = useState("");
   const [items, setItems] = useState<ItemInput[]>(
     sugeridos.length > 0
@@ -64,6 +74,14 @@ export default function ProduccionFormClient({
 
   const totalUnidades = items.reduce((acc, i) => acc + i.cantidad, 0);
   const costoTotal = items.reduce((acc, i) => acc + i.cantidad * i.costoUnitario, 0);
+
+  // Tipos de producto presentes en el lote actual, para marcar en el select
+  // qué proveedores ya declararon que proveen alguno de esos tipos.
+  const tiposEnLote = new Set(
+    items
+      .map((i) => variants.find((v) => v.id === i.variantId)?.tipo)
+      .filter((t): t is TipoProducto => !!t)
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -162,9 +180,14 @@ export default function ProduccionFormClient({
                 onChange={(e) => setSupplierId(e.target.value)}
                 className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm dark:bg-neutral-800 dark:text-neutral-100"
               >
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>{s.nombre}</option>
-                ))}
+                {suppliers.map((s) => {
+                  const coincide = s.tiposProducto.some((t) => tiposEnLote.has(t));
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {s.nombre}{coincide ? " ✓ provee este tipo" : ""}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div>

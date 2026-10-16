@@ -1,30 +1,41 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { PALETA_KIDS, TALLES_KIDS } from "@/lib/kids";
+import { TALLES_KIDS } from "@/lib/kids";
 
-// Misma paleta adulto que usa la ficha pública (ProductoDetailClient.tsx) —
-// duplicada acá porque esa paleta vive en un componente de cliente de la
-// tienda, no en un módulo compartido como kids.ts. Si cambia una, cambia la
-// otra a mano (o se mueve a un solo lib/paletas.ts más adelante).
-const PALETA_ADULTO = [
-  "Negro", "Chocolate", "Azul Marino", "Gris Carbón", "Verde Bosque",
-  "Burdeo", "Morado", "Gris Melange", "Azul Royal", "Mostaza", "Arena", "Blanco",
-];
-const NOMBRES_KIDS = PALETA_KIDS.map((c) => c.nombre);
 const TALLES_ADULTO = ["S", "M", "L", "XL", "2XL"];
 
-interface VariantInput {
-  id?: string;
-  talle: string;
-  color: string;
-  sku: string;
-  stock: number;
-  stockMin: number;
+type TipoProducto = "Polera" | "Poleron" | "Totebag" | "Reloj" | "Papeleria";
+
+const TIPOS_PRODUCTO: { value: TipoProducto; label: string }[] = [
+  { value: "Polera", label: "Polera" },
+  { value: "Poleron", label: "Polerón" },
+  { value: "Totebag", label: "Totebag" },
+  { value: "Reloj", label: "Reloj" },
+  { value: "Papeleria", label: "Papelería" },
+];
+
+/** Solo Polera y Polerón usan talles de ropa — el resto (Totebag, Reloj,
+ * Papelería) es una sola variante por color, sin selector de talle. */
+function usaTalles(tipo: TipoProducto): boolean {
+  return tipo === "Polera" || tipo === "Poleron";
 }
+
+/** Reloj y Papelería no tienen color relevante para la compra — en vez del
+ * bloque de colores, se sube una galería libre de fotos (varios ángulos)
+ * y se crea una única variante automática color="Único"/talle="Única". */
+function usaGaleria(tipo: TipoProducto): boolean {
+  return tipo === "Reloj" || tipo === "Papeleria";
+}
+
+const COLOR_UNICO = "Único";
+
+/** Talle fijo interno para productos sin talles reales — ProductVariant.talle
+ * es obligatorio en el modelo, así que se usa este valor como "única talla". */
+const TALLE_UNICO = "Única";
 
 interface ProductImageData {
   id: string;
@@ -32,8 +43,44 @@ interface ProductImageData {
   alt: string | null;
 }
 
+interface ColorImageData {
+  id: string;
+  color: string;
+  lado: "Frente" | "Espalda";
+  url: string;
+}
+
+interface ColorData {
+  id: string;
+  nombre: string;
+  hex: string;
+  categoria: "Adulto" | "Kids";
+}
+
+/** Un color del producto cubre automáticamente todas las tallas activas de
+ * la categoría (S/M/L/XL/2XL, o las de Kids) — no se eligen a mano, solo se
+ * ajusta el stock de cada una. El SKU lo genera el servidor al guardar.
+ * idPorTalle guarda el id de la variante ya existente (modo edición) para
+ * que al guardar se actualice en vez de borrar y recrear — una variante
+ * recreada pierde su SKU y su id, rompiendo referencias de carrito/pedidos
+ * que ya apuntaban a ese id. */
+interface ColorBloque {
+  color: string;
+  stockPorTalle: Record<string, number>;
+  stockMinPorTalle: Record<string, number>;
+  idPorTalle: Record<string, string>;
+}
+
+/** Clave única por color+lado, usada tanto para las fotos ya subidas
+ * (modo edición) como para los archivos todavía en memoria (modo creación,
+ * antes de que exista un productId al que subirlos). */
+function claveFoto(color: string, lado: "Frente" | "Espalda") {
+  return `${color}__${lado}`;
+}
+
 export default function ProductoFormClient({
   initialData,
+  colores,
 }: {
   initialData?: {
     id: string;
@@ -44,10 +91,13 @@ export default function ProductoFormClient({
     artista: string;
     temporada: string;
     categoria: "Adulto" | "Kids";
+    tipo: TipoProducto;
     precio: number | any;
     variants: { id: string; talle: string; color: string; sku: string; stock: number; stockMin: number }[];
     images?: ProductImageData[];
+    colorImages?: ColorImageData[];
   };
+  colores: ColorData[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -71,38 +121,93 @@ export default function ProductoFormClient({
   const [artista, setArtista] = useState(initialData?.artista ?? "");
   const [temporada, setTemporada] = useState(initialData?.temporada ?? "");
   const [categoria, setCategoria] = useState<"Adulto" | "Kids">(initialData?.categoria ?? "Adulto");
+  const [tipo, setTipo] = useState<TipoProducto>(initialData?.tipo ?? "Polera");
   const [precio, setPrecio] = useState(initialData ? Number(initialData.precio) : 0);
-  const paletaActiva: string[] = categoria === "Kids" ? NOMBRES_KIDS : PALETA_ADULTO;
-  const tallesActivos: string[] = categoria === "Kids" ? [...TALLES_KIDS] : TALLES_ADULTO;
-  const [variants, setVariants] = useState<VariantInput[]>(
-    initialData?.variants.map((v) => ({
-      id: v.id,
-      talle: v.talle,
-      color: v.color,
-      sku: v.sku,
-      stock: v.stock,
-      stockMin: v.stockMin,
-    })) ?? [{ talle: "", color: "", sku: "", stock: 0, stockMin: 5 }]
-  );
+  const paletaActiva = useMemo(() => colores.filter((c) => c.categoria === categoria), [colores, categoria]);
+  const productoUsaTalles = usaTalles(tipo);
+  const productoUsaGaleria = usaGaleria(tipo);
+  const tallesActivos: string[] = !productoUsaTalles
+    ? [TALLE_UNICO]
+    : categoria === "Kids"
+      ? [...TALLES_KIDS]
+      : TALLES_ADULTO;
+  const [tieneFrenteEspalda, setTieneFrenteEspalda] = useState(false);
+
+  // Fotos ya subidas (modo edición, llegan del server) — se suben una por
+  // una al elegir el archivo.
+  const [colorImages, setColorImages] = useState<ColorImageData[]>(initialData?.colorImages ?? []);
+  const [uploadingColor, setUploadingColor] = useState<string | null>(null);
+
+  // Fotos en memoria (modo creación, sin productId todavía) — se suben
+  // todas juntas recién al enviar el formulario. previewUrls son
+  // object URLs locales, solo para mostrar la miniatura antes de subir.
+  const [fotosPendientes, setFotosPendientes] = useState<Map<string, File>>(new Map());
+  const [previewUrls, setPreviewUrls] = useState<Map<string, string>>(new Map());
+
+  // Agrupa las variantes existentes por color para armar los bloques
+  // iniciales (modo edición) — en creación arranca vacío, se van
+  // agregando colores con el botón. Las tallas no presentes en los datos
+  // existentes quedan en 0 (se completan igual, cubriendo todas las tallas
+  // activas de la categoría).
+  const [bloques, setBloques] = useState<ColorBloque[]>(() => {
+    if (!initialData) return [];
+    const porColor = new Map<
+      string,
+      { stock: Record<string, number>; stockMin: Record<string, number>; ids: Record<string, string> }
+    >();
+    for (const v of initialData.variants) {
+      const entry = porColor.get(v.color) ?? { stock: {}, stockMin: {}, ids: {} };
+      entry.stock[v.talle] = v.stock;
+      entry.stockMin[v.talle] = v.stockMin;
+      entry.ids[v.talle] = v.id;
+      porColor.set(v.color, entry);
+    }
+    return Array.from(porColor.entries()).map(([color, { stock, stockMin, ids }]) => ({
+      color,
+      stockPorTalle: stock,
+      stockMinPorTalle: stockMin,
+      idPorTalle: ids,
+    }));
+  });
+
   const [error, setError] = useState("");
   const [images, setImages] = useState<ProductImageData[]>(initialData?.images ?? []);
   const [uploading, setUploading] = useState(false);
 
+  // Galería en memoria (modo creación, sin productId todavía) — mismo
+  // patrón que fotosPendientes/previewUrls para color, pero para Reloj y
+  // Papelería (sin color relevante, varios ángulos libres).
+  const [galeriaPendiente, setGaleriaPendiente] = useState<File[]>([]);
+  const [previewsGaleria, setPreviewsGaleria] = useState<string[]>([]);
+
   async function handleUploadImages(files: FileList | null) {
-    if (!files || files.length === 0 || !initialData) return;
+    if (!files || files.length === 0) return;
+
+    if (!isEdit) {
+      const nuevos = Array.from(files);
+      setGaleriaPendiente((prev) => [...prev, ...nuevos]);
+      setPreviewsGaleria((prev) => [...prev, ...nuevos.map((f) => URL.createObjectURL(f))]);
+      return;
+    }
+
     setUploading(true);
     setError("");
     try {
       const { addProductImages } = await import("@/lib/actions/products");
       const formData = new FormData();
       for (const file of Array.from(files)) formData.append("files", file);
-      const created = await addProductImages(initialData.id, formData);
+      const created = await addProductImages(initialData!.id, formData);
       setImages((prev) => [...prev, ...created]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al subir imágenes");
     } finally {
       setUploading(false);
     }
+  }
+
+  function handleRemovePendingGaleria(index: number) {
+    setGaleriaPendiente((prev) => prev.filter((_, i) => i !== index));
+    setPreviewsGaleria((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleRemoveImage(imageId: string) {
@@ -115,19 +220,90 @@ export default function ProductoFormClient({
     }
   }
 
-  function addVariant() {
-    setVariants([...variants, { talle: "", color: "", sku: "", stock: 0, stockMin: 5 }]);
+  async function handleUploadColorImage(color: string, lado: "Frente" | "Espalda", file: File | null) {
+    if (!file) return;
+    const key = claveFoto(color, lado);
+
+    if (!isEdit) {
+      // Modo creación: el archivo queda en memoria, no se sube todavía —
+      // se sube junto con el producto al enviar el formulario.
+      setFotosPendientes((prev) => new Map(prev).set(key, file));
+      setPreviewUrls((prev) => new Map(prev).set(key, URL.createObjectURL(file)));
+      return;
+    }
+
+    setUploadingColor(key);
+    setError("");
+    try {
+      const { setProductColorImage } = await import("@/lib/actions/products");
+      const formData = new FormData();
+      formData.append("file", file);
+      const saved = await setProductColorImage(initialData!.id, color, lado, formData);
+      setColorImages((prev) => [...prev.filter((ci) => !(ci.color === color && ci.lado === lado)), saved]);
+      // El server completa disenoUrl solo si estaba vacío (ver
+      // setProductColorImage) — reflejarlo acá evita que el campo override
+      // de edición muestre un valor viejo/vacío hasta recargar la página.
+      if (lado === "Frente" && !disenoUrl) setDisenoUrl(saved.url);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al subir la foto");
+    } finally {
+      setUploadingColor(null);
+    }
   }
 
-  function removeVariant(index: number) {
-    if (variants.length <= 1) return;
-    setVariants(variants.filter((_, i) => i !== index));
+  function handleRemovePendingFoto(color: string, lado: "Frente" | "Espalda") {
+    const key = claveFoto(color, lado);
+    setFotosPendientes((prev) => {
+      const next = new Map(prev);
+      next.delete(key);
+      return next;
+    });
+    setPreviewUrls((prev) => {
+      const next = new Map(prev);
+      next.delete(key);
+      return next;
+    });
   }
 
-  function updateVariant(index: number, field: keyof VariantInput, value: string | number) {
-    const updated = [...variants];
-    updated[index] = { ...updated[index], [field]: value };
-    setVariants(updated);
+  async function handleRemoveColorImage(id: string) {
+    try {
+      const { removeProductColorImage } = await import("@/lib/actions/products");
+      await removeProductColorImage(id);
+      setColorImages((prev) => prev.filter((ci) => ci.id !== id));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al eliminar la foto");
+    }
+  }
+
+  const coloresUsadosEnBloques = useMemo(() => new Set(bloques.map((b) => b.color)), [bloques]);
+  const coloresDisponiblesParaAgregar = useMemo(
+    () => paletaActiva.filter((c) => !coloresUsadosEnBloques.has(c.nombre)),
+    [paletaActiva, coloresUsadosEnBloques]
+  );
+
+  function addBloque() {
+    const siguienteColor = coloresDisponiblesParaAgregar[0]?.nombre ?? "";
+    if (!siguienteColor) return;
+    const stockPorTalle = Object.fromEntries(tallesActivos.map((t) => [t, 0]));
+    const stockMinPorTalle = Object.fromEntries(tallesActivos.map((t) => [t, 5]));
+    setBloques((prev) => [...prev, { color: siguienteColor, stockPorTalle, stockMinPorTalle, idPorTalle: {} }]);
+  }
+
+  function removeBloque(color: string) {
+    setBloques((prev) => prev.filter((b) => b.color !== color));
+    // Limpia también fotos pendientes/subidas de ese color.
+    handleRemovePendingFoto(color, "Frente");
+    handleRemovePendingFoto(color, "Espalda");
+    if (isEdit) {
+      const frente = colorImages.find((ci) => ci.color === color && ci.lado === "Frente");
+      const espalda = colorImages.find((ci) => ci.color === color && ci.lado === "Espalda");
+      if (frente) handleRemoveColorImage(frente.id);
+      if (espalda) handleRemoveColorImage(espalda.id);
+    }
+  }
+
+  function updateBloqueColor(index: number, nuevoColor: string) {
+    setBloques((prev) => prev.map((b, i) => (i === index ? { ...b, color: nuevoColor } : b)));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -139,11 +315,40 @@ export default function ProductoFormClient({
       return;
     }
 
-    const hasEmptyVariant = variants.some((v) => !v.talle.trim() || !v.color.trim() || !v.sku.trim());
-    if (hasEmptyVariant) {
-      setError("Todas las variantes deben tener talle, color y SKU");
+    if (!productoUsaGaleria && bloques.length === 0) {
+      setError("Agrega al menos un color para poder vender este producto");
       return;
     }
+
+    // Reloj/Papelería: sin colores, una sola variante automática. Si ya
+    // existía (modo edición), se preserva su id/SKU igual que cualquier
+    // otra variante — initialData.variants ya la trae agrupada bajo
+    // color="Único" en el useState inicial de bloques.
+    const bloquesEfectivos: ColorBloque[] = productoUsaGaleria
+      ? bloques.length > 0
+        ? bloques
+        : [
+            {
+              color: COLOR_UNICO,
+              stockPorTalle: { [TALLE_UNICO]: 0 },
+              stockMinPorTalle: { [TALLE_UNICO]: 5 },
+              idPorTalle: {},
+            },
+          ]
+      : bloques;
+
+    // El SKU lo genera el server al crear variantes nuevas. Si la variante
+    // ya existía (modo edición), se manda su id para que se actualice en
+    // vez de borrarse y recrearse con un id/SKU distinto.
+    const variantesConDatos = bloquesEfectivos.flatMap((b) =>
+      tallesActivos.map((talle) => ({
+        id: b.idPorTalle[talle],
+        talle,
+        color: b.color,
+        stock: b.stockPorTalle[talle] ?? 0,
+        stockMin: b.stockMinPorTalle[talle] ?? 5,
+      }))
+    );
 
     try {
       if (isEdit) {
@@ -156,22 +361,32 @@ export default function ProductoFormClient({
           artista,
           temporada,
           categoria,
+          tipo,
           precio,
-          variants,
+          variants: variantesConDatos,
         });
       } else {
-        const { createProduct } = await import("@/lib/actions/products");
-        await createProduct({
-          nombre,
-          slug,
-          descripcion,
-          disenoUrl,
-          artista,
-          temporada,
-          categoria,
-          precio,
-          variants,
-        });
+        const { createProductWithPhotos } = await import("@/lib/actions/products");
+        const formData = new FormData();
+        formData.append(
+          "data",
+          JSON.stringify({
+            nombre,
+            slug,
+            descripcion,
+            artista,
+            temporada,
+            categoria,
+            tipo,
+            precio,
+            variants: variantesConDatos,
+          })
+        );
+        for (const [key, file] of Array.from(fotosPendientes.entries())) {
+          formData.append(`foto__${key}`, file);
+        }
+        galeriaPendiente.forEach((file, i) => formData.append(`galeria__${i}`, file));
+        await createProductWithPhotos(formData);
       }
       startTransition(() => router.push("/admin/catalogo"));
     } catch (err: unknown) {
@@ -235,32 +450,64 @@ export default function ProductoFormClient({
                 type="text"
                 value={temporada}
                 onChange={(e) => setTemporada(e.target.value)}
+                placeholder="ej. Bandas 2026"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
+              <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
+                Etiqueta del drop/colección — se muestra bajo el nombre en la tienda. Opcional.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Tipo de producto</label>
+              <select
+                value={tipo}
+                onChange={(e) => {
+                  setTipo(e.target.value as TipoProducto);
+                  setBloques([]);
+                }}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+              >
+                {TIPOS_PRODUCTO.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
+                Qué es físicamente (para catalogar en /categorias). Polera y Polerón usan tallas; el resto, una sola variante por color.
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Categoría</label>
               <select
                 value={categoria}
-                onChange={(e) => setCategoria(e.target.value as "Adulto" | "Kids")}
+                onChange={(e) => {
+                  setCategoria(e.target.value as "Adulto" | "Kids");
+                  setBloques([]);
+                }}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               >
                 <option value="Adulto">Adulto</option>
                 <option value="Kids">Kids</option>
               </select>
               <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
-                Determina la paleta de colores de las variantes y en qué sección aparece (/ o /kids).
+                Determina la paleta de colores y en qué sección aparece (/ o /kids). Cambiarla reinicia los colores cargados abajo.
               </p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">URL del Diseño</label>
-              <input
-                type="text"
-                value={disenoUrl}
-                onChange={(e) => setDisenoUrl(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-              />
-            </div>
+            {isEdit && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">URL del Diseño</label>
+                <input
+                  type="text"
+                  value={disenoUrl}
+                  onChange={(e) => setDisenoUrl(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                />
+                <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
+                  Se completa sola con la primera foto de frente que subas abajo — solo tocar si necesitás forzar otra imagen.
+                </p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">Precio</label>
               <input
@@ -268,7 +515,7 @@ export default function ProductoFormClient({
                 min={0}
                 value={precio}
                 onChange={(e) => setPrecio(parseFloat(e.target.value) || 0)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                className="no-spinner w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
             </div>
             <div className="md:col-span-2">
@@ -283,9 +530,18 @@ export default function ProductoFormClient({
           </div>
         </Card>
 
-        {isEdit && (
+        {(isEdit || productoUsaGaleria) && (
           <Card className="p-6 mb-6">
-            <h2 className="font-semibold text-gray-700 mb-4 dark:text-neutral-200">Galería de imágenes</h2>
+            <h2 className="font-semibold text-gray-700 mb-1 dark:text-neutral-200">
+              {productoUsaGaleria ? "Galería de fotos" : "Galería de imágenes"}
+            </h2>
+            {productoUsaGaleria && (
+              <p className="text-xs text-gray-400 mb-4 dark:text-neutral-500">
+                {tipo === "Reloj" ? "Reloj" : "Papelería"} no usa colores — subí todas las fotos que necesites (distintos
+                ángulos del mismo producto).
+                {!isEdit && " Se suben junto con el producto al hacer clic en \"Crear producto\"."}
+              </p>
+            )}
             <div className="flex flex-wrap gap-3 mb-4">
               {images.map((img) => (
                 <div key={img.id} className="relative w-24 h-24 thick-border overflow-hidden group">
@@ -294,6 +550,22 @@ export default function ProductoFormClient({
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(img.id)}
+                    className="absolute top-0 right-0 bg-red-500 text-white w-6 h-6 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              {previewsGaleria.map((url, i) => (
+                <div key={`pending-${i}`} className="relative w-24 h-24 thick-border overflow-hidden group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <span className="absolute bottom-0 left-0 right-0 bg-ajicolor-yellow text-ajicolor-ink text-[8px] font-bold text-center uppercase">
+                    Pendiente
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePendingGaleria(i)}
                     className="absolute top-0 right-0 bg-red-500 text-white w-6 h-6 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100"
                   >
                     ✕
@@ -315,107 +587,117 @@ export default function ProductoFormClient({
           </Card>
         )}
 
+        {!productoUsaGaleria && (
         <Card className="p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-700 dark:text-neutral-200">Variantes</h2>
-            {isEdit && (
-              <button
-                type="button"
-                onClick={addVariant}
-                className="px-3 py-1.5 rounded-md btn-block bg-white dark:bg-neutral-900"
-              >
-                + Agregar variante
-              </button>
-            )}
-          </div>
-          {!isEdit && (
-            <p className="text-xs text-gray-400 mb-4 dark:text-neutral-500">Las variantes se crean al guardar el producto.</p>
-          )}
-          {isEdit && variants.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-neutral-400">No hay variantes.</p>
-          ) : isEdit ? (
-            <div className="space-y-4">
-              {variants.map((v, i) => (
-                <div key={i} className="grid grid-cols-5 gap-3 items-end">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Talle</label>
-                    <select
-                      value={v.talle}
-                      onChange={(e) => updateVariant(i, "talle", e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                    >
-                      <option value="">Seleccionar...</option>
-                      {tallesActivos.map((talle) => (
-                        <option key={talle} value={talle}>
-                          {talle}
-                        </option>
-                      ))}
-                      {v.talle && !tallesActivos.includes(v.talle) && (
-                        <option value={v.talle}>{v.talle} (fuera de rango)</option>
-                      )}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Color</label>
-                    <select
-                      value={v.color}
-                      onChange={(e) => updateVariant(i, "color", e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                    >
-                      <option value="">Seleccionar...</option>
-                      {paletaActiva.map((nombre) => (
-                        <option key={nombre} value={nombre}>
-                          {nombre}
-                        </option>
-                      ))}
-                      {v.color && !paletaActiva.includes(v.color) && (
-                        <option value={v.color}>{v.color} (fuera de paleta)</option>
-                      )}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">SKU</label>
-                    <input
-                      type="text"
-                      value={v.sku}
-                      onChange={(e) => updateVariant(i, "sku", e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Stock</label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={v.stock}
-                      onChange={(e) => updateVariant(i, "stock", parseInt(e.target.value) || 0)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Mín.</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={v.stockMin}
-                        onChange={(e) => updateVariant(i, "stockMin", parseInt(e.target.value) || 0)}
+          <h2 className="font-semibold text-gray-700 mb-1 dark:text-neutral-200">Colores, fotos y tallas</h2>
+          <p className="text-xs text-gray-400 mb-4 dark:text-neutral-500">
+            Un color solo aparece como opción de compra en la ficha pública si tiene al menos la foto de frente.
+            {!isEdit && " Las fotos se suben junto con el producto al hacer clic en \"Crear producto\"."}
+          </p>
+
+          <label className="flex items-center gap-2 mb-5 text-sm font-medium dark:text-neutral-200">
+            <input
+              type="checkbox"
+              checked={tieneFrenteEspalda}
+              onChange={(e) => setTieneFrenteEspalda(e.target.checked)}
+            />
+            Este producto tiene estampado de frente y espalda
+          </label>
+
+          <div className="space-y-5">
+            {bloques.map((bloque, bi) => {
+              const frente = colorImages.find((ci) => ci.color === bloque.color && ci.lado === "Frente");
+              const espalda = colorImages.find((ci) => ci.color === bloque.color && ci.lado === "Espalda");
+              const opcionesColor = [
+                ...paletaActiva.filter((c) => c.nombre === bloque.color || !coloresUsadosEnBloques.has(c.nombre)),
+              ];
+              return (
+                <div key={bi} className="border-2 border-gray-200 dark:border-neutral-700 rounded-md p-4">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="w-48">
+                      <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Color</label>
+                      <select
+                        value={bloque.color}
+                        onChange={(e) => updateBloqueColor(bi, e.target.value)}
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                      />
+                      >
+                        {opcionesColor.map((c) => (
+                          <option key={c.id} value={c.nombre}>
+                            {c.nombre}
+                          </option>
+                        ))}
+                        {bloque.color && !paletaActiva.some((c) => c.nombre === bloque.color) && (
+                          <option value={bloque.color}>{bloque.color} (fuera de paleta)</option>
+                        )}
+                      </select>
                     </div>
                     <button
                       type="button"
-                      onClick={() => removeVariant(i)}
-                      className="self-end px-2 py-2 rounded-md text-red-500 hover:bg-red-50 text-xs dark:text-red-400 dark:hover:bg-red-950"
+                      onClick={() => removeBloque(bloque.color)}
+                      className="text-red-500 hover:bg-red-50 dark:hover:bg-red-950 px-2 py-1 text-xs mt-5"
                     >
-                      ✕
+                      Quitar color ✕
                     </button>
                   </div>
+
+                  <div className="flex gap-4 mb-4">
+                    <ColorImageSlot
+                      label="Frente"
+                      imageUrl={frente?.url ?? previewUrls.get(claveFoto(bloque.color, "Frente"))}
+                      hasPending={fotosPendientes.has(claveFoto(bloque.color, "Frente"))}
+                      uploading={uploadingColor === claveFoto(bloque.color, "Frente")}
+                      onUpload={(file) => handleUploadColorImage(bloque.color, "Frente", file)}
+                      onRemove={() =>
+                        isEdit
+                          ? frente && handleRemoveColorImage(frente.id)
+                          : handleRemovePendingFoto(bloque.color, "Frente")
+                      }
+                    />
+                    {tieneFrenteEspalda && (
+                      <ColorImageSlot
+                        label="Espalda"
+                        imageUrl={espalda?.url ?? previewUrls.get(claveFoto(bloque.color, "Espalda"))}
+                        hasPending={fotosPendientes.has(claveFoto(bloque.color, "Espalda"))}
+                        uploading={uploadingColor === claveFoto(bloque.color, "Espalda")}
+                        onUpload={(file) => handleUploadColorImage(bloque.color, "Espalda", file)}
+                        onRemove={() =>
+                          isEdit
+                            ? espalda && handleRemoveColorImage(espalda.id)
+                            : handleRemovePendingFoto(bloque.color, "Espalda")
+                        }
+                      />
+                    )}
+                  </div>
+
+                  <p className="text-xs text-gray-400 dark:text-neutral-500">
+                    {productoUsaTalles
+                      ? `Tallas de ${categoria} (${tallesActivos.join(", ")}) — se crean automáticamente, bajo pedido (sin límite de stock).`
+                      : "Este tipo de producto no usa tallas — una sola variante por color, bajo pedido."}
+                  </p>
                 </div>
-              ))}
-            </div>
-          ) : null}
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={addBloque}
+            disabled={coloresDisponiblesParaAgregar.length === 0}
+            className="mt-4 px-4 py-2 rounded-md btn-block bg-white dark:bg-neutral-900 disabled:opacity-40"
+          >
+            + Agregar color
+          </button>
+          {paletaActiva.length === 0 && (
+            <p className="text-xs text-ajicolor-magenta mt-2">
+              No hay colores cargados para {categoria} — agrégalos en{" "}
+              <Link href="/admin/colores" className="underline">
+                Colores
+              </Link>
+              .
+            </p>
+          )}
         </Card>
+        )}
 
         {error && <p className="text-red-500 text-sm mb-4 dark:text-red-400">{error}</p>}
 
@@ -435,6 +717,57 @@ export default function ProductoFormClient({
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function ColorImageSlot({
+  label,
+  imageUrl,
+  hasPending,
+  uploading,
+  onUpload,
+  onRemove,
+}: {
+  label: string;
+  imageUrl: string | undefined;
+  hasPending: boolean;
+  uploading: boolean;
+  onUpload: (file: File | null) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="shrink-0">
+      <p className="text-[10px] text-gray-500 dark:text-neutral-400 mb-1">{label}</p>
+      {imageUrl ? (
+        <div className="relative w-20 h-20 thick-border overflow-hidden group">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imageUrl} alt={label} className="w-full h-full object-cover" />
+          {hasPending && (
+            <span className="absolute bottom-0 left-0 right-0 bg-ajicolor-yellow text-ajicolor-ink text-[8px] font-bold text-center uppercase">
+              Pendiente
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onRemove}
+            className="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100"
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <label className="flex items-center justify-center w-20 h-20 thick-border border-dashed text-[10px] text-gray-400 dark:text-neutral-500 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800">
+          {uploading ? "..." : "+ Subir"}
+          <input
+            type="file"
+            accept="image/*"
+            disabled={uploading}
+            onChange={(e) => onUpload(e.target.files?.[0] ?? null)}
+            className="hidden"
+          />
+        </label>
+      )}
     </div>
   );
 }

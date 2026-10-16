@@ -92,6 +92,11 @@ export async function Footer() {
           <h3 className="text-xs font-bold uppercase tracking-widest mb-4 text-ajicolor-purple dark:text-neutral-100">Ayuda</h3>
           <ul className="space-y-2 text-sm text-ajicolor-purple dark:text-neutral-300">
             <li>
+              <Link href="/pedido/buscar" className="hover:text-ajicolor-magenta">
+                Seguimiento de pedido
+              </Link>
+            </li>
+            <li>
               <Link href="/contacto" className="hover:text-ajicolor-magenta">
                 Contacto
               </Link>

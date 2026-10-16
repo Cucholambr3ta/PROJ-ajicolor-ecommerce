@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import type { Session } from "next-auth";
 
 /**
@@ -31,4 +32,25 @@ export async function requireCliente(): Promise<string> {
     throw new Error("Debes iniciar sesión como cliente");
   }
   return session.user.id;
+}
+
+/**
+ * Confirma acceso a un pedido propio sin exigir sesión — para clientes que
+ * compraron como invitado (carrito libre, ver checkout() en cart.ts) y
+ * nunca tuvieron cuenta. Dos formas válidas de probar "es tu pedido":
+ * sesión de cliente cuyo id coincide con order.customerId, o el email
+ * exacto del dueño del pedido (el mismo dato que ya recibió por correo al
+ * confirmar la compra). Ninguna de las dos expone datos de otros pedidos.
+ */
+export async function requireOrderAccess(orderId: string, emailInput?: string): Promise<void> {
+  const session = await auth();
+  const order = await prisma.order.findUnique({ where: { id: orderId }, include: { customer: true } });
+  if (!order) throw new Error("Pedido no encontrado");
+
+  if (session?.user?.rol === "Cliente" && session.user.id === order.customerId) return;
+
+  const email = emailInput?.trim().toLowerCase();
+  if (email && email === order.customer.email.toLowerCase()) return;
+
+  throw new Error("No autorizado para ver este pedido");
 }

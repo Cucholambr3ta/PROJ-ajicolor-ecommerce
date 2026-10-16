@@ -7,9 +7,9 @@ export default auth((req) => {
   const rol = req.auth?.user?.rol;
   const isAdmin = !!rol && ADMIN_ROLES.includes(rol as (typeof ADMIN_ROLES)[number]);
   const isOnAdmin = req.nextUrl.pathname.startsWith("/admin");
-  const isOnClienteArea =
-    req.nextUrl.pathname.startsWith("/cuenta") ||
-    req.nextUrl.pathname.startsWith("/checkout");
+  // /checkout es público a propósito — carrito libre, se puede comprar
+  // como invitado (ver checkout() en cart.ts). Solo /cuenta exige sesión.
+  const isOnClienteArea = req.nextUrl.pathname.startsWith("/cuenta");
 
   if (isOnAdmin && (!isLoggedIn || !isAdmin)) {
     const url = new URL("/login", req.nextUrl.origin);
@@ -27,5 +27,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin/:path*", "/cuenta/:path*", "/checkout/:path*", "/pedido/:path*"],
+  matcher: ["/admin/:path*", "/cuenta/:path*"],
 };
