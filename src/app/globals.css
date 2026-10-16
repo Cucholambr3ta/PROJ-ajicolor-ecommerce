@@ -272,20 +272,10 @@ body[data-tema="kids"] .tienda-shell {
 /* Carrusel de banners del home (Splide, ver BannerCarousel.tsx): un banner
    a la vez, esquinas redondeadas, sin sombra de tarjeta — las flechas y
    los puntos no traen estilo propio desde splide/css/core, así que se
-   pintan acá. El wrapper .banner-carousel trae padding horizontal
-   (px-8/sm:px-12/lg:px-16 en el JSX) para dejarles espacio a los lados
-   de la tarjeta en vez de flotar encima de la imagen — el padding de
-   cada breakpoint está calculado para que la flecha (ver abajo) quepa
-   centrada ahí sin salirse de la pantalla por el costado.
-   splide/css/core fija `.splide { position: relative }` sin que se pueda
-   desactivar, así que .splide__arrow (descendiente de .splide, no de
-   .banner-carousel) siempre resuelve su position:absolute contra .splide
-   — que mide lo mismo que la tarjeta. Por eso las flechas se empujan con
-   `left`/`right` NEGATIVOS, hacia afuera de esa caja y dentro del padding
-   del wrapper, en vez de con valores positivos (que las dejaban encima
-   de la imagen). z-index explícito porque .splide__track trae z-index:0
-   y, al venir después en el DOM, tapaba las flechas. */
-/* splide/css/core no da altura a .splide__track (solo a .splide__list,
+   pintan acá. Las flechas van DENTRO de la tarjeta, superpuestas a la
+   imagen cerca de cada borde (patrón de carrusel estándar) — pedido
+   explícito, no afuera en el margen del wrapper.
+   splide/css/core no da altura a .splide__track (solo a .splide__list,
    al 100% de un padre que de por sí no mide nada) — normalmente ese alto
    lo pone el option `height` de Splide como inline style. Como acá el
    alto real lo da aspect-[1920/420] en el componente <Splide> (así la
@@ -313,8 +303,8 @@ body[data-tema="kids"] .tienda-shell {
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   background: rgba(255, 255, 255, 0.88);
   border: none;
   border-radius: 9999px;
@@ -327,39 +317,17 @@ body[data-tema="kids"] .tienda-shell {
 }
 
 .banner-carousel .splide__arrow svg {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   fill: #0a0a0a;
 }
 
-/* Gutter 32px (px-8), flecha 28px: centrada en -30px. */
 .banner-carousel .splide__arrow--prev {
-  left: -30px;
+  left: 12px;
 }
 
 .banner-carousel .splide__arrow--next {
-  right: -30px;
-}
-
-@media (min-width: 640px) {
-  .banner-carousel .splide__arrow {
-    width: 40px;
-    height: 40px;
-  }
-
-  .banner-carousel .splide__arrow svg {
-    width: 10px;
-    height: 10px;
-  }
-
-  /* Gutter 48px (sm:px-12), flecha 40px: centrada en -44px. */
-  .banner-carousel .splide__arrow--prev {
-    left: -44px;
-  }
-
-  .banner-carousel .splide__arrow--next {
-    right: -44px;
-  }
+  right: 12px;
 }
 
 @media (min-width: 1024px) {
@@ -368,13 +336,17 @@ body[data-tema="kids"] .tienda-shell {
     height: 44px;
   }
 
-  /* Gutter 64px (lg:px-16), flecha 44px: centrada en -54px. */
+  .banner-carousel .splide__arrow svg {
+    width: 10px;
+    height: 10px;
+  }
+
   .banner-carousel .splide__arrow--prev {
-    left: -54px;
+    left: 20px;
   }
 
   .banner-carousel .splide__arrow--next {
-    right: -54px;
+    right: 20px;
   }
 }
 
