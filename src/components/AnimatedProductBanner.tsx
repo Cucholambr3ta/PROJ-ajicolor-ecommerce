@@ -51,33 +51,6 @@ function shapeBoundingBox(index: number) {
   return { left, top: SHAPE_TOP_PCT, width: right - left, height: SHAPE_BOTTOM_PCT - SHAPE_TOP_PCT };
 }
 
-function lerp(a: { x: number; y: number }, b: { x: number; y: number }, t: number) {
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
-}
-
-/**
- * Franja angosta a lo largo del borde DERECHO (TR→BR) e INFERIOR
- * (BR→BL) del paralelogramo — pedido explícito: esos dos bordes deben
- * quedar por ENCIMA del producto (efecto 3D de "marco insertado"). Se
- * arma como el borde real (TR, BR, BL fijos) más una línea paralela
- * hacia adentro (STRIP_PCT del lado) — es el mismo panel del fondo,
- * clippeado a esta franja, repetido en una capa superior.
- */
-const STRIP_PCT = 0.14;
-function edgeStripClip(index: number) {
-  const { tl, tr, br, bl } = shapeCorners(index);
-  const TL = { x: tl, y: SHAPE_TOP_PCT };
-  const TR = { x: tr, y: SHAPE_TOP_PCT };
-  const BR = { x: br, y: SHAPE_BOTTOM_PCT };
-  const BL = { x: bl, y: SHAPE_BOTTOM_PCT };
-
-  const trIn = lerp(TR, TL, STRIP_PCT);
-  const brIn = lerp(BR, TL, STRIP_PCT);
-  const blIn = lerp(BL, TR, STRIP_PCT);
-
-  return `polygon(${TR.x}% ${TR.y}%, ${BR.x}% ${BR.y}%, ${BL.x}% ${BL.y}%, ${blIn.x}% ${blIn.y}%, ${brIn.x}% ${brIn.y}%, ${trIn.x}% ${trIn.y}%)`;
-}
-
 /**
  * Capa frontal (la foto) separada por completo de la capa geométrica
  * del panel — no comparten clip-path ni recorte. La foto usa
@@ -89,11 +62,6 @@ function edgeStripClip(index: number) {
  * productos compartan una misma línea de base visual, pedido explícito.
  */
 const EXTRA_PCT = 22;
-// Un poco de sobra también hacia abajo (mucho menos que EXTRA_PCT) para
-// que la franja del borde inferior (STRIP_PCT) tenga algo real que
-// "tapar" — si el producto termina justo en el borde del panel, la
-// franja encima no se nota porque no hay nada debajo para cubrir.
-const EXTRA_PCT_BOTTOM = 10;
 
 function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: number; products: SlotProduct[] }) {
   const [active, setActive] = useState(0);
@@ -108,12 +76,11 @@ function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: num
 
   const extraX = (box.width * EXTRA_PCT) / 100;
   const extraTop = (box.height * EXTRA_PCT) / 100;
-  const extraBottom = (box.height * EXTRA_PCT_BOTTOM) / 100;
   const boxStyle = {
     left: `${box.left - extraX}%`,
     width: `${box.width + extraX * 2}%`,
     top: `${box.top - extraTop}%`,
-    bottom: `${100 - SHAPE_BOTTOM_PCT - extraBottom}%`,
+    bottom: `${100 - SHAPE_BOTTOM_PCT}%`,
   };
 
   return (
@@ -154,25 +121,6 @@ export function AnimatedProductBanner({
           libre para sobresalir arriba y a los costados. */}
       {tipos.map((tipo, i) => (
         <ProductSlot key={tipo} tipo={tipo} index={i} products={productosPorTipo[tipo]} />
-      ))}
-      {/* Capa superior: una franja angosta del mismo panel, repetida por
-          encima de las fotos (z-30) solo en el borde derecho/inferior de
-          cada cuadro — pedido explícito, efecto 3D de "marco insertado"
-          sobre el producto. Es background-image (no <Image>, para poder
-          clippear 5 copias independientes del mismo PNG sin 5 <img>
-          separados) estirado al tamaño exacto del banner completo, así
-          background-position queda alineado 1:1 con la capa de fondo. */}
-      {tipos.map((_, i) => (
-        <div
-          key={`strip-${i}`}
-          className="absolute inset-0 z-30 pointer-events-none"
-          style={{
-            backgroundImage: "url('/banners/FONDO BANNER PRODUCTOS ANIMACION_.png')",
-            backgroundSize: "100% 100%",
-            backgroundPosition: "center",
-            clipPath: edgeStripClip(i),
-          }}
-        />
       ))}
     </Link>
   );
