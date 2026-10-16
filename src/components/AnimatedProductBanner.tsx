@@ -82,10 +82,10 @@ const REL_BL = 0;
  * esa caja más grande (0-100% ya no es el cuadro, es cuadro + margen).
  */
 const GROW_X_PCT = 8; // cuánto crece el ancho hacia cada lado, en % del cuadro original
-const GROW_Y_PCT = 40; // cuánto crece el alto hacia arriba, en % del cuadro original — el máximo
-// antes de que la caja se salga por completo del banner (ver SHAPE_TOP_PCT);
-// un poco de superposición con el título "PRODUCTOS DEL AJÍ" es aceptable,
-// que no se corten las prendas es la prioridad (pedido explícito).
+const GROW_Y_PCT = 15; // cuánto crece el alto hacia arriba, en % del cuadro original —
+// con object-contain (no recorta nunca, ver más abajo) no hace falta tanto
+// margen como con object-cover; un valor bajo acerca los productos al
+// cuadro real y los aleja del título "PRODUCTOS DEL AJÍ" (pedido explícito).
 const GROW_X_SCALE = 1 + (2 * GROW_X_PCT) / 100;
 const GROW_Y_SCALE = 1 + GROW_Y_PCT / 100; // solo crece hacia ARRIBA, no hacia abajo
 function toGrownBoxPctX(originalPct: number) {
