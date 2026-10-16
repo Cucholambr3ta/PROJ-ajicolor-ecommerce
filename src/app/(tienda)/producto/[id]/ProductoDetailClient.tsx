@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { PALETA_KIDS, TALLES_KIDS, COLOR_HEX_KIDS } from "@/lib/kids";
+import { TALLES_KIDS } from "@/lib/kids";
 
 interface Variant {
   id: string;
@@ -18,6 +18,19 @@ interface ProductImage {
   alt: string | null;
 }
 
+interface ColorImage {
+  color: string;
+  lado: "Frente" | "Espalda";
+  url: string;
+}
+
+interface ColorInfo {
+  nombre: string;
+  hex: string;
+}
+
+type TipoProducto = "Polera" | "Poleron" | "Totebag" | "Reloj" | "Papeleria";
+
 interface Product {
   id: string;
   nombre: string;
@@ -26,10 +39,40 @@ interface Product {
   artista: string;
   temporada: string;
   categoria: "Adulto" | "Kids";
+  tipo: TipoProducto;
   precio: number | any;
   variants: Variant[];
   images?: ProductImage[];
+  colorImages: ColorImage[];
 }
+
+/** Solo Polera y Polerón usan talles de ropa — ver mismo criterio en el
+ * formulario admin (ProductoFormClient.tsx). */
+function usaTalles(tipo: TipoProducto): boolean {
+  return tipo === "Polera" || tipo === "Poleron";
+}
+
+/** Reloj y Papelería no tienen color relevante para la compra — la ficha
+ * no muestra el selector de color, solo la galería general de fotos. */
+function usaGaleria(tipo: TipoProducto): boolean {
+  return tipo === "Reloj" || tipo === "Papeleria";
+}
+
+const ESPECIFICACION_POR_TIPO: Record<TipoProducto, string> = {
+  Polera: "100% Algodón Heavy Weight · 195 Grs",
+  Poleron: "100% Algodón Heavy Weight · Frisado interior",
+  Totebag: "Tela resistente · Asas reforzadas",
+  Reloj: "Correa ajustable · Resistente al agua",
+  Papeleria: "Papel couché · Impresión de alta calidad",
+};
+
+const LABEL_TIPO: Record<TipoProducto, string> = {
+  Polera: "Polera",
+  Poleron: "Polerón",
+  Totebag: "Totebag",
+  Reloj: "Reloj",
+  Papeleria: "Papelería",
+};
 
 const CANTIDAD_MAXIMA = 10;
 
@@ -52,88 +95,48 @@ const MEDIDAS_POR_TALLE_KIDS: Record<string, { ancho: number; largo: number }> =
   "14-16": { ancho: 42, largo: 58 },
 };
 
-/** Paleta real de la marca (línea adulto) — 12 colores de tela, con el hex
- * exacto entregado por el dueño y la carpeta donde se sube la foto real de
- * cada color (el mismo nombre de archivo en cada carpeta, igual convención
- * que ya usaba negras/claras — ver public/productos/<slug>/). */
-const PALETA_ADULTO: { nombre: string; hex: string; slug: string }[] = [
-  { nombre: "Negro", hex: "#000000", slug: "negro" },
-  { nombre: "Chocolate", hex: "#3F280F", slug: "chocolate" },
-  { nombre: "Azul Marino", hex: "#00104F", slug: "azul-marino" },
-  { nombre: "Gris Carbón", hex: "#403E41", slug: "gris-carbon" },
-  { nombre: "Verde Bosque", hex: "#085231", slug: "verde-bosque" },
-  { nombre: "Burdeo", hex: "#963548", slug: "burdeo" },
-  { nombre: "Morado", hex: "#473D84", slug: "morado" },
-  { nombre: "Gris Melange", hex: "#7C7C7C", slug: "gris-melange" },
-  { nombre: "Azul Royal", hex: "#2757BD", slug: "azul-royal" },
-  { nombre: "Mostaza", hex: "#E8B600", slug: "mostaza" },
-  { nombre: "Arena", hex: "#EBE5CB", slug: "arena" },
-  { nombre: "Blanco", hex: "#FFFFFF", slug: "blanco" },
-];
-const COLOR_HEX_ADULTO: Record<string, string> = Object.fromEntries(PALETA_ADULTO.map((c) => [c.nombre, c.hex]));
-
-export default function ProductoDetailClient({ product }: { product: Product }) {
+export default function ProductoDetailClient({ product, colores }: { product: Product; colores: ColorInfo[] }) {
   const router = useRouter();
 
   const esKids = product.categoria === "Kids";
+  const productoUsaTalles = usaTalles(product.tipo);
+  const productoUsaGaleria = usaGaleria(product.tipo);
   const TALLES_ORDEN = esKids ? TALLES_KIDS : TALLES_ADULTO;
   const MEDIDAS_POR_TALLE = esKids ? MEDIDAS_POR_TALLE_KIDS : MEDIDAS_POR_TALLE_ADULTO;
-  const PALETA = esKids ? PALETA_KIDS : PALETA_ADULTO;
-  const COLOR_HEX = esKids ? COLOR_HEX_KIDS : COLOR_HEX_ADULTO;
+  const COLOR_HEX: Record<string, string> = useMemo(
+    () => Object.fromEntries(colores.map((c) => [c.nombre, c.hex])),
+    [colores]
+  );
 
   const gallery = product.images && product.images.length > 0 ? product.images : [{ id: "main", url: product.disenoUrl, alt: product.nombre }];
   const [activeImage, setActiveImage] = useState(0);
 
-  // Foto por color real: si existe /productos/<slug-del-color>/<archivo>.png
-  // con el mismo nombre de archivo que ya usa el producto (detectado desde
-  // disenoUrl o cualquier imagen de la galería como ancla), se arma un mapa
-  // color→URL. El selector de abajo solo ofrece los colores que tienen foto.
-  const nombreArchivo = useMemo(() => {
-    const ancla = product.disenoUrl || product.images?.[0]?.url || "";
-    return ancla.split("/").pop() ?? null;
-  }, [product.disenoUrl, product.images]);
-
-  const [fotoPorColor, setFotoPorColor] = useState<Record<string, string>>({});
-  const [verificando, setVerificando] = useState(true);
-
-  // HEAD a cada carpeta de color para confirmar cuáles tienen el archivo —
-  // así el selector solo muestra swatches con foto real, sin asumir que
-  // todas las carpetas están completas para todos los productos.
-  useEffect(() => {
-    if (!nombreArchivo) {
-      setVerificando(false);
-      return;
+  // Foto por color real: viene de ProductColorImage (subida desde el panel
+  // admin a Supabase Storage) — ya llega filtrada y lista desde el server,
+  // sin necesidad de probar archivos estáticos en el cliente. Cada color
+  // puede tener frente y/o espalda.
+  const fotoPorColor = useMemo(() => {
+    const mapa: Record<string, { frente?: string; espalda?: string }> = {};
+    for (const ci of product.colorImages) {
+      const entry = mapa[ci.color] ?? {};
+      if (ci.lado === "Frente") entry.frente = ci.url;
+      else entry.espalda = ci.url;
+      mapa[ci.color] = entry;
     }
-    let cancelado = false;
-    setVerificando(true);
-    Promise.all(
-      PALETA.map(async (c) => {
-        const url = `/productos/${c.slug}/${nombreArchivo}`;
-        try {
-          const res = await fetch(url, { method: "HEAD" });
-          return res.ok ? ([c.nombre, url] as const) : null;
-        } catch {
-          return null;
-        }
-      })
-    ).then((resultados) => {
-      if (cancelado) return;
-      const mapa: Record<string, string> = {};
-      for (const r of resultados) if (r) mapa[r[0]] = r[1];
-      setFotoPorColor(mapa);
-      setVerificando(false);
-    });
-    return () => {
-      cancelado = true;
-    };
-    // PALETA apunta a una de dos constantes de módulo (misma referencia
-    // mientras esKids no cambie), así que entra en deps sin re-disparar el
-    // efecto en cada render.
-  }, [nombreArchivo, PALETA]);
+    return mapa;
+  }, [product.colorImages]);
 
-  const coloresConFoto = useMemo(() => Object.keys(fotoPorColor), [fotoPorColor]);
-  const tieneSelectorColor = !verificando && coloresConFoto.length > 0;
+  const coloresConFoto = useMemo(
+    () => Object.keys(fotoPorColor).filter((c) => fotoPorColor[c].frente),
+    [fotoPorColor]
+  );
+  const tieneSelectorColor = coloresConFoto.length > 0;
 
+  const [ladoActivo, setLadoActivo] = useState<"frente" | "espalda">("frente");
+
+  // El back-end (page.tsx) ya filtra product.variants para incluir solo
+  // colores con foto de frente subida — ningún color "sin foto" llega acá
+  // como opción comprable.
   const coloresDisponibles = useMemo(
     () => Array.from(new Set(product.variants.map((v) => v.color))),
     [product.variants]
@@ -144,6 +147,15 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
   // actualiza la talla disponible — el hover no debe tocar la talla).
   const [colorHover, setColorHover] = useState<string | null>(null);
   const colorEnPreview = colorHover ?? selectedColor;
+
+  // El toggle Frente/Espalda solo aparece si el color en preview tiene
+  // ambas fotos — si solo hay frente (espalda no subida todavía), se
+  // oculta y se muestra esa única foto sin pedir elegir lado.
+  const tieneEspalda = Boolean(fotoPorColor[colorEnPreview]?.espalda);
+
+  useEffect(() => {
+    if (!tieneEspalda) setLadoActivo("frente");
+  }, [tieneEspalda]);
 
   const tallesDelColor = useMemo(
     () => product.variants.filter((v) => v.color === selectedColor),
@@ -184,23 +196,46 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
   }
 
   return (
-    <main className="max-w-5xl mx-auto py-12 p-8">
-      <div className="grid lg:grid-cols-2 gap-12">
+    <main className="max-w-6xl mx-auto py-12 p-8">
+      <div className="grid lg:grid-cols-[3fr_2fr] gap-12">
         <div>
           <div className="thick-border pop-shadow bg-white dark:bg-neutral-900 p-3">
-            <p className="text-center font-black text-sm py-2 border-b-2 border-ajicolor-ink mb-3">Producto</p>
+            <div className="flex items-center justify-between mb-3 border-b-2 border-ajicolor-ink pb-2">
+              <p className="font-black text-sm">Producto</p>
+              {tieneSelectorColor && tieneEspalda && (
+                <div className="flex gap-1">
+                  {(["frente", "espalda"] as const).map((lado) => (
+                    <button
+                      key={lado}
+                      onClick={() => setLadoActivo(lado)}
+                      className={`px-3 py-1 text-[10px] font-black uppercase tracking-wide thick-border ${
+                        ladoActivo === lado
+                          ? "bg-ajicolor-purple text-white dark:bg-ajicolor-ink"
+                          : "bg-white dark:bg-neutral-900 text-ajicolor-ink dark:text-neutral-100"
+                      }`}
+                    >
+                      {lado === "frente" ? "Frente" : "Espalda"}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {tieneSelectorColor ? (
               <div className="relative w-full aspect-square overflow-hidden">
-                {coloresConFoto.map((color) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={color}
-                    src={fotoPorColor[color]}
-                    alt={`${product.nombre} — ${color}`}
-                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
-                    style={{ opacity: color === colorEnPreview ? 1 : 0 }}
-                  />
-                ))}
+                {coloresConFoto.map((color) => {
+                  const foto = fotoPorColor[color];
+                  const src = ladoActivo === "espalda" && foto.espalda ? foto.espalda : foto.frente;
+                  return (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={color}
+                      src={src}
+                      alt={`${product.nombre} — ${color} — ${ladoActivo}`}
+                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
+                      style={{ opacity: color === colorEnPreview ? 1 : 0 }}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className="relative">
@@ -226,19 +261,21 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                 ))}
               </div>
             )}
-            <div className="flex items-center justify-between mt-3 gap-3">
-              <span className="bg-ajicolor-magenta text-white px-4 py-2 text-xs font-black uppercase flex-1 text-center">
-                Dale color!
-              </span>
-              {coloresDisponibles.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap justify-end">
+            <div className="mt-3">
+              {!productoUsaGaleria && (
+                <span className="block w-full bg-ajicolor-magenta text-white px-4 py-2 text-xs font-black uppercase text-center mb-3">
+                  Dale color!
+                </span>
+              )}
+              {!productoUsaGaleria && coloresDisponibles.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto py-3 justify-center">
                   {coloresDisponibles.map((color) => (
                     <motion.button
                       key={color}
                       onClick={() => handleSelectColor(color)}
-                      onMouseEnter={() => tieneSelectorColor && fotoPorColor[color] && setColorHover(color)}
+                      onMouseEnter={() => fotoPorColor[color]?.frente && setColorHover(color)}
                       onMouseLeave={() => setColorHover(null)}
-                      onFocus={() => tieneSelectorColor && fotoPorColor[color] && setColorHover(color)}
+                      onFocus={() => fotoPorColor[color]?.frente && setColorHover(color)}
                       onBlur={() => setColorHover(null)}
                       title={color}
                       aria-label={color}
@@ -246,7 +283,7 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
                       whileHover={{ scale: 1.35 }}
                       whileTap={{ scale: 1.1 }}
                       transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                      className={`w-6 h-6 rounded-full border-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ajicolor-magenta ${
+                      className={`w-7 h-7 shrink-0 rounded-full border-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ajicolor-magenta ${
                         color === selectedColor ? "border-ajicolor-magenta" : "border-gray-300 dark:border-neutral-700"
                       }`}
                       style={{ backgroundColor: COLOR_HEX[color] ?? "#ccc" }}
@@ -270,54 +307,58 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
           </p>
 
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold uppercase tracking-widest">Selecciona tu talla</p>
-              <button
-                onClick={() => setShowGuia((v) => !v)}
-                className="text-xs font-bold text-ajicolor-purple dark:text-neutral-100 hover:underline"
-              >
-                Guía de tallas
-              </button>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {TALLES_ORDEN.map((talle) => {
-                const variant = tallesDelColor.find((v) => v.talle === talle);
-                if (!variant) return null;
-                return (
+            {productoUsaTalles && (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-bold uppercase tracking-widest">Selecciona tu talla</p>
                   <button
-                    key={talle}
-                    onClick={() => setSelectedTalle(talle)}
-                    className={`w-12 h-12 flex items-center justify-center thick-border font-black text-sm ${
-                      talle === selectedTalle
-                        ? "bg-ajicolor-ink text-white"
-                        : "bg-white dark:bg-neutral-900 hover:bg-gray-50 dark:hover:bg-neutral-800"
-                    }`}
+                    onClick={() => setShowGuia((v) => !v)}
+                    className="text-xs font-bold text-ajicolor-purple dark:text-neutral-100 hover:underline"
                   >
-                    {talle}
+                    Guía de tallas
                   </button>
-                );
-              })}
-            </div>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {TALLES_ORDEN.map((talle) => {
+                    const variant = tallesDelColor.find((v) => v.talle === talle);
+                    if (!variant) return null;
+                    return (
+                      <button
+                        key={talle}
+                        onClick={() => setSelectedTalle(talle)}
+                        className={`w-12 h-12 flex items-center justify-center thick-border font-black text-sm ${
+                          talle === selectedTalle
+                            ? "bg-ajicolor-purple text-white dark:bg-ajicolor-ink"
+                            : "bg-white dark:bg-neutral-900 hover:bg-gray-50 dark:hover:bg-neutral-800"
+                        }`}
+                      >
+                        {talle}
+                      </button>
+                    );
+                  })}
+                </div>
 
-            {showGuia && (
-              <table className="w-full text-xs mt-4 border-collapse">
-                <thead>
-                  <tr className="border-b-2 border-ajicolor-ink text-left">
-                    <th className="py-1">Talla</th>
-                    <th className="py-1">Ancho (cm)</th>
-                    <th className="py-1">Largo (cm)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {TALLES_ORDEN.map((talle) => (
-                    <tr key={talle} className="border-b border-gray-200 dark:border-neutral-700">
-                      <td className="py-1 font-bold">{talle}</td>
-                      <td className="py-1">{MEDIDAS_POR_TALLE[talle].ancho}</td>
-                      <td className="py-1">{MEDIDAS_POR_TALLE[talle].largo}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                {showGuia && (
+                  <table className="w-full text-xs mt-4 border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-ajicolor-ink text-left">
+                        <th className="py-1">Talla</th>
+                        <th className="py-1">Ancho (cm)</th>
+                        <th className="py-1">Largo (cm)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {TALLES_ORDEN.map((talle) => (
+                        <tr key={talle} className="border-b border-gray-200 dark:border-neutral-700">
+                          <td className="py-1 font-bold">{talle}</td>
+                          <td className="py-1">{MEDIDAS_POR_TALLE[talle].ancho}</td>
+                          <td className="py-1">{MEDIDAS_POR_TALLE[talle].largo}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </>
             )}
 
             {selectedVariant && (
@@ -349,13 +390,13 @@ export default function ProductoDetailClient({ product }: { product: Product }) 
           </div>
 
           <div>
-            <p className="bg-ajicolor-ink text-white px-3 py-1.5 text-xs font-bold uppercase inline-block mb-0">
+            <p className="bg-ajicolor-purple text-white dark:bg-ajicolor-ink px-3 py-1.5 text-xs font-bold uppercase inline-block mb-0">
               Especificación técnica
             </p>
             <div className="thick-border p-4 text-sm italic text-gray-600 dark:text-neutral-300 font-medium">
-              Polera {product.artista} {esKids ? "Kids" : "Hombre"} MC
+              {LABEL_TIPO[product.tipo]} {product.artista} {productoUsaTalles ? (esKids ? "Kids" : "Hombre MC") : ""}
               <br />
-              100% Algodón Heavy Weight · 195 Grs
+              {ESPECIFICACION_POR_TIPO[product.tipo]}
             </div>
           </div>
 

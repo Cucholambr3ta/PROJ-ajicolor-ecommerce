@@ -2,7 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { addToCartSchema, updateCartItemSchema, checkoutAddressSchema, parseOrThrow } from "@/lib/schemas";
+import { addToCartSchema, updateCartItemSchema, checkoutAddressSchema, checkoutGuestSchema, parseOrThrow } from "@/lib/schemas";
+import { hash } from "bcryptjs";
+import { type ActionResult, toActionResult } from "@/lib/action-result";
 import { getStoreSettings } from "@/lib/actions/settings";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
@@ -204,14 +206,42 @@ export async function checkout(direccionInput: {
   metodoEnvio?: MetodoEnvio;
   couponCode?: string;
   notas?: string;
-}) {
-  const { metodoEnvio: metodoEnvioInput, couponCode, notas, ...direccionData } = direccionInput;
+  // Solo si compra como invitado (sin sesión) — ver abajo.
+  email?: string;
+  password?: string;
+}): Promise<ActionResult<{ numero: number }>> {
+  return toActionResult(async () => {
+  const { metodoEnvio: metodoEnvioInput, couponCode, notas, email, password, ...direccionData } = direccionInput;
   const direccion = parseOrThrow(checkoutAddressSchema, direccionData);
   const metodoEnvio: MetodoEnvio = metodoEnvioInput ?? "CorreosSucursal";
 
   const session = await auth();
-  if (session?.user?.rol !== "Cliente") throw new Error("Debes iniciar sesión para pagar");
-  const customerId = session.user.id;
+  let customerId: string;
+
+  if (session?.user?.rol === "Cliente") {
+    customerId = session.user.id;
+  } else {
+    // Checkout como invitado: el email identifica o crea el Customer.
+    // Si ya existe una cuenta con ese email, no se compra "a su nombre"
+    // sin verificar — se pide iniciar sesión (el carrito queda intacto).
+    const { email: emailValido, password: passwordValido } = parseOrThrow(checkoutGuestSchema, { email, password });
+
+    const existente = await prisma.customer.findUnique({ where: { email: emailValido } });
+    if (existente) {
+      throw new Error("EMAIL_YA_REGISTRADO");
+    }
+
+    const nuevoCustomer = await prisma.customer.create({
+      data: {
+        nombre: direccion.nombre,
+        email: emailValido,
+        telefono: direccion.telefono,
+        direccion: `${direccion.calle} ${direccion.numero}`,
+        passwordHash: passwordValido ? await hash(passwordValido, 12) : undefined,
+      },
+    });
+    customerId = nuevoCustomer.id;
+  }
 
   const cart = await resolveCart(false);
   const cartWithItems = cart
@@ -321,7 +351,8 @@ export async function checkout(direccionInput: {
     }
   }
 
-  return order;
+  return { numero: order.numero };
+  });
 }
 
 export { sumarDiasHabiles };

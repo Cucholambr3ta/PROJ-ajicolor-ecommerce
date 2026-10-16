@@ -22,6 +22,8 @@ import {
   Boxes,
   History,
   Palette,
+  PaintBucket,
+  GalleryHorizontal,
 } from "lucide-react";
 
 const navItems = [
@@ -35,6 +37,8 @@ const navItems = [
   { href: "/admin/envios", label: "Envíos", icon: Truck },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/catalogo", label: "Catálogo", icon: Layers },
+  { href: "/admin/colores", label: "Colores", icon: PaintBucket },
+  { href: "/admin/banners", label: "Banners", icon: GalleryHorizontal },
   { href: "/admin/colecciones", label: "Colecciones", icon: Sparkles },
   { href: "/admin/cupones", label: "Cupones", icon: Ticket },
   { href: "/admin/resenas", label: "Reseñas", icon: Star },

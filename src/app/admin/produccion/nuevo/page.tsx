@@ -17,10 +17,11 @@ export default async function NuevoLotePage() {
 
   return (
     <ProduccionFormClient
-      suppliers={suppliers.map((s) => ({ id: s.id, nombre: s.nombre }))}
+      suppliers={suppliers.map((s) => ({ id: s.id, nombre: s.nombre, tiposProducto: s.tiposProducto }))}
       variants={variants.map((v) => ({
         id: v.id,
         label: `${v.product.nombre} — ${v.color} / ${v.talle} (${v.sku})`,
+        tipo: v.product.tipo,
       }))}
       sugeridos={porProducir.agrupadoPorVariante}
     />

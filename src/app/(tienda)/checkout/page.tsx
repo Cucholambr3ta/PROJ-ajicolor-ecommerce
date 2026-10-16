@@ -12,18 +12,24 @@ export const metadata: Metadata = { title: "Confirmar compra", robots: { index: 
 
 export default async function CheckoutPage() {
   const session = await auth();
-  if (!session?.user?.id) redirect("/login-cliente");
+  const esCliente = session?.user?.rol === "Cliente";
 
-  const customer = await prisma.customer.findUnique({ where: { id: session.user.id as string } });
-  if (!customer) redirect("/login-cliente");
+  // Carrito libre: se puede llegar al checkout sin sesión (invitado). Si
+  // hay sesión de cliente, se precargan sus datos y direcciones guardadas;
+  // si no, el formulario pide email/dirección desde cero.
+  const customer = esCliente
+    ? await prisma.customer.findUnique({ where: { id: session!.user.id as string } })
+    : null;
 
   const [cart, settings, addresses] = await Promise.all([
     getCart(),
     getStoreSettings(),
-    prisma.address.findMany({
-      where: { customerId: customer.id },
-      orderBy: [{ esPrincipal: "desc" }, { createdAt: "desc" }],
-    }),
+    customer
+      ? prisma.address.findMany({
+          where: { customerId: customer.id },
+          orderBy: [{ esPrincipal: "desc" }, { createdAt: "desc" }],
+        })
+      : Promise.resolve([]),
   ]);
 
   const rawItems = cart?.items ?? [];
@@ -38,6 +44,7 @@ export default async function CheckoutPage() {
       product: {
         nombre: item.variant.product.nombre,
         precio: Number(item.variant.product.precio),
+        disenoUrl: item.variant.product.disenoUrl,
       },
     },
   }));
@@ -46,13 +53,15 @@ export default async function CheckoutPage() {
   return (
     <>
 
-      <main className="max-w-3xl mx-auto py-12 p-8">
+      <main className="max-w-6xl mx-auto py-12 p-8">
         <Link href="/carrito" className="inline-block font-bold text-xs uppercase hover:underline mb-4">
           ← Volver al carrito
         </Link>
         <h1 className="text-3xl font-black mb-8 border-b-2 border-ajicolor-ink pb-4">Confirmar compra</h1>
         <CheckoutClient
-          customer={{ nombre: customer.nombre, telefono: customer.telefono ?? "", direccion: customer.direccion ?? "" }}
+          customer={
+            customer ? { nombre: customer.nombre, telefono: customer.telefono ?? "", direccion: customer.direccion ?? "" } : null
+          }
           addresses={addresses}
           items={items}
           subtotal={subtotal}

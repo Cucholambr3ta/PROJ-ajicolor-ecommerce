@@ -23,6 +23,7 @@ interface SettingsData {
   bancoEmail: string;
   costoEnvioCorreos: number;
   plazoProduccionDias: number;
+  bannerVelocidadSeg: number;
 }
 
 function Field({
@@ -145,6 +146,23 @@ export default function ConfiguracionFormClient({ settings }: { settings: Settin
               type="number"
               value={data.plazoProduccionDias}
               onChange={(v) => set("plazoProduccionDias", v)}
+            />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="font-semibold text-gray-700 dark:text-neutral-300 mb-4">
+            Carrusel de banners
+            <span className="block text-xs font-normal text-gray-400 dark:text-neutral-500 mt-1">
+              Avanza solo, en loop, y se pausa al pasar el mouse por encima.
+            </span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field
+              label="Segundos entre cada banner"
+              type="number"
+              value={data.bannerVelocidadSeg}
+              onChange={(v) => set("bannerVelocidadSeg", v)}
             />
           </div>
         </Card>

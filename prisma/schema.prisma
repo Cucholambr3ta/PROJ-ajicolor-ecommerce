@@ -76,6 +76,17 @@ enum CategoriaProducto {
   Kids
 }
 
+/// Tipo de producto — qué es físicamente (no confundir con CategoriaProducto,
+/// que es la audiencia Adulto/Kids). Determina si usa talles de ropa o una
+/// sola variante por color (ver Product.usaTalles derivado en código).
+enum TipoProducto {
+  Polera
+  Poleron
+  Totebag
+  Reloj
+  Papeleria
+}
+
 enum EstadoCotizacion {
   Pendiente     // recién enviada por el cliente, sin revisar
   EnRevision    // el dueño la está evaluando
@@ -186,6 +197,22 @@ model CartItem {
 // Catálogo
 // ============================================================
 
+/// Paleta de colores de tela administrable desde /admin/colores — antes
+/// vivía hardcodeada en el código (src/lib/kids.ts y ProductoDetailClient),
+/// ahora el admin puede agregar colores nuevos sin deploy cuando el taller
+/// consigue una tela nueva. ProductVariant.color sigue siendo texto libre
+/// (match por nombre), esta tabla solo alimenta el selector del formulario
+/// y el hex de los swatches.
+model Color {
+  id        String            @id @default(cuid())
+  nombre    String
+  hex       String
+  categoria CategoriaProducto
+  createdAt DateTime          @default(now())
+
+  @@unique([nombre, categoria])
+}
+
 /// Drop / colección mensual (4-6 modelos, vigencia limitada).
 model Collection {
   id               String    @id @default(cuid())
@@ -210,6 +237,7 @@ model Product {
   artista       String
   temporada     String
   categoria     CategoriaProducto @default(Adulto)
+  tipo          TipoProducto     @default(Polera)
   precio        Decimal          @default(0)
   costoUnitario Decimal          @default(0)
   activo        Boolean          @default(true)
@@ -233,6 +261,7 @@ model Product {
   updatedAt     DateTime         @updatedAt
   variants      ProductVariant[]
   images        ProductImage[]
+  colorImages   ProductColorImage[]
   favorites     Favorite[]
   reviews       Review[]
 }
@@ -245,6 +274,24 @@ model ProductImage {
   alt       String?
   orden     Int      @default(0)
   createdAt DateTime @default(now())
+}
+
+/// Foto real por color (y lado, si el producto tiene frente y espalda) para
+/// el selector de color de la ficha de producto — reemplaza la convención
+/// vieja de archivos estáticos en public/productos/<color>/, que no se
+/// puede subir desde el panel admin en producción (Vercel es read-only en
+/// runtime). Subida real: bucket Supabase Storage "productos", igual que
+/// ProductImage.
+model ProductColorImage {
+  id        String     @id @default(cuid())
+  productId String
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color     String
+  lado      LadoPrenda @default(Frente)
+  url       String
+  createdAt DateTime   @default(now())
+
+  @@unique([productId, color, lado])
 }
 
 model ProductVariant {
@@ -402,6 +449,7 @@ model Supplier {
   telefono     String?
   rut          String?
   tipo         String? // "taller" | "insumos" | "otro"
+  tiposProducto TipoProducto[] // qué tipos de producto fabrica/provee (Polera, Poleron, ...) — usado para sugerir proveedor al armar un lote de producción
   leadTimeDias Int
   costoBase    Decimal
   calificacion Int               @default(3)
@@ -562,6 +610,9 @@ model StoreSettings {
   bancoEmail          String?
   costoEnvioCorreos   Decimal  @default(3000)
   plazoProduccionDias Int      @default(7)
+  // Segundos que cada banner permanece visible antes de avanzar al
+  // siguiente en el carrusel del home (autoplay de Splide).
+  bannerVelocidadSeg  Int      @default(5)
   updatedAt           DateTime @updatedAt
 }
 
@@ -685,4 +736,25 @@ model CotizacionDiseno {
   previewUrl    String? // snapshot de la composición (CT-13)
 
   @@unique([cotizacionId, lado])
+}
+
+/// Banner del carrusel del home — reemplaza las tarjetas fijas del hero
+/// (HeroCards). El admin sube la imagen, define a dónde enlaza y el orden;
+/// `activo` permite sacarlo del carrusel sin borrarlo.
+model Banner {
+  id        String        @id @default(cuid())
+  imageUrl  String
+  tipo      BannerMedia   @default(Imagen)
+  linkUrl   String
+  orden     Int           @default(0)
+  activo    Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([activo, orden])
+}
+
+enum BannerMedia {
+  Imagen
+  Video
 }

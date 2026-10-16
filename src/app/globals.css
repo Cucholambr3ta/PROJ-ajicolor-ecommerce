@@ -8,8 +8,11 @@
     --purple: #4f266a;
     --yellow: #ffd141;
     --green: #1ea96a;
-    --ink: #1a1a1a;
-    --border-ink: #1a1a1a;
+    /* Tipografía y bordes en tema claro: morado de marca en vez de negro
+       neutro (pedido explícito) — cubre texto (--ink) y los bordes/sombras
+       "pop" (--border-ink, thick-border/pop-shadow en todo el sitio). */
+    --ink: #4f266a;
+    --border-ink: #4f266a;
     --bg-light: #fafafa;
     --card-bg: #ffffff;
     --border-width: 2px;
@@ -33,7 +36,54 @@
   }
 }
 
+/* Texto gris (text-gray-300..800) en tema claro pasa a morado de marca —
+   pedido explícito, igual criterio que --ink. Solo texto: bg-gray-* y
+   border-gray-* (inputs, hovers) quedan sin tocar, no son tipografía. En
+   modo oscuro estos grises no se usan (todo lo oscuro ya usa la paleta
+   neutral, ver tailwind.config.ts). Declarado fuera de @layer a propósito:
+   una regla sin layer siempre gana sobre la utility de Tailwind (layer
+   utilities), que si no tendría la misma especificidad y ganaría por
+   orden de capa. */
+.text-gray-300,
+.text-gray-400,
+.text-gray-500,
+.text-gray-600,
+.text-gray-700,
+.text-gray-800 {
+  color: var(--purple);
+}
+
+/* Idem para text-ajicolor-ink en tema claro — el token ajicolor.ink sigue
+   en #1a1a1a a propósito (lo usan border-ajicolor-ink/bg-ajicolor-ink,
+   que son gráficos, no tipografía), así que el texto se corrige acá en
+   vez de cambiar el token completo. Excluye los inputs del drawer de
+   login (fijados a negro sobre blanco por legibilidad, ver AuthDrawer.tsx)
+   y el badge amarillo (ui/badge.tsx) — ambos quedan como están. */
+.text-ajicolor-ink:not(.auth-drawer-input):not(.badge-on-yellow) {
+  color: var(--purple);
+}
+
+/* Mismo criterio para border-ajicolor-ink en tema claro — el token
+   ajicolor.ink sigue en #1a1a1a a propósito (también lo usa bg-ajicolor-ink,
+   que es gráfico, no borde), así que el borde se corrige acá en vez de
+   cambiar el token completo. Solo tema claro — en .dark queda como está. */
+html:not(.dark) .border-ajicolor-ink {
+  border-color: var(--purple);
+}
+
 @layer components {
+  /* Quita las flechas +/- de un input number sin perder el teclado
+     numérico/validación nativa — solo oculta el spinner visual. */
+  .no-spinner::-webkit-outer-spin-button,
+  .no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .no-spinner {
+    -moz-appearance: textfield;
+  }
+
   .thick-border {
     border: var(--border-width) solid var(--border-ink);
   }
@@ -90,14 +140,18 @@
     box-shadow: 2px 2px 0px var(--border-ink);
   }
 
+  /* Imagen panorámica única (foto, no un patrón tileable) — pedido
+     explícito, misma imagen en claro/oscuro y adulto/Kids. cover + center
+     para que se adapte a cualquier ancho sin deformarse; el color sólido
+     queda de fallback mientras carga o si la imagen falla. */
   .site-nav {
     display: flex;
     flex-direction: column;
-    background-color: var(--card-bg);
-    background-image: url('/fondo/fondo-claro.png');
-    background-repeat: repeat;
-    background-size: 520px;
-    background-attachment: fixed;
+    background-color: var(--yellow);
+    background-image: url('/fondo/header.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
     border-bottom: var(--border-width) solid var(--border-ink);
     position: sticky;
     top: 0;
@@ -105,15 +159,8 @@
     transition: background-color 0.2s;
   }
 
-  /* El header pinta el mismo estampado que el body (background-attachment:
-     fixed mantiene el patrón continuo entre header, contenido y footer,
-     en vez de reiniciarlo en cada bloque). */
   .dark .site-nav {
     background-color: var(--bg-light);
-    background-image: url('/fondo/fondo-oscuro.png');
-    background-repeat: repeat;
-    background-size: 520px;
-    background-attachment: fixed;
   }
 
   .site-nav-top {
@@ -123,12 +170,15 @@
     padding: 14px 40px;
   }
 
+  /* Fondo blanco sólido — pedido explícito: la foto del header (arriba)
+     hace ilegible el texto de los links si se le ve de fondo acá también. */
   .site-nav-bottom {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 40px;
     padding: 10px 40px;
+    background-color: #ffffff;
     border-top: 1px solid rgba(0, 0, 0, 0.22);
   }
 
@@ -136,109 +186,6 @@
     border-top-color: rgba(255, 255, 255, 0.22);
   }
 
-  /* Tarjetas del hero (galería tipo acordeón): angostas con texto
-     "caído" (rotado 90°) pegado al borde izquierdo en reposo; la
-     tarjeta activa (controlada por React, no :hover puro, para que
-     la primera empiece ya expandida) se ensancha y el texto se
-     endereza con una rotación continua (no writing-mode, que salta
-     en vez de animarse). Solo en desktop — en mobile van apiladas
-     y siempre en su tamaño/orientación horizontal normal. */
-  .hero-card {
-    flex: 1;
-    transition: flex-grow 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
-  }
-
-  /* La imagen de fondo de una tarjeta (cuando tiene una) solo se ve
-     estando activa/expandida, en cualquier viewport — en mobile las
-     tarjetas van siempre expandidas (ver @media abajo), así que acá
-     se muestra directo; en desktop empieza oculta y aparece con la
-     tarjeta activa. */
-  .hero-card-image {
-    opacity: 1;
-    transition: opacity 0.3s ease;
-  }
-
-  @media (min-width: 1024px) {
-    .hero-card {
-      flex: 0.5;
-      position: relative;
-    }
-
-    .hero-card.hero-card-active {
-      flex: 4;
-    }
-
-    .hero-card-text {
-      white-space: nowrap;
-      font-size: clamp(1.1rem, 2.4vw, 1.75rem) !important;
-      transform-origin: left top;
-      position: absolute;
-      left: 28px;
-      top: 28px;
-      transform: rotate(90deg);
-      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-        left 0.5s cubic-bezier(0.4, 0, 0.2, 1), top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* Texto compacto de 2 líneas (ej. "PRODUCTO / AJI COLOR"): más
-       chico que el clamp() general para que quepa entero al rotar
-       dentro de la tarjeta angosta. */
-    .hero-card-text-compact-sm {
-      font-size: clamp(0.65rem, 1.3vw, 1rem) !important;
-      letter-spacing: -0.01em;
-    }
-
-    .hero-card.hero-card-active .hero-card-text {
-      font-size: clamp(1.5rem, 2.8vw, 3rem) !important;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%) rotate(0deg);
-      width: max-content;
-      max-width: calc(100% - 56px);
-      text-align: center;
-    }
-
-    /* Variante para tarjetas con imagen de fondo o contenido flexible
-       (carrusel): el texto queda pegado al borde izquierdo también
-       cuando la tarjeta está activa, en vez de centrarse, y ocupa el
-       ancho real de la tarjeta (no max-content) para que el
-       carrusel interno tenga espacio donde expandirse. */
-    .hero-card.hero-card-active .hero-card-text.hero-card-text-left {
-      left: 28px;
-      top: 50%;
-      transform: translate(0, -50%) rotate(0deg);
-      text-align: left;
-      width: calc(100% - 56px);
-    }
-
-    /* Texto compacto (una línea) en reposo, para que quepa entero
-       al rotar 90° dentro de la tarjeta angosta; al expandirse se
-       cambia por la versión apilada en varias líneas. */
-    .hero-card-text-expanded {
-      display: none;
-    }
-
-    .hero-card.hero-card-active .hero-card-text-compact {
-      display: none;
-    }
-
-    .hero-card.hero-card-active .hero-card-text-expanded {
-      display: block;
-    }
-
-    .hero-card.hero-card-active .hero-card-text-expanded.hero-card-text-expanded-flex {
-      display: flex;
-    }
-
-    .hero-card-image {
-      opacity: 0;
-    }
-
-    .hero-card.hero-card-active .hero-card-image {
-      opacity: 1;
-      transition: opacity 0.3s ease 0.2s;
-    }
-  }
 }
 
 /* Tema Kids — fondo propio (claro/oscuro) solo mientras document.body tiene
@@ -257,27 +204,14 @@ body[data-tema="kids"] {
   background-image: url('/fondo/fondo-kids-oscuro.png');
 }
 
-body[data-tema="kids"] .site-nav,
 body[data-tema="kids"] footer,
 body[data-tema="kids"] .tienda-shell {
   background-image: url('/fondo/fondo-kids-claro.png') !important;
 }
 
-.dark body[data-tema="kids"] .site-nav,
 .dark body[data-tema="kids"] footer,
 .dark body[data-tema="kids"] .tienda-shell {
   background-image: url('/fondo/fondo-kids-oscuro.png') !important;
-}
-
-/* El logo en /kids se queda fijo en la variante de letras amarillas
-   (logo-oscuro.png) sin importar el tema claro/oscuro — pedido explícito:
-   mismo ají, mismas letras amarillas, en ambos temas dentro de Kids. */
-body[data-tema="kids"] .logo-claro {
-  display: none !important;
-}
-
-body[data-tema="kids"] .logo-oscuro {
-  display: block !important;
 }
 
 /* Comprobante de venta: imprime solo el documento, sin header/sidebar/fondo
@@ -333,4 +267,118 @@ body[data-tema="kids"] .logo-oscuro {
   to {
     opacity: 1;
   }
+}
+
+/* Carrusel de banners del home (Splide, ver BannerCarousel.tsx): un banner
+   a la vez, esquinas redondeadas, sin sombra de tarjeta — las flechas y
+   los puntos no traen estilo propio desde splide/css/core, así que se
+   pintan acá. Las flechas van DENTRO de la tarjeta, superpuestas a la
+   imagen cerca de cada borde (patrón de carrusel estándar) — pedido
+   explícito, no afuera en el margen del wrapper.
+   splide/css/core no da altura a .splide__track (solo a .splide__list,
+   al 100% de un padre que de por sí no mide nada) — normalmente ese alto
+   lo pone el option `height` de Splide como inline style. Como acá el
+   alto real lo da aspect-[1920/420] en el componente <Splide> (así la
+   imagen se ve completa en cualquier ancho de pantalla, sin recortarla),
+   hay que bajar ese 100% explícitamente por toda la cadena. */
+.banner-carousel .splide__track,
+.banner-carousel .splide__list,
+.banner-carousel .splide__slide {
+  height: 100%;
+}
+
+.banner-carousel .splide__track {
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+@media (max-width: 620px) {
+  .banner-carousel .splide__track {
+    border-radius: 20px;
+  }
+}
+
+.banner-carousel .splide__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.88);
+  border: none;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  opacity: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.banner-carousel .splide__arrow svg {
+  width: 9px;
+  height: 9px;
+  fill: #0a0a0a;
+}
+
+/* El SVG de Splide es un único ">" — sin el tema por defecto (no usado
+   acá, ver splide/css/core), nada lo espeja para el botón "anterior". */
+.banner-carousel .splide__arrow--prev svg {
+  transform: scaleX(-1);
+}
+
+.banner-carousel .splide__arrow--prev {
+  left: 12px;
+}
+
+.banner-carousel .splide__arrow--next {
+  right: 12px;
+}
+
+@media (min-width: 1024px) {
+  .banner-carousel .splide__arrow {
+    width: 44px;
+    height: 44px;
+  }
+
+  .banner-carousel .splide__arrow svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .banner-carousel .splide__arrow--prev {
+    left: 20px;
+  }
+
+  .banner-carousel .splide__arrow--next {
+    right: 20px;
+  }
+}
+
+/* Splide no trae tamaño propio para los puntos de paginación desde
+   splide/css/core (eso lo pone el tema por defecto, que no se usa acá) —
+   sin width/height el navegador los colapsa a 0x0 y quedan invisibles. */
+.banner-carousel .splide__pagination {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.banner-carousel .splide__pagination__page {
+  width: 8px;
+  height: 8px;
+  margin: 0 4px;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.6);
+  opacity: 1;
+}
+
+.banner-carousel .splide__pagination__page.is-active {
+  background: #ffffff;
+  transform: scale(1.2);
 }

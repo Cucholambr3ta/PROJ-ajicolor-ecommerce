@@ -27,6 +27,7 @@ export default async function ConfiguracionPage() {
         bancoEmail: settings.bancoEmail ?? "",
         costoEnvioCorreos: Number(settings.costoEnvioCorreos),
         plazoProduccionDias: settings.plazoProduccionDias,
+        bannerVelocidadSeg: settings.bannerVelocidadSeg,
       }}
     />
   );
