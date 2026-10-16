@@ -82,10 +82,14 @@ const REL_BL = 0;
  * esa caja más grande (0-100% ya no es el cuadro, es cuadro + margen).
  */
 const GROW_X_PCT = 8; // cuánto crece el ancho hacia cada lado, en % del cuadro original
-const GROW_Y_PCT = 15; // cuánto crece el alto hacia arriba, en % del cuadro original —
-// con object-contain (no recorta nunca, ver más abajo) no hace falta tanto
-// margen como con object-cover; un valor bajo acerca los productos al
-// cuadro real y los aleja del título "PRODUCTOS DEL AJÍ" (pedido explícito).
+const GROW_Y_PCT = 40; // cuánto crece el alto hacia arriba, en % del cuadro original — con
+// object-contain (no recorta nunca, ver más abajo) este valor alto no tiene
+// contraindicación: solo da más margen de sobra, no agranda la imagen.
+// SHIFT_DOWN_PCT baja la caja entera (sin achicarla) para alejar los
+// productos del título "PRODUCTOS DEL AJÍ" — pedido explícito: "bajar los
+// productos, no achicarlos" (GROW_Y_PCT chico los achicaba porque recortaba
+// la caja completa, no solo los corría para abajo).
+const SHIFT_DOWN_PCT = 14;
 const GROW_X_SCALE = 1 + (2 * GROW_X_PCT) / 100;
 const GROW_Y_SCALE = 1 + GROW_Y_PCT / 100; // solo crece hacia ARRIBA, no hacia abajo
 function toGrownBoxPctX(originalPct: number) {
@@ -124,9 +128,10 @@ function ProductSlot({ tipo, index, products }: { tipo: TipoProducto; index: num
    */
   const growX = (box.width * GROW_X_PCT) / 100;
   const growY = (box.height * GROW_Y_PCT) / 100;
+  const shiftDown = (box.height * SHIFT_DOWN_PCT) / 100;
   const boxStyle = {
     left: `${box.left - growX}%`,
-    top: `${box.top - growY}%`,
+    top: `${box.top - growY + shiftDown}%`,
     width: `${box.width + growX * 2}%`,
     height: `${box.height + growY}%`,
   };
