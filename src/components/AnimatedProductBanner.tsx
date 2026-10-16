@@ -68,18 +68,15 @@ const REL_BL = 0;
 const BACK_CLIP = `polygon(${REL_TL}% 0%, ${REL_TR}% 0%, ${REL_BR}% 100%, ${REL_BL}% 100%)`;
 
 /**
- * Capa "de encima" del efecto 3D: solo el borde inferior y derecho del
- * cuadro, un poco más grande que el paralelogramo real — pedido
- * explícito, para que esos dos bordes se vean por ENCIMA del marco
- * morado mientras el resto de la imagen queda por DETRÁS.
+ * Capa "de encima" del efecto 3D: el triángulo TR→BR→BL del MISMO
+ * paralelogramo (mismo borde exacto que BACK_CLIP, sin agrandarlo ni
+ * correrlo) — contiene el borde DERECHO (TR-BR) y el borde INFERIOR
+ * (BR-BL), que quedan por ENCIMA del marco morado. El triángulo
+ * complementario (TL-TR-BL, con el borde superior e izquierdo) lo tapa
+ * el marco porque esa zona solo la pinta BACK_CLIP, por DEBAJO. El
+ * corte es la diagonal TR→BL del paralelogramo.
  */
-const FRONT_CLIP = (() => {
-  const marginX = 3; // % de la caja del cuadro (mucho más chica que el banner entero)
-  const marginY = 2.5;
-  const midTop = REL_TL + (REL_TR - REL_TL) * 0.48;
-  const midBottom = REL_BL + (REL_BR - REL_BL) * 0.48;
-  return `polygon(${midTop}% 0%, ${REL_TR + marginX}% 0%, ${REL_BR + marginX}% ${100 + marginY}%, ${REL_BL + marginX}% ${100 + marginY}%, ${midBottom + marginX}% 100%)`;
-})();
+const FRONT_CLIP = `polygon(${REL_TR}% 0%, ${REL_BR}% 100%, ${REL_BL}% 100%)`;
 
 /**
  * El PNG del marco tiene blanco SÓLIDO en los 5 cuadros (no transparente),
