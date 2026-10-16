@@ -285,6 +285,18 @@ body[data-tema="kids"] .tienda-shell {
    del wrapper, en vez de con valores positivos (que las dejaban encima
    de la imagen). z-index explícito porque .splide__track trae z-index:0
    y, al venir después en el DOM, tapaba las flechas. */
+/* splide/css/core no da altura a .splide__track (solo a .splide__list,
+   al 100% de un padre que de por sí no mide nada) — normalmente ese alto
+   lo pone el option `height` de Splide como inline style. Como acá el
+   alto real lo da aspect-[1920/420] en el componente <Splide> (así la
+   imagen se ve completa en cualquier ancho de pantalla, sin recortarla),
+   hay que bajar ese 100% explícitamente por toda la cadena. */
+.banner-carousel .splide__track,
+.banner-carousel .splide__list,
+.banner-carousel .splide__slide {
+  height: 100%;
+}
+
 .banner-carousel .splide__track {
   border-radius: 28px;
   overflow: hidden;

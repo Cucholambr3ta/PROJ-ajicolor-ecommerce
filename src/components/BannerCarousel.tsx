@@ -34,6 +34,7 @@ export function BannerCarousel({
   return (
     <div className="banner-carousel w-screen relative left-1/2 -translate-x-1/2 mb-6 px-8 sm:px-12 lg:px-16">
       <Splide
+        className="aspect-[1920/420] h-auto"
         options={{
           type: "loop",
           perPage: 1,
@@ -48,7 +49,6 @@ export function BannerCarousel({
           drag: true,
           speed: 400,
           keyboard: "global",
-          height: "min(50vw, 420px)",
           waitForTransition: false,
         }}
         aria-label="Banners destacados"
