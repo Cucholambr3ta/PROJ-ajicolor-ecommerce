@@ -128,3 +128,26 @@ export async function deleteBannerImage(url: string): Promise<void> {
   const path = url.slice(idx + marker.length);
   await client.storage.from(BANNERS_BUCKET).remove([path]);
 }
+
+/** Sube la imagen vector de guía de tallas (prenda con medidas marcadas) al
+ * bucket público `productos` — reusa el mismo bucket que las fotos de
+ * producto en vez de crear uno nuevo (no es una categoría de archivo
+ * aparte, solo otra imagen pública). */
+export async function uploadTallaGuiaImage(file: File): Promise<string> {
+  if (!client) {
+    throw new Error("Supabase Storage no está configurado (falta SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY)");
+  }
+
+  const ext = file.name.split(".").pop() ?? "svg";
+  const path = `guia-tallas/${crypto.randomUUID()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await client.storage.from(PRODUCTOS_BUCKET).upload(path, buffer, {
+    contentType: file.type,
+    upsert: false,
+  });
+  if (error) throw new Error(`Error al subir la guía de tallas: ${error.message}`);
+
+  const { data } = client.storage.from(PRODUCTOS_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}

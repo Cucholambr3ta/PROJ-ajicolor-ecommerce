@@ -91,23 +91,32 @@ export async function getProducts(filtros: ProductFilters = {}) {
       : {}),
   };
 
-  const orderBy: Prisma.ProductOrderByWithRelationInput =
-    filtros.orden === "precio-asc"
-      ? { precio: "asc" }
-      : filtros.orden === "precio-desc"
-        ? { precio: "desc" }
-        : { createdAt: "desc" };
+  // El orden por precio ya no es un ORDER BY de DB — el precio real
+  // (resolvePrecioDesdeFromRules, ver src/lib/pricing-resolve.ts) depende
+  // de la tabla de PriceRule, no solo de Product.precio. Para "recientes"
+  // sigue siendo un orderBy de DB normal (más barato); para precio-asc/desc
+  // se trae la página completa sin ordenar, se resuelve el precio "desde"
+  // de cada producto en memoria, y se ordena el array antes de devolverlo.
+  const ordenaPorPrecio = filtros.orden === "precio-asc" || filtros.orden === "precio-desc";
 
-  const [items, total] = await Promise.all([
+  const [itemsSinOrdenar, total, priceRules] = await Promise.all([
     prisma.product.findMany({
       where,
       include: { variants: true, images: { orderBy: { orden: "asc" } }, collection: true },
-      orderBy,
-      skip: (page - 1) * perPage,
-      take: perPage,
+      orderBy: { createdAt: "desc" },
+      ...(ordenaPorPrecio ? {} : { skip: (page - 1) * perPage, take: perPage }),
     }),
     prisma.product.count({ where }),
+    ordenaPorPrecio ? prisma.priceRule.findMany() : Promise.resolve([]),
   ]);
+
+  let items = itemsSinOrdenar;
+  if (ordenaPorPrecio) {
+    const { resolvePrecioDesdeFromRules } = await import("@/lib/pricing-resolve");
+    const conPrecio = itemsSinOrdenar.map((p) => ({ p, precioDesde: resolvePrecioDesdeFromRules(p, priceRules) }));
+    conPrecio.sort((a, b) => (filtros.orden === "precio-asc" ? a.precioDesde - b.precioDesde : b.precioDesde - a.precioDesde));
+    items = conPrecio.slice((page - 1) * perPage, (page - 1) * perPage + perPage).map((x) => x.p);
+  }
 
   return { items, total, page, perPage, totalPages: Math.max(1, Math.ceil(total / perPage)) };
 }
@@ -163,17 +172,50 @@ export async function getFeaturedProductsByTipo() {
   return porTipo;
 }
 
+/** Include compartido por las fichas públicas: trae también el producto
+ * emparejado (Adulto↔Kids) con sus propias variantes/fotos, para el
+ * selector "Adulto / Niño" de ProductoDetailClient — ver kidsVersionId en
+ * el schema. Un producto puede ser el lado Adulto (kidsVersion) o el lado
+ * Kids (adultoDe) del par; nunca ambos. */
+const PRODUCTO_CON_PAR = {
+  variants: true,
+  images: { orderBy: { orden: "asc" as const } },
+  colorImages: true,
+  kidsVersion: { include: { variants: true, images: { orderBy: { orden: "asc" as const } }, colorImages: true } },
+  adultoDe: { include: { variants: true, images: { orderBy: { orden: "asc" as const } }, colorImages: true } },
+} satisfies Prisma.ProductInclude;
+
 export async function getProductById(id: string) {
   return prisma.product.findUnique({
     where: { id },
-    include: { variants: true, images: { orderBy: { orden: "asc" } }, colorImages: true },
+    include: PRODUCTO_CON_PAR,
   });
 }
 
 export async function getProductBySlug(slug: string) {
   return prisma.product.findUnique({
     where: { slug },
-    include: { variants: true, images: { orderBy: { orden: "asc" } }, colorImages: true },
+    include: PRODUCTO_CON_PAR,
+  });
+}
+
+/** Productos Kids que todavía no son la versión Kids de ningún Adulto —
+ * para elegir en el selector del admin al crear/editar un producto Adulto.
+ * `exceptId` es el Kids ya vinculado al producto en edición: se incluye en
+ * la lista igual (si no, desaparecería del selector al editar). */
+export async function getProductosKidsSinAsignar(exceptId?: string) {
+  await requireAdmin();
+  const yaAsignados = await prisma.product.findMany({
+    where: { kidsVersionId: { not: null } },
+    select: { kidsVersionId: true },
+  });
+  const idsAsignados = new Set(yaAsignados.map((p) => p.kidsVersionId!));
+  if (exceptId) idsAsignados.delete(exceptId);
+
+  return prisma.product.findMany({
+    where: { categoria: "Kids", id: { notIn: Array.from(idsAsignados) } },
+    select: { id: true, nombre: true, artista: true },
+    orderBy: { nombre: "asc" },
   });
 }
 
@@ -285,9 +327,15 @@ export async function createProductWithPhotos(formData: FormData) {
     tipo?: TipoProducto;
     precio: number;
     variants?: { talle: string; color: string; stock?: number; stockMin?: number }[];
+    kidsVersionId?: string | null;
   };
 
   const parsed = parseOrThrow(createProductSchema, { ...data, disenoUrl: "" });
+  // El vínculo Adulto↔Kids solo tiene sentido del lado Adulto (ver
+  // kidsVersionId en el schema) — se ignora si categoria es Kids, en vez
+  // de fallar, para no bloquear el guardado por un campo que la UI no
+  // debería haber mandado en ese caso.
+  const kidsVersionId = parsed.categoria !== "Kids" && data.kidsVersionId ? data.kidsVersionId : undefined;
 
   const slugExistente = await prisma.product.findUnique({ where: { slug: parsed.slug }, select: { id: true } });
   if (slugExistente) {
@@ -324,6 +372,7 @@ export async function createProductWithPhotos(formData: FormData) {
       tipo: parsed.tipo,
       precio: parsed.precio,
       variants: variantsConSku ? { create: variantsConSku } : undefined,
+      kidsVersionId,
     },
     include: { variants: true },
   });
@@ -379,6 +428,7 @@ export async function updateProduct(
     costoUnitario?: number;
     activo?: boolean;
     collectionId?: string | null;
+    kidsVersionId?: string | null;
     variants?: {
       id?: string;
       talle: string;

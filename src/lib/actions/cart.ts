@@ -11,6 +11,8 @@ import { randomUUID } from "crypto";
 import type { MetodoEnvio } from "@prisma/client";
 import { sendEmail } from "@/lib/email/send";
 import { pedidoRecibidoTemplate, avisoNuevoPedidoDuenoTemplate } from "@/lib/email/templates";
+import { getPriceRulesPublic } from "@/lib/pricing";
+import { resolvePrecioFromRules } from "@/lib/pricing-resolve";
 
 const CART_TOKEN_COOKIE = "cart_token";
 
@@ -253,10 +255,15 @@ export async function checkout(direccionInput: {
 
   if (!cartWithItems || cartWithItems.items.length === 0) throw new Error("El carrito está vacío");
 
-  const subtotal = cartWithItems.items.reduce(
-    (acc, item) => acc + Number(item.variant.product.precio) * item.cantidad,
-    0
-  );
+  // Reglas de precio (tabla general por tipo+talla + overrides de drop, ver
+  // src/lib/pricing.ts) cargadas UNA vez para todo el carrito — cada ítem
+  // puede ser de un producto/talle distinto, pero no hace falta una query
+  // por ítem.
+  const priceRules = await getPriceRulesPublic();
+  const precioDe = (item: (typeof cartWithItems.items)[number]) =>
+    resolvePrecioFromRules(item.variant.product, item.variant.talle, priceRules);
+
+  const subtotal = cartWithItems.items.reduce((acc, item) => acc + precioDe(item) * item.cantidad, 0);
   let costoEnvio = await costoEnvioPara(metodoEnvio);
 
   let couponId: string | undefined;
@@ -300,7 +307,7 @@ export async function checkout(direccionInput: {
           create: cartWithItems.items.map((item) => ({
             variantId: item.variantId,
             cantidad: item.cantidad,
-            precioUnit: item.variant.product.precio,
+            precioUnit: precioDe(item),
             costoUnit: item.variant.product.costoUnitario,
           })),
         },
@@ -329,7 +336,7 @@ export async function checkout(direccionInput: {
           talle: item.variant.talle,
           color: item.variant.color,
           cantidad: item.cantidad,
-          precioUnit: Number(item.variant.product.precio),
+          precioUnit: precioDe(item),
         })),
         total,
         datosBancarios: {

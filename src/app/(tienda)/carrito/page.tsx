@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { getCart } from "@/lib/actions/cart";
+import { getPriceRulesPublic } from "@/lib/pricing";
+import { resolvePrecioFromRules } from "@/lib/pricing-resolve";
 import Link from "next/link";
 import CarritoClient from "./CarritoClient";
 
@@ -7,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Mi carrito", robots: { index: false, follow: false } };
 
 export default async function CarritoPage() {
-  const cart = await getCart();
+  const [cart, priceRules] = await Promise.all([getCart(), getPriceRulesPublic()]);
   const rawItems = cart?.items ?? [];
   const items = rawItems.map((item) => ({
     id: item.id,
@@ -20,7 +22,7 @@ export default async function CarritoPage() {
         id: item.variant.product.id,
         nombre: item.variant.product.nombre,
         disenoUrl: item.variant.product.disenoUrl,
-        precio: Number(item.variant.product.precio),
+        precio: resolvePrecioFromRules(item.variant.product, item.variant.talle, priceRules),
       },
     },
   }));

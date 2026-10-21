@@ -4,6 +4,9 @@ import { cache } from "react";
 import { getProductById, getProductBySlug, getRelatedProducts } from "@/lib/actions/products";
 import { getApprovedReviews } from "@/lib/actions/reviews";
 import { getColorsPublic } from "@/lib/actions/colors";
+import { getPriceRulesPublic } from "@/lib/pricing";
+import { resolvePrecioDesdeFromRules } from "@/lib/pricing-resolve";
+import { getTallaGuiasPublic } from "@/lib/actions/tallaGuia";
 import ProductoDetailClient from "./ProductoDetailClient";
 import RelatedProducts from "./RelatedProducts";
 import ProductReviews from "./ProductReviews";
@@ -60,60 +63,92 @@ export default async function ProductoPage({
   if (!product) notFound();
   if (!matchedBySlug) redirect(`/producto/${product.slug}`);
 
-  const [related, reviews, colores] = await Promise.all([
-    getRelatedProducts({ id: product.id, artista: product.artista, collectionId: product.collectionId }),
-    getApprovedReviews(product.id),
-    getColorsPublic(product.categoria),
+  // product queda narrowed a no-null arriba, pero esa narrow no sobrevive
+  // dentro de funciones anidadas (TS las trata como posibles closures
+  // llamadas más tarde) — se re-liga a una const local para que
+  // soloComprables/serializar no vean `Product | null`.
+  const prod = product;
+
+  // Producto emparejado (Adulto↔Kids del mismo diseño, ver kidsVersionId en
+  // el schema) — puede venir de cualquiera de los dos lados de la relación
+  // según si `prod` es el Adulto (kidsVersion) o el Kids (adultoDe).
+  const par = prod.kidsVersion ?? prod.adultoDe ?? null;
+
+  const [related, reviews, colores, coloresPar, priceRules, tallaGuias] = await Promise.all([
+    getRelatedProducts({ id: prod.id, artista: prod.artista, collectionId: prod.collectionId }),
+    getApprovedReviews(prod.id),
+    getColorsPublic(prod.categoria),
+    par ? getColorsPublic(par.categoria) : Promise.resolve([]),
+    getPriceRulesPublic(),
+    getTallaGuiasPublic(),
   ]);
 
   // Solo se puede comprar un color si tiene al menos la foto de frente
   // subida — evita vender una variante que el cliente nunca puede ver
   // (pedido explícito: nada en blanco / "no disponible" en el selector).
-  const coloresConFoto = new Set(
-    product.colorImages.filter((ci) => ci.lado === "Frente").map((ci) => ci.color)
-  );
-  const variantesComprables = product.variants.filter((v) => coloresConFoto.has(v.color));
+  // Se aplica igual al producto principal y a su par (si lo tiene).
+  function soloComprables<T extends { variants: typeof prod.variants; colorImages: typeof prod.colorImages }>(
+    p: T
+  ) {
+    const coloresConFoto = new Set(p.colorImages.filter((ci) => ci.lado === "Frente").map((ci) => ci.color));
+    return p.variants.filter((v) => coloresConFoto.has(v.color));
+  }
 
+  const variantesComprables = soloComprables(prod);
+  const variantesComprablesPar = par ? soloComprables(par) : [];
+
+  // El precio real depende del talle elegido (tabla por tipo+rango, ver
+  // src/lib/pricing.ts) — JSON-LD no tiene un talle para resolver un precio
+  // exacto, así que usa el "desde" (precio más bajo entre las reglas
+  // aplicables), igual que las tarjetas de grilla.
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: product.nombre,
-    description: product.descripcion,
-    image: product.disenoUrl,
+    name: prod.nombre,
+    description: prod.descripcion,
+    image: prod.disenoUrl,
     offers: {
       "@type": "Offer",
       priceCurrency: "CLP",
-      price: Number(product.precio),
+      price: resolvePrecioDesdeFromRules(prod, priceRules),
       availability: "https://schema.org/InStock",
-      url: `${SITE_URL}/producto/${product.slug}`,
+      url: `${SITE_URL}/producto/${prod.slug}`,
     },
   };
+
+  type Serializable = Pick<
+    typeof prod,
+    "id" | "slug" | "nombre" | "descripcion" | "disenoUrl" | "artista" | "temporada" | "categoria" | "tipo" | "precio" | "images" | "colorImages"
+  >;
+  function serializar(p: Serializable, variantes: typeof variantesComprables) {
+    return {
+      id: p.id,
+      slug: p.slug,
+      nombre: p.nombre,
+      descripcion: p.descripcion,
+      disenoUrl: p.disenoUrl,
+      artista: p.artista,
+      temporada: p.temporada,
+      categoria: p.categoria,
+      tipo: p.tipo,
+      precio: Number(p.precio),
+      variants: variantes.map((v) => ({ id: v.id, talle: v.talle, color: v.color, stock: v.stock })),
+      images: p.images.map((img) => ({ id: img.id, url: img.url, alt: img.alt })),
+      colorImages: p.colorImages.map((ci) => ({ color: ci.color, lado: ci.lado, url: ci.url })),
+    };
+  }
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <ProductoDetailClient
-        product={{
-          id: product.id,
-          nombre: product.nombre,
-          descripcion: product.descripcion,
-          disenoUrl: product.disenoUrl,
-          artista: product.artista,
-          temporada: product.temporada,
-          categoria: product.categoria,
-          tipo: product.tipo,
-          precio: Number(product.precio),
-          variants: variantesComprables.map((v) => ({
-            id: v.id,
-            talle: v.talle,
-            color: v.color,
-            stock: v.stock,
-          })),
-          images: product.images.map((img) => ({ id: img.id, url: img.url, alt: img.alt })),
-          colorImages: product.colorImages.map((ci) => ({ color: ci.color, lado: ci.lado, url: ci.url })),
-        }}
+        product={serializar(product, variantesComprables)}
+        productPar={par ? serializar(par, variantesComprablesPar) : null}
         colores={colores.map((c) => ({ nombre: c.nombre, hex: c.hex }))}
+        coloresPar={coloresPar.map((c) => ({ nombre: c.nombre, hex: c.hex }))}
+        priceRules={priceRules.map((r) => ({ ...r, precio: Number(r.precio) }))}
+        tallaGuias={tallaGuias}
       />
 
       <ProductReviews reviews={reviews} />
@@ -125,7 +160,7 @@ export default async function ProductoPage({
             slug: p.slug,
             nombre: p.nombre,
             disenoUrl: p.disenoUrl,
-            precio: Number(p.precio),
+            precio: resolvePrecioDesdeFromRules(p, priceRules),
           }))}
         />
       )}
