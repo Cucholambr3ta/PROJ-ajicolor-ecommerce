@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCart } from "@/lib/actions/cart";
 import { getStoreSettings } from "@/lib/actions/settings";
+import { getPriceRulesPublic } from "@/lib/pricing";
+import { resolvePrecioFromRules } from "@/lib/pricing-resolve";
 import Link from "next/link";
 import CheckoutClient from "./CheckoutClient";
 
@@ -21,7 +23,7 @@ export default async function CheckoutPage() {
     ? await prisma.customer.findUnique({ where: { id: session!.user.id as string } })
     : null;
 
-  const [cart, settings, addresses] = await Promise.all([
+  const [cart, settings, addresses, priceRules] = await Promise.all([
     getCart(),
     getStoreSettings(),
     customer
@@ -30,6 +32,7 @@ export default async function CheckoutPage() {
           orderBy: [{ esPrincipal: "desc" }, { createdAt: "desc" }],
         })
       : Promise.resolve([]),
+    getPriceRulesPublic(),
   ]);
 
   const rawItems = cart?.items ?? [];
@@ -43,7 +46,7 @@ export default async function CheckoutPage() {
       color: item.variant.color,
       product: {
         nombre: item.variant.product.nombre,
-        precio: Number(item.variant.product.precio),
+        precio: resolvePrecioFromRules(item.variant.product, item.variant.talle, priceRules),
         disenoUrl: item.variant.product.disenoUrl,
       },
     },

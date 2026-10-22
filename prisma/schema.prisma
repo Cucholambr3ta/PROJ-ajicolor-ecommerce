@@ -257,6 +257,16 @@ model Product {
   estampadoY    Decimal?
   estampadoW    Decimal?
   estampadoH    Decimal?
+  // Par Adulto↔Kids del mismo diseño, para el selector "Adulto / Niño" en
+  // la ficha pública (ProductoDetailClient): el link se guarda SOLO del
+  // lado Adulto (kidsVersionId), el lado Kids se alcanza con la relación
+  // inversa (adultoDe) — evita guardar el mismo par dos veces y que se
+  // desincronicen. No hay restricción de que el producto con kidsVersionId
+  // seteado sea categoria=Adulto en la base (se valida en la action), pero
+  // así es como se usa siempre.
+  kidsVersionId String?          @unique
+  kidsVersion   Product?         @relation("ProductAudiencePair", fields: [kidsVersionId], references: [id])
+  adultoDe      Product?         @relation("ProductAudiencePair")
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   variants      ProductVariant[]
@@ -264,6 +274,50 @@ model Product {
   colorImages   ProductColorImage[]
   favorites     Favorite[]
   reviews       Review[]
+  priceRules    PriceRule[]
+}
+
+/// Precio por tipo de prenda + rango de talla — reemplaza el supuesto de
+/// "un producto, un precio" (Product.precio, que queda como fallback legado
+/// para productos sin ninguna regla, ej. Reloj/Papelería/Totebag hasta que
+/// se carguen sus precios). Dos usos del mismo modelo:
+/// - productId = null: regla GLOBAL, aplica a todos los productos de ese
+///   `tipo` (ej. "Polera S-XL = 15000" vale para cualquier polera).
+/// - productId = <id>: override puntual de UN producto/drop puntual, gana
+///   sobre la regla global del mismo tipo+rango — pedido explícito: "los
+///   únicos productos que tendrán precio distinto son los drops".
+/// talleDesde/talleHasta son el talle tal cual (ver src/lib/talles.ts,
+/// TALLES_ADULTO/TALLES_KIDS) — se resuelven por POSICIÓN en esa lista, no
+/// alfabéticamente (ver resolvePrecio en src/lib/pricing.ts), para que
+/// "S a XL" incluya M y L sin tener que listarlos todos.
+model PriceRule {
+  id         String       @id @default(cuid())
+  tipo       TipoProducto
+  talleDesde String
+  talleHasta String
+  precio     Decimal
+  productId  String?
+  product    Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([tipo, talleDesde, talleHasta, productId])
+}
+
+/// Imagen vector de guía de tallas (prenda con las medidas marcadas) por
+/// tipo+categoría — una sola imagen se reutiliza en TODOS los productos de
+/// ese tipo/categoría (pedido explícito, no es por producto individual). El
+/// modal de "Guía de tallas" en la ficha pública (ProductoDetailClient)
+/// la muestra al lado de la tabla de medidas ya existente.
+model TallaGuia {
+  id        String            @id @default(cuid())
+  tipo      TipoProducto
+  categoria CategoriaProducto
+  imageUrl  String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([tipo, categoria])
 }
 
 model ProductImage {

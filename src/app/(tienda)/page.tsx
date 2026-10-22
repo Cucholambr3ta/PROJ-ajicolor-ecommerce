@@ -3,6 +3,8 @@ import Image from "next/image";
 import { getProducts, getFilterOptions, getActiveCollections, getFeaturedProductsByTipo } from "@/lib/actions/products";
 import { getActiveBanners } from "@/lib/actions/banners";
 import { getStoreSettings } from "@/lib/actions/settings";
+import { getPriceRulesPublic } from "@/lib/pricing";
+import { resolvePrecioDesdeFromRules } from "@/lib/pricing-resolve";
 import { CatalogFilters } from "@/components/CatalogFilters";
 import { Pagination } from "@/components/Pagination";
 import { BannerCarousel } from "@/components/BannerCarousel";
@@ -37,7 +39,7 @@ export default async function TiendaPage({
 
   const tipo = sp.tipo ? TIPO_POR_SLUG[sp.tipo] : undefined;
 
-  const [{ items: products, total, totalPages }, { colores, talles }, collections, banners, settings, productosPorTipo] =
+  const [{ items: products, total, totalPages }, { colores, talles }, collections, banners, settings, productosPorTipo, priceRules] =
     await Promise.all([
       getProducts({
         q: sp.q,
@@ -53,6 +55,7 @@ export default async function TiendaPage({
       getActiveBanners(),
       getStoreSettings(),
       getFeaturedProductsByTipo(),
+      getPriceRulesPublic(),
     ]);
 
   const hasFilters = !!(sp.q || sp.color || sp.talle || sp.coleccion || sp.tipo);
@@ -102,7 +105,7 @@ export default async function TiendaPage({
                   <h3 className="font-black">{product.nombre}</h3>
                   <p className="text-xs font-medium text-gray-500 italic mb-2">{product.temporada}</p>
                   <p className="text-ajicolor-magenta font-black">
-                    ${Number(product.precio).toLocaleString("es-CL")}
+                    Desde ${resolvePrecioDesdeFromRules(product, priceRules).toLocaleString("es-CL")}
                   </p>
                 </div>
               </Link>

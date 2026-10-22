@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { getProducts, getFilterOptions } from "@/lib/actions/products";
+import { getPriceRulesPublic } from "@/lib/pricing";
+import { resolvePrecioDesdeFromRules } from "@/lib/pricing-resolve";
 import { CatalogFilters } from "@/components/CatalogFilters";
 import { Pagination } from "@/components/Pagination";
 
@@ -27,7 +29,7 @@ export default async function KidsPage({
   const sp = await searchParams;
   const page = sp.page ? parseInt(sp.page, 10) || 1 : 1;
 
-  const [{ items: products, total, totalPages }, { colores, talles }] = await Promise.all([
+  const [{ items: products, total, totalPages }, { colores, talles }, priceRules] = await Promise.all([
     getProducts({
       categoria: "Kids",
       q: sp.q,
@@ -37,6 +39,7 @@ export default async function KidsPage({
       page,
     }),
     getFilterOptions("Kids"),
+    getPriceRulesPublic(),
   ]);
 
   return (
@@ -76,7 +79,7 @@ export default async function KidsPage({
                 <h3 className="font-black">{product.nombre}</h3>
                 <p className="text-xs font-medium text-gray-500 italic mb-2">{product.temporada}</p>
                 <p className="text-ajicolor-magenta font-black">
-                  ${Number(product.precio).toLocaleString("es-CL")}
+                  Desde ${resolvePrecioDesdeFromRules(product, priceRules).toLocaleString("es-CL")}
                 </p>
               </div>
             </Link>

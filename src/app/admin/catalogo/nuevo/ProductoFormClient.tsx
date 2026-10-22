@@ -4,9 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { TALLES_KIDS } from "@/lib/kids";
-
-const TALLES_ADULTO = ["S", "M", "L", "XL", "2XL"];
+import { TALLES_ADULTO, TALLES_KIDS, TALLE_UNICO, usaTalles } from "@/lib/talles";
 
 type TipoProducto = "Polera" | "Poleron" | "Totebag" | "Reloj" | "Papeleria";
 
@@ -18,12 +16,6 @@ const TIPOS_PRODUCTO: { value: TipoProducto; label: string }[] = [
   { value: "Papeleria", label: "Papelería" },
 ];
 
-/** Solo Polera y Polerón usan talles de ropa — el resto (Totebag, Reloj,
- * Papelería) es una sola variante por color, sin selector de talle. */
-function usaTalles(tipo: TipoProducto): boolean {
-  return tipo === "Polera" || tipo === "Poleron";
-}
-
 /** Reloj y Papelería no tienen color relevante para la compra — en vez del
  * bloque de colores, se sube una galería libre de fotos (varios ángulos)
  * y se crea una única variante automática color="Único"/talle="Única". */
@@ -32,10 +24,6 @@ function usaGaleria(tipo: TipoProducto): boolean {
 }
 
 const COLOR_UNICO = "Único";
-
-/** Talle fijo interno para productos sin talles reales — ProductVariant.talle
- * es obligatorio en el modelo, así que se usa este valor como "única talla". */
-const TALLE_UNICO = "Única";
 
 interface ProductImageData {
   id: string;
@@ -78,9 +66,17 @@ function claveFoto(color: string, lado: "Frente" | "Espalda") {
   return `${color}__${lado}`;
 }
 
+interface ProductoSimpleData {
+  id: string;
+  nombre: string;
+  artista: string;
+}
+
 export default function ProductoFormClient({
   initialData,
   colores,
+  kidsDisponibles = [],
+  preciosDelProducto = [],
 }: {
   initialData?: {
     id: string;
@@ -93,11 +89,19 @@ export default function ProductoFormClient({
     categoria: "Adulto" | "Kids";
     tipo: TipoProducto;
     precio: number | any;
+    kidsVersionId?: string | null;
     variants: { id: string; talle: string; color: string; sku: string; stock: number; stockMin: number }[];
     images?: ProductImageData[];
     colorImages?: ColorImageData[];
   };
   colores: ColorData[];
+  /** Productos Kids todavía sin vincular a un Adulto (más el que ya está
+   * vinculado a este, en modo edición) — para el selector "Versión Kids". */
+  kidsDisponibles?: ProductoSimpleData[];
+  /** Reglas de precio con productId = este producto (override de drop) —
+   * solo existen en modo edición, un producto nuevo todavía no tiene id al
+   * que asociarlas. Ver src/lib/pricing.ts. */
+  preciosDelProducto?: { id: string; talleDesde: string; talleHasta: string; precio: number }[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -123,6 +127,7 @@ export default function ProductoFormClient({
   const [categoria, setCategoria] = useState<"Adulto" | "Kids">(initialData?.categoria ?? "Adulto");
   const [tipo, setTipo] = useState<TipoProducto>(initialData?.tipo ?? "Polera");
   const [precio, setPrecio] = useState(initialData ? Number(initialData.precio) : 0);
+  const [kidsVersionId, setKidsVersionId] = useState(initialData?.kidsVersionId ?? "");
   const paletaActiva = useMemo(() => colores.filter((c) => c.categoria === categoria), [colores, categoria]);
   const productoUsaTalles = usaTalles(tipo);
   const productoUsaGaleria = usaGaleria(tipo);
@@ -130,7 +135,7 @@ export default function ProductoFormClient({
     ? [TALLE_UNICO]
     : categoria === "Kids"
       ? [...TALLES_KIDS]
-      : TALLES_ADULTO;
+      : [...TALLES_ADULTO];
   const [tieneFrenteEspalda, setTieneFrenteEspalda] = useState(false);
 
   // Fotos ya subidas (modo edición, llegan del server) — se suben una por
@@ -173,6 +178,49 @@ export default function ProductoFormClient({
   const [error, setError] = useState("");
   const [images, setImages] = useState<ProductImageData[]>(initialData?.images ?? []);
   const [uploading, setUploading] = useState(false);
+
+  // Precio especial de este producto (override de drop) — solo tiene
+  // sentido en modo edición, ver preciosDelProducto. Mismo formato
+  // desde/hasta que la tabla global de /admin/precios, pero con
+  // productId fijo a este producto.
+  const [preciosProducto, setPreciosProducto] = useState(preciosDelProducto);
+  const opcionesTallePrecio = !productoUsaTalles ? [TALLE_UNICO] : categoria === "Kids" ? [...TALLES_KIDS] : [...TALLES_ADULTO];
+  const [precioTalleDesde, setPrecioTalleDesde] = useState(opcionesTallePrecio[0]);
+  const [precioTalleHasta, setPrecioTalleHasta] = useState(opcionesTallePrecio[0]);
+  const [precioEspecial, setPrecioEspecial] = useState(0);
+  const [guardandoPrecio, setGuardandoPrecio] = useState(false);
+
+  async function handleAgregarPrecioEspecial() {
+    if (!isEdit) return;
+    setGuardandoPrecio(true);
+    setError("");
+    try {
+      const { createPriceRule } = await import("@/lib/pricing");
+      const creada = await createPriceRule({
+        tipo,
+        talleDesde: precioTalleDesde,
+        talleHasta: precioTalleHasta,
+        precio: precioEspecial,
+        productId: initialData!.id,
+      });
+      setPreciosProducto((prev) => [...prev, { id: creada.id, talleDesde: creada.talleDesde, talleHasta: creada.talleHasta, precio: Number(creada.precio) }]);
+      setPrecioEspecial(0);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al guardar el precio especial");
+    } finally {
+      setGuardandoPrecio(false);
+    }
+  }
+
+  async function handleQuitarPrecioEspecial(id: string) {
+    try {
+      const { deletePriceRule } = await import("@/lib/pricing");
+      await deletePriceRule(id);
+      setPreciosProducto((prev) => prev.filter((p) => p.id !== id));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al quitar el precio especial");
+    }
+  }
 
   // Galería en memoria (modo creación, sin productId todavía) — mismo
   // patrón que fotosPendientes/previewUrls para color, pero para Reloj y
@@ -363,6 +411,7 @@ export default function ProductoFormClient({
           categoria,
           tipo,
           precio,
+          kidsVersionId: categoria === "Adulto" ? kidsVersionId || null : null,
           variants: variantesConDatos,
         });
       } else {
@@ -379,6 +428,7 @@ export default function ProductoFormClient({
             categoria,
             tipo,
             precio,
+            kidsVersionId: categoria === "Adulto" ? kidsVersionId || null : null,
             variants: variantesConDatos,
           })
         );
@@ -494,6 +544,30 @@ export default function ProductoFormClient({
                 Determina la paleta de colores y en qué sección aparece (/ o /kids). Cambiarla reinicia los colores cargados abajo.
               </p>
             </div>
+            {categoria === "Adulto" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">
+                  Versión Kids (opcional)
+                </label>
+                <select
+                  value={kidsVersionId}
+                  onChange={(e) => setKidsVersionId(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                >
+                  <option value="">— Sin vincular —</option>
+                  {kidsDisponibles.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.artista} — {p.nombre}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400 mt-1 dark:text-neutral-500">
+                  Si el mismo diseño ya tiene una versión Kids cargada como producto aparte, vinculala acá — en la
+                  ficha pública aparece un selector Adulto/Niño que cambia entre los dos. Solo se listan productos
+                  Kids que todavía no están vinculados a otro Adulto.
+                </p>
+              </div>
+            )}
             {isEdit && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-neutral-300">URL del Diseño</label>
@@ -697,6 +771,91 @@ export default function ProductoFormClient({
             </p>
           )}
         </Card>
+        )}
+
+        {isEdit && (
+          <Card className="p-6 mb-6">
+            <h2 className="font-semibold text-gray-700 mb-1 dark:text-neutral-200">Precio especial (drop)</h2>
+            <p className="text-xs text-gray-400 mb-4 dark:text-neutral-500">
+              Sin nada acá, este producto cobra según la tabla general de{" "}
+              <Link href="/admin/precios" className="underline">
+                Precios
+              </Link>
+              . Agregá un rango solo si este producto puntual (ej. un drop) tiene que cobrar distinto.
+            </p>
+            {preciosProducto.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                {preciosProducto.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between gap-2 border border-gray-200 dark:border-neutral-700 rounded-md px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm font-medium dark:text-neutral-100">
+                        {p.talleDesde === p.talleHasta ? p.talleDesde : `${p.talleDesde} – ${p.talleHasta}`}
+                      </p>
+                      <p className="text-xs text-ajicolor-magenta font-bold">${p.precio.toLocaleString("es-CL")}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleQuitarPrecioEspecial(p.id)}
+                      className="text-red-500 hover:bg-red-50 dark:hover:bg-red-950 px-1.5 py-1 text-xs shrink-0"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Desde talle</label>
+                <select
+                  value={precioTalleDesde}
+                  onChange={(e) => setPrecioTalleDesde(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                >
+                  {opcionesTallePrecio.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Hasta talle</label>
+                <select
+                  value={precioTalleHasta}
+                  onChange={(e) => setPrecioTalleHasta(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                >
+                  {opcionesTallePrecio.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1 dark:text-neutral-400">Precio</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={precioEspecial}
+                  onChange={(e) => setPrecioEspecial(parseFloat(e.target.value) || 0)}
+                  className="no-spinner w-full border border-gray-300 rounded-md px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAgregarPrecioEspecial}
+                disabled={guardandoPrecio}
+                className="px-4 py-2 rounded-md btn-block bg-white dark:bg-neutral-900 disabled:opacity-40"
+              >
+                + Agregar
+              </button>
+            </div>
+          </Card>
         )}
 
         {error && <p className="text-red-500 text-sm mb-4 dark:text-red-400">{error}</p>}

@@ -559,7 +559,7 @@ function FavoritosTab({ favorites }: { favorites: Favorite[] }) {
             <Link href={`/producto/${fav.slug}`} className="font-black hover:underline">
               {fav.nombre}
             </Link>
-            <p className="text-ajicolor-magenta font-black text-sm">{formatCLP(fav.precio)}</p>
+            <p className="text-ajicolor-magenta font-black text-sm">Desde {formatCLP(fav.precio)}</p>
           </div>
           <button
             onClick={() => handleRemove(fav.productId)}

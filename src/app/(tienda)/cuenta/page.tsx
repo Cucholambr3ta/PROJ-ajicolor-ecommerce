@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getPriceRulesPublic } from "@/lib/pricing";
+import { resolvePrecioDesdeFromRules } from "@/lib/pricing-resolve";
 import CuentaClient from "./CuentaClient";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +15,7 @@ export default async function CuentaPage() {
 
   const customerId = session.user.id;
 
-  const [customer, addresses, favorites, myReviews] = await Promise.all([
+  const [customer, addresses, favorites, myReviews, priceRules] = await Promise.all([
     prisma.customer.findUnique({
       where: { id: customerId },
       include: {
@@ -33,6 +35,7 @@ export default async function CuentaPage() {
       orderBy: { createdAt: "desc" },
     }),
     prisma.review.findMany({ where: { customerId }, select: { orderId: true, productId: true } }),
+    getPriceRulesPublic(),
   ]);
 
   if (!customer) redirect("/login-cliente");
@@ -86,7 +89,7 @@ export default async function CuentaPage() {
             slug: f.product.slug,
             nombre: f.product.nombre,
             disenoUrl: f.product.disenoUrl,
-            precio: Number(f.product.precio),
+            precio: resolvePrecioDesdeFromRules(f.product, priceRules),
           }))}
         />
       </main>

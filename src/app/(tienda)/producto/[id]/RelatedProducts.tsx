@@ -28,7 +28,7 @@ export default function RelatedProducts({ products }: { products: RelatedProduct
             <div className="p-3">
               <h3 className="font-bold text-sm">{product.nombre}</h3>
               <p className="text-ajicolor-magenta font-black text-sm">
-                ${product.precio.toLocaleString("es-CL")}
+                Desde ${product.precio.toLocaleString("es-CL")}
               </p>
             </div>
           </Link>
